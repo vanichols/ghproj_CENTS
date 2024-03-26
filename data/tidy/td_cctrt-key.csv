@@ -1,0 +1,6 @@
+cctrt_id,cctrt_label
+mix_E,"Grass+clover, at planting"
+rad_E,Radish before harvest
+rad_L,Radish after harvest
+mix_L,"Grass+clover, before harvest"
+nocc,Control
