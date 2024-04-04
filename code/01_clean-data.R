@@ -71,8 +71,8 @@ d5 <-
   d4 %>% 
   mutate(cctrt_id = case_when(
     covercrop == "lolcl1" ~ "mix_E",
-    covercrop == "lolcl2" ~ "mix_L",
-    covercrop == "radish1" ~ "rad_E",
+    covercrop == "lolcl2" ~ "mix_M",
+    covercrop == "radish1" ~ "rad_M",
     covercrop == "radish2" ~ "rad_L",
     covercrop == "noCC" ~ "nocc",
     TRUE ~ "XXXX")) %>% 
@@ -88,9 +88,9 @@ cc_key <-
          B_species = species) %>%
   mutate(
     estab_desc = case_when(
-      cctrt_id == "mix_E" ~ "at crop planting",
-      cctrt_id == "mix_L" ~ "2 weeks before crop harvest",
-      cctrt_id == "rad_E" ~ "2 weeks before crop harvest",
+      cctrt_id == "mix_E" ~ "at crop sowing",
+      cctrt_id == "mix_M" ~ "2 weeks before crop harvest",
+      cctrt_id == "rad_M" ~ "2 weeks before crop harvest",
       cctrt_id == "rad_L" ~ "after crop harvest",
       TRUE ~ "no cover crop established"
     ),
@@ -101,10 +101,10 @@ cc_key <-
     )
   ) %>% 
   mutate(cctrt_label = case_when(
-           cctrt_id == "mix_E" ~ "Grass+clover, at planting",
-         cctrt_id == "mix_L" ~ "Grass+clover, before harvest",
-         cctrt_id == "rad_E" ~ "Radish before harvest",
-         cctrt_id == "rad_L" ~ "Radish after harvest",
+           cctrt_id == "mix_E" ~ "Gr/cl at sowing",
+         cctrt_id == "mix_M" ~ "Gr/cl pre-harvest",
+         cctrt_id == "rad_M" ~ "Rad pre-harvest",
+         cctrt_id == "rad_L" ~ "Rad post-harvest",
          TRUE ~ "Control")
   )
 
@@ -117,6 +117,36 @@ cc_key %>%
   write_csv("data/tidy/td_cctrt-key.csv")
 
 
-# stopped -----------------------------------------------------------------
 
+# 6. make plot key --------------------------------------------------------
 
+# plots should keep same treatments each year
+# 2 rot trts, 3 tillage trts, 5 cc trts, 4 reps
+2*3*5*4
+
+plot_key <- 
+  d5 %>% 
+  select(plot_id = parc, block, straw_id, till_id, cctrt_id) %>% 
+  distinct()
+
+plot_key %>% 
+  
+
+# 6. slim down ------------------------------------------------------------
+
+d6 <-
+  d5 %>% 
+  select(year, block, parc, till_id, cctrt_id, straw_id, date2, everything(),
+         -till, -rota, -covercrop, -estab, -species)
+
+# 7. yields ---------------------------------------------------------------
+
+d7 <-
+  d6 %>% 
+  filter(!is.na(yield_DM)) %>% 
+  select(year, block, parc, till_id, cctrt_id, straw_id, date2, 
+         yieldDM_gm2 = yield_DM, 
+         yield15_tonha = yield15)
+
+d7 %>% 
+  write_csv("data/tidy/td_yield.csv")
