@@ -17,14 +17,18 @@ draw <- read_csv("data/raw/rd_gina-simplified.csv")
 
 plot_key <- read_csv("data/keys/key_plot.csv")
 
+cc_key<- read_csv("data/keys/key_cctrt.csv")
+
 
 # percent weed coverage ---------------------------------------------
+
+#--the weeds!!!! keep the weed coverage, duh
 
 d2 <- 
   draw %>% 
   filter(is.na(yield_DM), !is.na(reg)) %>% 
   select(plot_id:date2, 
-         rep = reg, 
+         rep = reg), 
          soil, volunteer, clover, lolpe, radish) %>%
   pivot_longer(soil:radish) 
 
@@ -64,7 +68,9 @@ d3 %>%
 #--example
 d3 %>% 
   filter(obs_id == "3_53_04_2019-11-01") %>% 
-  filter(rep == 3)
+  filter(rep == 3) %>% 
+  left_join(plot_key) %>% 
+  left_join(cc_key)
 
 
 #--what would you do?
