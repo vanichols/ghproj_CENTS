@@ -46,7 +46,7 @@ d1 <-
   mutate(till_id = case_when(
     till == 1 ~ "high",
     till == 2 ~ "med",
-    till == 4 ~ "none"),
+    till == 4 ~ "notill"),
     till_desc = case_when(
       till == 1 ~ "moldboard plowing",
       till == 2 ~ "8-10 cm depth tillage",
