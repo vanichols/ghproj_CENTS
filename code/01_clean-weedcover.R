@@ -22,8 +22,12 @@ cc_key<- read_csv("data/keys/key_cctrt.csv")
 
 # percent weed coverage ---------------------------------------------
 
-#--the weeds!!!! keep the weed coverage, duh
+tst18 <- 
+  draw %>% 
+  filter(plot_id == "3_05_02" & year == 2018)
 
+#--the weeds!!!! keep the weed coverage, duh
+#  this is wrong
 d2 <- 
   draw %>% 
   filter(is.na(yield_DM), !is.na(reg)) %>% 
