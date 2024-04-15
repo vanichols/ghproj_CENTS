@@ -24,59 +24,67 @@ cc_key<- read_csv("data/keys/key_cctrt.csv")
 
 tst18 <- 
   draw %>% 
-  filter(plot_id == "3_05_02" & year == 2018)
+  filter(plot_id == "3_05_02" & year == 2018) %>% 
+  filter(!is.na(reg), is.na(dicot)) 
 
-#--the weeds!!!! keep the weed coverage, duh
-#  this is wrong
+draw %>% 
+  filter(!is.na(lamss)) ->a
+
+#--is senss + lamss = weedcov?
 d2 <- 
   draw %>% 
-  filter(is.na(yield_DM), !is.na(reg)) %>% 
+  filter(!is.na(reg), is.na(dicot)) %>% 
   select(plot_id:date2, 
-         rep = reg), 
-         soil, volunteer, clover, lolpe, radish) %>%
-  pivot_longer(soil:radish) 
+         rep = reg, 
+         soil:weedcov) 
+
+#--yes
+d2 %>% 
+  left_join(
+    d2 %>% 
+      pivot_longer(senss:lamss) %>% 
+      group_by(plot_id, year, date2, rep) %>% 
+      summarise(weedcov2 = sum(value, na.rm = T))
+    
+  ) %>% 
+  ggplot(aes(weedcov, weedcov2)) + 
+  geom_point()
 
 
-# numbers don't add up to 100 ---------------------------------------------
+# tidy it -----------------------------------------------------------------
+
+d1 <- 
+  draw %>% 
+  filter(!is.na(reg), is.na(dicot)) %>% 
+  select(plot_id:date2, 
+         rep = reg, 
+         soil:radish, weedcov) 
+
+
+#--very, very close. Wow. 
+d1 %>% 
+  pivot_longer(soil:weedcov) %>% 
+  group_by(plot_id, year, date, rep) %>% 
+  summarise(tot = sum(value, na.rm = F)) %>% 
+  ggplot(aes(tot)) + 
+  geom_histogram()
+  
 
 d3 <- 
-  d2  %>% 
-  group_by(plot_id, year, date, date2, rep) %>% 
-  mutate(tot = sum(value, na.rm = T)) %>% 
-  filter(tot > 0) %>% 
-  unite(plot_id, date2, col = "obs_id", remove = F) 
+  d1 %>% 
+  pivot_longer(soil:weedcov) %>% 
+  rename(cover_type = name, 
+         cover_pct = value) 
 
-d3.tmp <- 
-  d3 %>% 
-  select(obs_id, plot_id, year, date2, rep, tot) %>% 
-  distinct() %>% 
-  left_join(plot_key) %>% 
-  unite(plot_id, date2, col = "obs_id", remove = F) 
+d3 %>% 
+  write_csv("data/tidy/td_weedcover.csv")
 
-d3.tmp %>%
-  ggplot(aes(obs_id, tot)) + 
-    geom_point(aes(color = cctrt_id, shape = till_id), show.legend = F) + 
+
+
+# look at it --------------------------------------------------------------
+
+d3 %>% 
+  ggplot(aes(plot_id, cover_pct)) + 
+  geom_col(aes(fill = cover_type)) + 
   facet_grid(.~year)
 
-ggplotly(
-)
-
-#--720 observations
-#--100 instances where total is less than 95
-
-d3 %>% 
-  select(obs_id, plot_id, year, date, date2, rep, tot) %>% 
-  distinct() %>% 
-  filter(tot <95)
-
-#--example
-d3 %>% 
-  filter(obs_id == "3_53_04_2019-11-01") %>% 
-  filter(rep == 3) %>% 
-  left_join(plot_key) %>% 
-  left_join(cc_key)
-
-
-#--what would you do?
-#--option is to rescale, make all values total to 100
-#--or leave as is, compare soil values to other soil values
