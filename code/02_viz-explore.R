@@ -19,10 +19,8 @@ cc_key<- read_csv("data/keys/key_cctrt.csv")
 #--note: three reps in pct data
 pct <- read_csv("data/tidy/td_weedcover.csv")
 
-#--note: no reps in biomass data
+#--note: no reps in biomass data?
 bio <- read_csv("data/tidy/td_fallbio.csv")
-
-
 
 
 # are biomass and pct cover related? --------------------------------------
@@ -52,6 +50,17 @@ pct %>%
 bio %>% 
   filter(plot_id == "3_05_02" & year == "2018")
 
+
+# look at pct cover -------------------------------------------------------
+
+pct %>% 
+  left_join(plot_key) %>% 
+  mutate(cover_type2 = ifelse(cover_type %in% c("clover", "lolpe", "radish"), "cc", cover_type)) %>% 
+  ggplot(aes(plot_id, cover_pct)) + 
+  geom_col(aes(fill = cover_type2)) + 
+  facet_wrap(~year + cctrt_id, scales = "free", ncol = 5) + 
+  scale_fill_manual(values = c("green4", "black", "purple", "red")) + 
+  coord_flip()
 
 
 # 1. pct procesing -----------------------------------------------------------
@@ -107,16 +116,41 @@ d1 %>%
 
 #--provide an example plot where this is happening
 
-
-
-
-
-library(ggplotlyExtra)  
-
-ggplotly(tooltip = "plot_id")
-
+#--in 2019, instances where % cover is 0, but there is weed biomass
 
 d1 %>% 
   left_join(d2) %>% 
-  filter(comp_id != "soil") %>% 
-  filter(plot_id == "3_52_02")
+  filter(!(comp_id %in% c("soil", "covercrop"))) %>% 
+  filter(year == 2019)
+  
+
+# re-create bo's figs -----------------------------------------------------
+
+p1 <- 
+  pct %>% 
+  mutate(cover_type2 = ifelse(cover_type %in% c("clover", "lolpe", "radish"), "covercrop", cover_type)) %>% 
+  left_join(plot_key) %>% 
+  mutate(yearf = as.factor(year))
+
+library(lme4)
+library(lmerTest)
+
+p1
+
+#--do any of these things impact the cover crop coverage?
+m1 <- lmer(cover_pct ~ yearf*straw*cctrt_id*till_id + (1|block), data = p1 %>% filter(cover_type2 == "covercrop"))
+anova(m1)
+#--the cover crop type and year
+
+p1 %>% 
+  filter(cover_type2 == "covercrop") %>% 
+  ggplot(aes(till_id, cover_pct)) + 
+  geom_col(aes(fill = straw), position = position_dodge()) + 
+  facet_grid(cctrt_id~ yearf)
+
+#--there is a lot of cover crop coverage in the no-cover control....
+p1 %>% 
+  filter(cctrt_id == "nocc") %>% 
+  ggplot(aes(cover_type, cover_pct)) + 
+  geom_point() + 
+  facet_grid(.~cctrt_id + yearf)

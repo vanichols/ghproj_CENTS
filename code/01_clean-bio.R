@@ -37,6 +37,19 @@ d1 <-
 summary(d1 %>% 
           mutate_if(is.character, as.factor))
 
+d1 %>% 
+  filter(year == 2018)
+
+#--I think 2019 had no volunteer biomass data?
+#--nope
+d1 %>% 
+  ggplot(aes(dm_type)) + 
+  geom_histogram(stat = "count") +
+  labs(x = NULL,
+       y = "number of observations",
+       title = "No biomass for volunteers in 2019") +
+  facet_grid(.~year)
+
 
 d2 <- 
   d1 %>% 
@@ -45,6 +58,9 @@ d2 <-
 
 summary(d2 %>% 
           mutate_if(is.character, as.factor))
+
+d1 %>% 
+  filter(year == 2019) ->a
 
 d2 %>% 
   write_csv("data/tidy/td_fallbio.csv")

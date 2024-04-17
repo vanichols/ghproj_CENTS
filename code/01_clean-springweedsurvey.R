@@ -43,6 +43,12 @@ d2 <-
   mutate(value2 = as.numeric(value))
 
 d2 %>% 
+  ggplot(aes(name)) + 
+  geom_histogram(stat = "count") + 
+  facet_grid(.~year)
+
+
+d2 %>% 
   write_csv("data/tidy/td_springweedsurvey.csv")
 
 # what is this? -----------------------------------------------------------

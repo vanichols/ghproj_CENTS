@@ -30,7 +30,11 @@ tst18 <-
 draw %>% 
   filter(!is.na(lamss)) ->a
 
-#--is senss + lamss = weedcov?
+#--is senss:lamss = weedcov?
+# senss is ragwort I think, senecio sp.
+# lamss is deadnettle? Lamium?
+
+# 
 d2 <- 
   draw %>% 
   filter(!is.na(reg), is.na(dicot)) %>% 
@@ -38,6 +42,21 @@ d2 <-
          rep = reg, 
          soil:weedcov) 
 
+#--are the weeds assessed the same in each year?
+#--Yes
+d2 %>% 
+  filter(year == 2018) %>% 
+  pivot_longer(senss:lamss) %>% 
+  select(year, name) %>% 
+  distinct() %>% 
+  mutate(cheat = "A") %>% 
+  left_join(d2 %>% 
+              filter(year == 2019) %>% 
+              pivot_longer(senss:lamss) %>% 
+              select(year2 = year, name) %>% 
+              distinct() %>% 
+              mutate(cheat = "A"))
+  
 #--yes
 d2 %>% 
   left_join(
@@ -48,8 +67,10 @@ d2 %>%
     
   ) %>% 
   ggplot(aes(weedcov, weedcov2)) + 
-  geom_point()
+  geom_point(aes(color = as.factor(year)))
 
+
+d2
 
 # tidy it -----------------------------------------------------------------
 
@@ -61,7 +82,7 @@ d1 <-
          soil:radish, weedcov) 
 
 
-#--very, very close. Wow. 
+#--all measurements very, very close to 100%. Wow. 
 d1 %>% 
   pivot_longer(soil:weedcov) %>% 
   group_by(plot_id, year, date, rep) %>% 
@@ -80,6 +101,12 @@ d3 %>%
   write_csv("data/tidy/td_weedcover.csv")
 
 
+summary(d3)
+  
+d3 %>% 
+  filter(year == 2018) %>% 
+  select(cover_type) %>% 
+  distinct()
 
 # look at it --------------------------------------------------------------
 
@@ -87,4 +114,13 @@ d3 %>%
   ggplot(aes(plot_id, cover_pct)) + 
   geom_col(aes(fill = cover_type)) + 
   facet_grid(.~year)
+
+d3 %>% 
+  left_join(plot_key) %>% 
+  mutate(cover_type2 = ifelse(cover_type %in% c("clover", "lolpe", "radish"), "cc", cover_type)) %>% 
+  ggplot(aes(plot_id, cover_pct)) + 
+  geom_col(aes(fill = cover_type2)) + 
+  facet_wrap(~year + cctrt_id, scales = "free", ncol = 5) + 
+  scale_fill_manual(values = c("green4", "black", "purple", "red")) + 
+  coord_flip()
 
