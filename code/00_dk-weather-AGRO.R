@@ -13,5 +13,5 @@ rm(list = ls())
 # agro climate data -------------------------------------------------------
 
 
-read_csv("data/raw/wea/AGRO-slagelse-US.csv") %>% 
+read_csv("data/raw/wea/AGRO-slagelse-US.csv") 
   

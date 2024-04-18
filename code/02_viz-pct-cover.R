@@ -174,6 +174,10 @@ p1 %>%
   facet_grid(straw~year)
 
 
+# best plot ---------------------------------------------------------------
+
+# I think it is important to classify the years, dry, wet, whatever
+
 p1 %>% 
   group_by(year, cover_type2, block, straw, till_id, cctrt_id,
            yearf, rep) %>% 
@@ -189,10 +193,15 @@ p1 %>%
   mutate(cctrt_id = factor(cctrt_id, levels = c("nocc", "mix_E", "mix_M",
                                                 "rad_M", "rad_L"))) %>% 
   ggplot(aes(till_intensity, cover_pct)) +
-  geom_line(aes(color = straw, group = interaction(block, straw, cctrt_id)))+
+  geom_line(aes(color = straw, group = interaction(block, straw, cctrt_id)), size = 2)+
+  scale_color_manual(values = c("brown4", "orange")) +
   facet_grid(year ~ cctrt_id) +
   labs(title = "Radish performance less sensitive to weather, tillage, and timing compared to mixture",
        subtitle = "Both CCs benefited from earlier planting, radish less so than mix\nStraw removal had minimal effect")
+
+
+# scratch plots -----------------------------------------------------------
+
 
 # average over blocks, I like the other one better
 p1 %>% 
