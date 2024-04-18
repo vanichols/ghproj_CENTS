@@ -56,7 +56,9 @@ d1 <-
 till_key <- 
   d1 %>% 
   select(till_id, till_desc, Bo_till = till) %>% 
-  distinct() 
+  distinct() %>% 
+  arrange(-Bo_till) %>% 
+  mutate(till_intensity = c(1, 2, 3))
 
 till_key %>% 
   write_csv("data/keys/key_till.csv")

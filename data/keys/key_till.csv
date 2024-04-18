@@ -1,4 +1,4 @@
-till_id,till_desc,Bo_till
-med,8-10 cm depth tillage,2
-high,moldboard plowing,1
-notill,direct seeding since exp establishment,4
+till_id,till_desc,Bo_till,till_intensity
+notill,direct seeding since exp establishment,4,1
+med,8-10 cm depth tillage,2,2
+high,moldboard plowing,1,3
