@@ -18,36 +18,55 @@ cc_key<- read_csv("data/keys/key_cctrt.csv")
 till_key <- read_csv("data/keys/key_till.csv")
 
 #--note: three reps in pct data
-pct <- read_csv("data/tidy/td_pctcover-simple.csv")
+pct <- read_csv("data/tidy/td_weedcover.csv")
+
+#--note: no reps in biomass data?
+bio <- read_csv("data/tidy/td_fallbio.csv")
 
 
+# just cover crop data ----------------------------------------------------
 
-# 1. all covers -----------------------------------------------------------
-
-summary(pct %>% 
-          left_join(plot_key) %>% 
-          mutate(till_id = as.factor(till_id)))
 pct %>% 
-  left_join(plot_key) %>%
-  mutate(till_id = case_when(
-    till_id == "high" ~ "3high",
-    till_id == "med" ~ "2med",
-    till_id == "notill" ~ "1notill",
-    TRUE ~ "XXX")) %>% 
-  arrange(straw, till_id, block) %>% 
-  unite(col = "thing", straw, till_id, block, remove = F) %>% 
-  mutate(thing = fct_inorder(thing)) %>% 
-  ggplot(aes(thing, cover_pct)) + 
-  geom_col(aes(fill = cover_type2, color = cover_type2, alpha = straw), size=1.1) +
+  
+
+# are biomass and pct cover related? --------------------------------------
+
+#--when were things sampled for the coverage?
+summary(pct %>% 
+  mutate_if(is.character, as.factor))
+#--9 Nov 2018
+#--1 Nov 2019
+
+#--for the biomass?
+summary(bio %>% 
+          mutate_if(is.character, as.factor))
+#--14 Nov 2018
+#--13 Nov 2019
+
+#--let's pick one plot and see if they line up
+
+pct %>% 
+  filter(plot_id == "3_05_02" & year == "2018") %>% 
+  mutate(comp_id = case_when(
+    (cover_type %in% c("clover", "lolpe", "radish")) ~ "covercrop", 
+    cover_type == "weedcov" ~ "weeds", 
+    TRUE ~ cover_type)) 
+  
+
+bio %>% 
+  filter(plot_id == "3_05_02" & year == "2018")
+
+
+# look at pct cover -------------------------------------------------------
+
+pct %>% 
+  left_join(plot_key) %>% 
+  mutate(cover_type2 = ifelse(cover_type %in% c("clover", "lolpe", "radish"), "cc", cover_type)) %>% 
+  ggplot(aes(plot_id, cover_pct)) + 
+  geom_col(aes(fill = cover_type2)) + 
   facet_wrap(~year + cctrt_id, scales = "free", ncol = 5) + 
   scale_fill_manual(values = c("green4", "black", "purple", "red")) + 
-  scale_color_manual(values = c("green4", "black", "purple", "red")) + 
-  scale_alpha_manual(values = c(0.5, 1)) +
-  theme(axis.text.x = element_blank(),
-        legend.position = "bottom")
-
-ggsave("figs/all-cover.png", height = 8, width = 10)
-
+  coord_flip()
 
 
 # 1. pct procesing -----------------------------------------------------------
@@ -62,8 +81,8 @@ d1 <-
     (cover_type %in% c("clover", "lolpe", "radish")) ~ "covercrop", 
      cover_type == "weedcov" ~ "weeds", 
      TRUE ~ cover_type)) %>% 
-  group_by(plot_id, year, comp_id) %>% 
-  summarise(cover_pct_avg = mean(cover_pct, na.rm = T))
+  group_by(plot_id, year, date, date2, rep, year, comp_id) %>% 
+  mutate(cover_pct_avg = sum(cover_pct, na.rm = T))
 
 #--sampled 13 Nov
 

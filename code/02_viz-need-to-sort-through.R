@@ -21,33 +21,44 @@ till_key <- read_csv("data/keys/key_till.csv")
 pct <- read_csv("data/tidy/td_pctcover-simple.csv")
 
 
+# are biomass and pct cover related? --------------------------------------
 
-# 1. all covers -----------------------------------------------------------
-
+#--when were things sampled for the coverage?
 summary(pct %>% 
-          left_join(plot_key) %>% 
-          mutate(till_id = as.factor(till_id)))
+  mutate_if(is.character, as.factor))
+#--9 Nov 2018
+#--1 Nov 2019
+
+#--for the biomass?
+summary(bio %>% 
+          mutate_if(is.character, as.factor))
+#--14 Nov 2018
+#--13 Nov 2019
+
+#--let's pick one plot and see if they line up
+
 pct %>% 
-  left_join(plot_key) %>%
-  mutate(till_id = case_when(
-    till_id == "high" ~ "3high",
-    till_id == "med" ~ "2med",
-    till_id == "notill" ~ "1notill",
-    TRUE ~ "XXX")) %>% 
-  arrange(straw, till_id, block) %>% 
-  unite(col = "thing", straw, till_id, block, remove = F) %>% 
-  mutate(thing = fct_inorder(thing)) %>% 
-  ggplot(aes(thing, cover_pct)) + 
-  geom_col(aes(fill = cover_type2, color = cover_type2, alpha = straw), size=1.1) +
+  filter(plot_id == "3_05_02" & year == "2018") %>% 
+  mutate(comp_id = case_when(
+    (cover_type %in% c("clover", "lolpe", "radish")) ~ "covercrop", 
+    cover_type == "weedcov" ~ "weeds", 
+    TRUE ~ cover_type)) 
+  
+
+bio %>% 
+  filter(plot_id == "3_05_02" & year == "2018")
+
+
+# look at pct cover -------------------------------------------------------
+
+pct %>% 
+  left_join(plot_key) %>% 
+  mutate(cover_type2 = ifelse(cover_type %in% c("clover", "lolpe", "radish"), "cc", cover_type)) %>% 
+  ggplot(aes(plot_id, cover_pct)) + 
+  geom_col(aes(fill = cover_type2)) + 
   facet_wrap(~year + cctrt_id, scales = "free", ncol = 5) + 
   scale_fill_manual(values = c("green4", "black", "purple", "red")) + 
-  scale_color_manual(values = c("green4", "black", "purple", "red")) + 
-  scale_alpha_manual(values = c(0.5, 1)) +
-  theme(axis.text.x = element_blank(),
-        legend.position = "bottom")
-
-ggsave("figs/all-cover.png", height = 8, width = 10)
-
+  coord_flip()
 
 
 # 1. pct procesing -----------------------------------------------------------

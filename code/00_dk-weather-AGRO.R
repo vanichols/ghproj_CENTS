@@ -1,5 +1,5 @@
 # created 8/4/2024
-# purpose: learn to get weather data from DMI
+# purpose: process weather from AGRO weather station
 # notes:
 
 
@@ -68,11 +68,11 @@ d2 <-
   mutate(date = dmy(date),
          doy = yday(date))
 
-summary(d)
+summary(d2)
 #--10 years, need more for long term but can write code
 
 d <- 
-  d1 %>% 
+  d1b %>% 
   bind_rows(d2)
 
 # wea long term -----------------------------------------------------------
@@ -142,6 +142,8 @@ d %>%
   ggplot(aes(date3, cprec_delta)) + 
   geom_line(aes(group = year), color = "gray") +
   geom_line(data = . %>% filter(year %in% c(2018, 2019)),
-            aes(color = as.factor(year), group = year)) + 
-  scale_x_date(labels = date_format("%e %b"))
+            aes(color = as.factor(year), group = year), linewidth = 1.2) + 
+  scale_x_date(labels = date_format("%e %b")) +
+  labs(x = NULL,
+       y = "Deviation from long-term average (mm)")
             

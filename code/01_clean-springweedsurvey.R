@@ -20,7 +20,6 @@ plot_key <- read_csv("data/keys/key_plot.csv")
 cc_key<- read_csv("data/keys/key_cctrt.csv")
 
 
-# percent weed coverage ---------------------------------------------
 
 tst18 <- 
   draw %>% 
@@ -47,6 +46,7 @@ d2 %>%
   geom_histogram(stat = "count") + 
   facet_grid(.~year)
 
+summary(d2)
 
 d2 %>% 
   write_csv("data/tidy/td_springweedsurvey.csv")

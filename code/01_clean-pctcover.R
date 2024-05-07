@@ -20,7 +20,7 @@ plot_key <- read_csv("data/keys/key_plot.csv")
 cc_key<- read_csv("data/keys/key_cctrt.csv")
 
 
-# percent weed coverage ---------------------------------------------
+# percent coverage ---------------------------------------------
 
 tst18 <- 
   draw %>% 
@@ -72,55 +72,95 @@ d2 %>%
 
 d2
 
-# tidy it -----------------------------------------------------------------
+# 1. keep species separate -----------------------------------------------------------------
+
+#--keep individual weeds for the full dataset
 
 d1 <- 
   draw %>% 
   filter(!is.na(reg), is.na(dicot)) %>% 
   select(plot_id:date2, 
          rep = reg, 
-         soil:radish, weedcov) 
+         soil:lamss)
 
 
 #--all measurements very, very close to 100%. Wow. 
 d1 %>% 
-  pivot_longer(soil:weedcov) %>% 
+  pivot_longer(soil:lamss) %>% 
   group_by(plot_id, year, date, rep) %>% 
-  summarise(tot = sum(value, na.rm = F)) %>% 
+  summarise(tot = sum(value, na.rm = T)) %>% 
   ggplot(aes(tot)) + 
   geom_histogram()
   
 
-d3 <- 
+d2 <- 
   d1 %>% 
-  pivot_longer(soil:weedcov) %>% 
+  pivot_longer(soil:lamss) %>% 
+  mutate(value = ifelse(is.na(value), 0, value)) %>% 
   rename(cover_type = name, 
          cover_pct = value) 
+ 
+d2 %>% 
+  write_csv("data/tidy/td_pctcover.csv")
 
-d3 %>% 
-  write_csv("data/tidy/td_weedcover.csv")
 
+summary(d2)
 
-summary(d3)
-  
-d3 %>% 
+d2 %>% 
   filter(year == 2018) %>% 
   select(cover_type) %>% 
   distinct()
 
-# look at it --------------------------------------------------------------
-
-d3 %>% 
+d2 %>% 
   ggplot(aes(plot_id, cover_pct)) + 
   geom_col(aes(fill = cover_type)) + 
   facet_grid(.~year)
 
-d3 %>% 
+
+# 2. make generic catch crop/weed cover categories ---------------------------
+
+
+d1simp <- 
+  draw %>% 
+  filter(!is.na(reg), is.na(dicot)) %>% 
+  select(plot_id:date2, 
+         rep = reg, 
+         soil:radish, weedcov) %>% 
+  pivot_longer(soil:weedcov) %>% 
+  mutate(value = ifelse(is.na(value), 0, value)) %>% 
+  rename(cover_type = name, 
+         cover_pct = value) 
+
+
+d2simp <- 
+  d1simp %>% 
+  mutate(cover_type2 = case_when(
+  (cover_type %in% c("clover", "lolpe", "radish")) ~ "covercrop", 
+  cover_type == "weedcov" ~ "weeds", 
+  TRUE ~ cover_type)) %>% 
+  group_by(plot_id, year, date2, rep, cover_type2) %>% 
+  summarise(cover_pct = sum(cover_pct, na.rm = T))
+
+d2simp %>% 
+  rename(date = date2) %>% 
+  write_csv("data/tidy/td_pctcover-simple.csv")
+
+d2simp %>% 
   left_join(plot_key) %>% 
-  mutate(cover_type2 = ifelse(cover_type %in% c("clover", "lolpe", "radish"), "cc", cover_type)) %>% 
+  ggplot(aes(plot_id, cover_pct)) + 
+  geom_col(aes(fill = cover_type2)) + 
+  facet_wrap(~year + cctrt_id + straw, scales = "free", ncol = 6) + 
+  scale_fill_manual(values = c("green4", "black", "purple", "red")) + 
+  #coord_flip() +
+  theme(axis.text.x = element_blank(),
+        legend.position = "bottom")
+
+d2simp %>% 
+  left_join(plot_key) %>% 
   ggplot(aes(plot_id, cover_pct)) + 
   geom_col(aes(fill = cover_type2)) + 
   facet_wrap(~year + cctrt_id, scales = "free", ncol = 5) + 
   scale_fill_manual(values = c("green4", "black", "purple", "red")) + 
-  coord_flip()
-
+  #coord_flip() +
+  theme(axis.text.x = element_blank(),
+        legend.position = "bottom")
