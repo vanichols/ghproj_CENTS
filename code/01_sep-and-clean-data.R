@@ -135,15 +135,43 @@ d3 <-
   #--make generic cover types
   mutate(cover_type2 = case_when(
   (cover_type %in% c("clover", "lolpe", "radish")) ~ "covercrop", 
-  cover_type %in% c("radish", "senss", "verss", "capbp", "paprh", "cirss") ~ "weed", 
+  cover_type %in% c("radish", "senss", "verss", "capbp", "paprh", "cirss",
+                    "gerss", "matin", "tarof", "ephex", "lamss") ~ "weed", 
   TRUE ~ cover_type)) %>% 
   select(plot_id:cover_type, cover_type2, cover_pct, everything())
 
 summary(d3)
 
 d3 %>% 
+  select(cover_type2) %>% 
+  distinct()
+
+d3 %>% 
   write_csv("data/raw/rd_fallcover.csv")
 
+#--just to look at
+d3 %>% 
+  left_join(pkey) %>% 
+  ggplot(aes(plot_id, cover_pct)) + 
+  geom_col(aes(fill = cover_type2)) + 
+  facet_wrap(~year + cctrt_id, scales = "free", ncol = 5) + 
+  scale_fill_manual(values = c("green4", "black", "purple", "red")) + 
+  #coord_flip() +
+  theme(axis.text.x = element_blank(),
+        legend.position = "bottom")
+
+#--are weeds assessed in each year the same?
+#yes
+d3 %>% 
+  filter(year == 2018, cover_type2 == "weed")%>% 
+  select(year, cover_type) %>% 
+  distinct() %>% 
+  mutate(cheat = "A") %>% 
+  left_join(d3 %>% 
+              filter(year == 2019, cover_type2 == "weed")%>% 
+              select(year2 = year, cover_type) %>% 
+              distinct() %>% 
+              mutate(cheat = "A"))
 
 # 4. crop yields ----------------------------------------------------------
 #--this one is a bit difficult, year wise, and I'm not sure 
