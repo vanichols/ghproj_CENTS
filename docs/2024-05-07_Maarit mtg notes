@@ -1,0 +1,30 @@
+Meeting number 1, May 7 2024
+------------------------
+
+Year is a cross factor, include as a fixed effect
+Block can be random
+
+Count - plants per m2
+
+Get GDDs to describe differences in planting dates
+
+A question:
+Are weed counts the following spring related to CC data from previous fall?
+If not, that is an interesting result. 
+Bo says early establishment prevents you from controlling thistles. 
+The cover crop treatments are 'packages', I need to understand this better
+
+Is % volunteer inversely related to % cc?
+
+Glm w/proportions, the answers are in ratios
+
+cbind(x, y, z, A) ~ Till + (1|straw) + (1|Straw:tillage) + etc...
+
++ till*straw*cc*yearF
+
+soil/cc vs volunteers/cc
+
+2018 - spring barley
+2019 - oat
+2020 - faba bean
+
