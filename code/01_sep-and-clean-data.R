@@ -96,14 +96,22 @@ d2 %>%
 d3 <- 
   draw2 %>% 
   filter(!is.na(reg), is.na(dicot)) %>% 
+  mutate(exp_year = ifelse(year == 2018, "1_fall", "2_fall")) %>% 
   select(plot_id:date2, 
+         year,
+         exp_year,
          rep = reg, 
          soil:lamss,
          -yield_DM) %>% 
   pivot_longer(soil:lamss) %>% 
   mutate(value = ifelse(is.na(value), 0, value)) %>% 
   rename(cover_type = name, 
-         cover_pct = value) 
+         cover_pct = value) %>% 
+  #--make generic cover types
+  mutate(cover_type2 = case_when(
+  (cover_type %in% c("clover", "lolpe", "radish")) ~ "covercrop", 
+  cover_type %in% c("radish", "senss", "verss", "capbp", "paprh", "cirss") ~ "weeds", 
+  TRUE ~ cover_type))
 
 d3 %>% 
   write_csv("data/raw/rd_fallcover.csv")
