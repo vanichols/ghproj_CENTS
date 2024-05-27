@@ -139,6 +139,14 @@ plot_key %>%
 
 # 3. make raw data easier to deal with ---------------------------------------
 
+#--for some reason, it reads in the dicot/monocot etc. as T/F, not as counts
+draw %>% 
+  filter(!is.na(dicot))
+
+#--I manually filtered the raw dataset in Excel to save as it's own file
+
+read_excel("data/raw/Data_Gina-filtered-springweedcounts.xlsx")
+
 d3 <- 
   draw %>% 
   select(-block) %>% 
