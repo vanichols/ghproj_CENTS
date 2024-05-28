@@ -1,10 +1,10 @@
 # created 27/5/2024
 # purpose: separate data into ind data sets, clean if necessary
 # notes:
-# 1. spring weed counts
+# 1. spring weed counts following year
 # 2. fall plant biomass
 # 3. fall plant cover
-# 4. crop yields (what was the crop in 2020? we have yields for it)
+# 4. crop yields (2018 - spring barely, 2019 - oat, 2020 - faba bean)
 
 #--there are essentially two crop years of data
 # 2018 spring and fall, plus 2019 spring before planting of next crop
@@ -13,7 +13,8 @@
 
 #--I added an 'experimental year'
 # 2019 spring msmts (weed counts) are connected to previous year's treatments
-# maybe just exp_year 1_fall, 1_subsp, 2_fall, 2_subsp
+# exp_year 1_fall, 1_subsp, 2_fall, 2_subsp
+# crop yields will be harder, no experimental year for them I think
 
 
 library(tidyverse)
@@ -44,6 +45,8 @@ draw2 <-
 
 # 1. spring weed counts ------------------------------------------
 
+#--three subreps in each plot
+
 #--for some reason, it reads in the dicot/monocot etc. as T/F, not as counts
 draw %>% 
   filter(!is.na(dicot))
@@ -61,7 +64,7 @@ d1 <-
        year = lubridate::year(date2)) %>% 
   left_join(pkey)  %>% 
   mutate(exp_year = ifelse(year == 2019, "1_subsp", "2_subsp")) %>% 
-  select(plot_id, year, exp_year, date2, rep = reg, dicot, monocot, cirar, equar)  
+  select(plot_id, year, exp_year, date2, subrep = reg, dicot, monocot, cirar, equar)  
 
 d1 %>% 
   write_csv("data/raw/rd_springweedcounts.csv")
@@ -69,20 +72,22 @@ d1 %>%
 
 # 2. fall biomass ---------------------------------------------------------
 
-#NOTE: are there subreps??
+#NOTE: are there subreps? I don't believe so
+# no separation of weed types, just categorically 'weeds'
+# NOTE: in 2018 it is barley volunteers, in 2019 it is oat volunteers (no data)
 
 d2 <- 
   draw2 %>% 
   mutate(exp_year = ifelse(year == 2018, "1_fall", "2_fall")) %>% 
+  filter(!is.na(frac)) %>% 
   select(plot_id, year, exp_year, date2, dm_type = frac, dm_gm2 = DM) %>% 
-  filter(!is.na(dm_type)) %>% 
   #--correct volunteer spelling
-  mutate(dm_type = ifelse(dm_type == "voluntee", "volunteer", dm_type)) %>% 
-  #--make 0 values explicit
-  pivot_wider(names_from = dm_type, values_from = dm_gm2) %>% 
-  pivot_longer(grass_cl:volunteer) %>% 
-  mutate(value = ifelse(is.na(value), 0, value)) %>% 
-  arrange(plot_id, year, date2) 
+  mutate(dm_type = ifelse(dm_type == "voluntee", "volunteer", dm_type))  %>% 
+  #--make NA values explicit, it isn't clear which are 0s and which are missing
+  pivot_wider(names_from = dm_type, values_from = dm_gm2) %>%
+  pivot_longer(grass_cl:volunteer) %>%
+  arrange(plot_id, year, date2) %>%
+  rename(dm_type = name, dm_gm2 = value)
 
 summary(d2)
 
@@ -90,8 +95,28 @@ d2 %>%
   write_csv("data/raw/rd_fallbio.csv")
 
 
-##_STOPPPED_______________________________
+#--NOTE: 2019 had no volunteer biomass data
+d2 %>%
+  filter(!is.na(dm_gm2)) %>% 
+  ggplot(aes(dm_type)) + 
+  geom_histogram(stat = "count") +
+  labs(x = NULL,
+       y = "number of observations",
+       title = "No biomass for volunteers in 2019") +
+  facet_grid(.~year)
+
+#--just two sampling dates, I think
+d2 %>% 
+  mutate(dm_type2 = ifelse(dm_type %in% c("grass_cl", "radish"), "cover crop", dm_type)) %>% 
+  ggplot(aes(plot_id, dm_gm2)) + 
+  geom_col(aes(fill = dm_type2)) + 
+  facet_grid(.~year) + 
+  scale_fill_manual(values = c("green4", "gray80", "gray20"))
+
+
 # 3. fall pct cover -------------------------------------------------------
+
+#--there are 3 subreps w/in each plot
 
 d3 <- 
   draw2 %>% 
@@ -100,7 +125,7 @@ d3 <-
   select(plot_id:date2, 
          year,
          exp_year,
-         rep = reg, 
+         subrep = reg, 
          soil:lamss,
          -yield_DM) %>% 
   pivot_longer(soil:lamss) %>% 
@@ -110,14 +135,46 @@ d3 <-
   #--make generic cover types
   mutate(cover_type2 = case_when(
   (cover_type %in% c("clover", "lolpe", "radish")) ~ "covercrop", 
-  cover_type %in% c("radish", "senss", "verss", "capbp", "paprh", "cirss") ~ "weeds", 
-  TRUE ~ cover_type))
+  cover_type %in% c("radish", "senss", "verss", "capbp", "paprh", "cirss",
+                    "gerss", "matin", "tarof", "ephex", "lamss") ~ "weed", 
+  TRUE ~ cover_type)) %>% 
+  select(plot_id:cover_type, cover_type2, cover_pct, everything())
+
+summary(d3)
+
+d3 %>% 
+  select(cover_type2) %>% 
+  distinct()
 
 d3 %>% 
   write_csv("data/raw/rd_fallcover.csv")
 
+#--just to look at
+d3 %>% 
+  left_join(pkey) %>% 
+  ggplot(aes(plot_id, cover_pct)) + 
+  geom_col(aes(fill = cover_type2)) + 
+  facet_wrap(~year + cctrt_id, scales = "free", ncol = 5) + 
+  scale_fill_manual(values = c("green4", "black", "purple", "red")) + 
+  #coord_flip() +
+  theme(axis.text.x = element_blank(),
+        legend.position = "bottom")
+
+#--are weeds assessed in each year the same?
+#yes
+d3 %>% 
+  filter(year == 2018, cover_type2 == "weed")%>% 
+  select(year, cover_type) %>% 
+  distinct() %>% 
+  mutate(cheat = "A") %>% 
+  left_join(d3 %>% 
+              filter(year == 2019, cover_type2 == "weed")%>% 
+              select(year2 = year, cover_type) %>% 
+              distinct() %>% 
+              mutate(cheat = "A"))
 
 # 4. crop yields ----------------------------------------------------------
+#--this one is a bit difficult, year wise, and I'm not sure 
 
 d4 <-
   draw2 %>% 
@@ -128,8 +185,10 @@ d4 <-
   mutate(crop = case_when(
     year == 2018 ~ "spring barley",
     year == 2019 ~ "oat",
-    year == 2020 ~ "Not sure")) %>% 
-  select(plot_id, year, crop, date2, everything()) %>% 
+    year == 2020 ~ "faba bean")) %>% 
+  select(plot_id, year, crop, date2, everything()) 
+
+d4 %>% 
   write_csv("data/raw/rd_cropyields.csv")
 
 

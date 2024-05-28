@@ -1,4 +1,4 @@
-plot_id,year,exp_year,date2,rep,dicot,monocot,cirar,equar
+plot_id,year,exp_year,date2,subrep,dicot,monocot,cirar,equar
 3_05_02,2019,1_subsp,2019-05-22,1,324,0,0,0
 3_05_02,2019,1_subsp,2019-05-22,2,340,12,0,0
 3_05_02,2019,1_subsp,2019-05-22,3,224,16,0,0
