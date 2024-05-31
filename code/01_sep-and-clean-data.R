@@ -72,7 +72,7 @@ d1 %>%
 
 # 2. fall biomass ---------------------------------------------------------
 
-#NOTE: are there subreps? I don't believe so
+#NOTE: M&M says there are two sub reps per plot
 # no separation of weed types, just categorically 'weeds'
 # NOTE: in 2018 it is barley volunteers, in 2019 it is oat volunteers (no data)
 
