@@ -1,5 +1,5 @@
 # created 8/4/2024
-# purpose: process weather from AGRO weather station
+# purpose: calculate GDDs from AGRO weather
 # notes:
 
 
@@ -19,13 +19,7 @@ wea <- read_csv("data/tidy/td_wea.csv")
 
 # planting dates ----------------------------------------------------------
 
-pl <- 
-  read_excel("data/raw/byhand_cover-crop-planting-dates.xlsx") %>% 
-  mutate(date = paste(year, month, day, sep = "-"),
-         date = as_date(date),
-         pldoy = yday(date),
-         year = year(date)) %>% 
-  select(year, pldoy, cctrt_id)
+pl <-  read_csv("data/tidy/td_ccpl.csv")
 
 # growing degree days -----------------------------------------------------
 

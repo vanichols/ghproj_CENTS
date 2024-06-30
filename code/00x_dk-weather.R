@@ -1,5 +1,5 @@
 # created 8 april 2024
-# purpose: learn to get weather data from DMI
+# purpose: learn to get weather data from DMI NOT WORKING
 # author:  gina
 # notes:
 
