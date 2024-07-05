@@ -1,6 +1,6 @@
 # created 26/3/2024
 # purpose: make data keys to simplify data manipulation
-# notes:
+# notes: Ideally I want all the actual data to be linked to a parcel, then I can just merge things
 
 
 library(tidyverse)
@@ -20,11 +20,13 @@ draw %>%
 
 # make keys ---------------------------------------------------------------
 
-#--5 cc treatments (radish early, radish late, mix early, mix late, no cc)
+#--5 cc treatments (3 = radish early, 4 = radish late, 2 = mix early, 5 = mix late, 6 = no cc)
 #--3 tillage treatments (1=aggresive, 2=moderate, 4=zero)
 #--two 'rotations', but they are actually straw removal treatments (R3 = straw removal, R4 = straw remains)
 #--4 replicates
 #--120 experimental units
+
+#--parcels - I need a key to make this...waiting on Eugene 7/1/24
 
 #--3 years of observations?
 
@@ -102,10 +104,18 @@ cc_key <-
     cctrt_id == "rad_M" ~ "Rad pre-harvest",
     cctrt_id == "rad_L" ~ "Rad post-harvest",
     TRUE ~ "Control")
+  ) %>% 
+  mutate(subplot = case_when(
+    cctrt_id == "mix_E" ~ 2,
+    cctrt_id == "mix_M" ~ 5,
+    cctrt_id == "rad_M" ~ 3,
+    cctrt_id == "rad_L" ~ 4,
+    cctrt_id == "nocc" ~ 6)
+    
   )
 
 cc_key %>% 
-  select(cctrt_id, species_desc, cctrt_desc, everything()) %>% 
+  select(subplot, cctrt_id, species_desc, cctrt_desc, everything()) %>% 
   write_csv("data/keys/key_cctrt.csv")
 
 

@@ -1,0 +1,6 @@
+product,crop,sum.risk.score,reference.sum.risk.scores,formula,amount.applied,standard.dosage
+harmony sx,eggplant,0,350,1.5,0.012,1
+metaxon,eggplant,80,350,1.5,1,1
+roundup flex xxl,eggplant,0,350,1.5,2.083333,1
+starane xl,eggplant,85,350,1.5,0.5,1
+trimmer sg,eggplant,90,350,1.5,0.01,1

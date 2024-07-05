@@ -1,0 +1,5 @@
+product,crop,sum.risk.score,reference.sum.risk.scores,formula,amount.applied,standard.dosage
+Agora,fodder beet,150,350,1.5,0.4,0.8
+Alanto,apple,25,350,1.5,0.533333333333333,0.32
+Aniten,wheat,20,350,1.5,0.255555555555556,3
+Artist,potatoes,130,350,1.5,2,2.5
