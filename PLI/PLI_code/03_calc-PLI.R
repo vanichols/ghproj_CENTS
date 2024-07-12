@@ -11,10 +11,10 @@ Sys.setenv(LANG = "en")
 rm(list = ls())
 
 # practice ----------------------------------------------------------------
-products_user <- products.load()
+products_user <- products.load() %>% as_tibble() %>% write_csv("PLI/PLI_data/")
 
 #--need to figure out how to pull data from ppdb to figure out if it is worth a purchase
-substances_user <- substances.load()
+substances_user <- substances.load() 
 
 indicators_user <- compute_pesticide_load_indicator(substances = substances_user,
                                                     products = products_user)
