@@ -21,7 +21,7 @@ draw %>%
 # make keys ---------------------------------------------------------------
 
 #--5 cc treatments (3 = radish early, 4 = radish late, 2 = mix early, 5 = mix late, 6 = no cc)
-#--3 tillage treatments (1=aggresive, 2=moderate, 4=zero)
+#--3 tillage treatments (1=inversion, 2=non-inversion, 4=zero)
 #--two 'rotations', but they are actually straw removal treatments (R3 = straw removal, R4 = straw remains)
 #--4 replicates
 #--120 experimental units
@@ -46,12 +46,12 @@ d0 <-
 d1 <- 
   d0 %>% 
   mutate(till_id = case_when(
-    till == 1 ~ "high",
-    till == 2 ~ "med",
+    till == 1 ~ "inversion",
+    till == 2 ~ "noninversion",
     till == 4 ~ "notill"),
     till_desc = case_when(
       till == 1 ~ "moldboard plowing",
-      till == 2 ~ "8-10 cm depth tillage",
+      till == 2 ~ "8-10 cm depth tillage (harrowing or chiseling)",
       till == 4 ~ "direct seeding since exp establishment")
   )
 
@@ -60,7 +60,7 @@ till_key <-
   select(till_id, till_desc, Bo_till = till) %>% 
   distinct() %>% 
   arrange(-Bo_till) %>% 
-  mutate(till_intensity = c(1, 2, 3))
+  mutate(till_intens_numeric = c(1, 2, 3))
 
 till_key %>% 
   write_csv("data/keys/key_till.csv")

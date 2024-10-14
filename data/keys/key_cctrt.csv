@@ -1,6 +1,6 @@
-cctrt_id,species_desc,cctrt_desc,Bo_covercrop,Bo_estab,Bo_species,estab_desc
-mix_E,Lolium X and Trifolium pratense (ryegrass and red clover),Gr/cl at sowing,lolcl1,1,lol_tri,at crop sowing
-rad_M,Raphanus sativus (forage radish),Rad pre-harvest,radish1,1,raphanu,2 weeks before crop harvest
-rad_L,Raphanus sativus (forage radish),Rad post-harvest,radish2,2,raphanu,after crop harvest
-mix_M,Lolium X and Trifolium pratense (ryegrass and red clover),Gr/cl pre-harvest,lolcl2,2,lol_tri,2 weeks before crop harvest
-nocc,none,Control,noCC,NA,NA,no cover crop established
+subplot,cctrt_id,species_desc,cctrt_desc,Bo_covercrop,Bo_estab,Bo_species,estab_desc
+2,mix_E,Lolium X and Trifolium pratense (ryegrass and red clover),Gr/cl at sowing,lolcl1,1,lol_tri,at crop sowing
+3,rad_M,Raphanus sativus (forage radish),Rad pre-harvest,radish1,1,raphanu,2 weeks before crop harvest
+4,rad_L,Raphanus sativus (forage radish),Rad post-harvest,radish2,2,raphanu,after crop harvest
+5,mix_M,Lolium X and Trifolium pratense (ryegrass and red clover),Gr/cl pre-harvest,lolcl2,2,lol_tri,2 weeks before crop harvest
+6,nocc,none,Control,noCC,NA,NA,no cover crop established
