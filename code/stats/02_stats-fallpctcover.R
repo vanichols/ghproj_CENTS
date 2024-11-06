@@ -1,6 +1,8 @@
 # created 5 nov 2024
 # purpose: do stats on vegetation cover
-# notes: model is not fitting well, but...
+# notes: 3 subreps make up a single eu
+
+# results: model is not fitting well, but...
 # the early mix impact on cover depended on the weather
 # other cc trts' impacts on cover did not depend on the weather 
 # nothing depended on tillage or straw removal
@@ -39,6 +41,14 @@ d_sp <-
   left_join(w) %>% 
   mutate(weayear = paste(precip, te, sep  = "-"),
          cover_frac = cover_pct / 100)
+
+tst <- 
+  d_sp %>% 
+  filter(subplot_id == "p05_sp02", year == 2018)
+
+tst %>% 
+  ggplot(aes(subrep, cover_pct)) +
+  geom_col(aes(fill = cover_type))
 
 #--data separated by cateogry (covercrop, soil, other)
 d_cat <-
@@ -140,13 +150,23 @@ d_sp %>%
 
 d
 
-m1 <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * weayear +
+#--I am super confused which family (etc.) to use
+#--this is a 'fractional logit model'?
+m_bilogit <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * weayear +
                    (1|block_id) + 
                    (1|cctrt_id:till_id:straw_id) + 
                    (1|till_id:straw_id) + 
                    (1|straw_id),
                  family=binomial(link="logit"), 
               data=d_cat)
+
+#--trying suggestion for a zero-inflated model
+#--zero inflation applied to all equally (?)
+m_bilogit_zinf <- update(m_bilogit, ziformula = ~1)
+m_bilogit_zinfc <- update(m_bilogit, ziformula = ~cover_cat)
+
+anova(m_bilogit, m_bilogit_zinf, m_bilogit_zinfc)
+
 
 #--what if I only include two of the categories, 
 #--since if you know two, the third is just 100 - their sum
@@ -157,6 +177,9 @@ m2 <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * weayear +
                 (1|straw_id),
               family=binomial(link="logit"), 
               data=d_cat %>% filter(cover_cat != "other"))
+
+#--the variables are related, they are not independent
+#--should I just pick one?
 
 #--these don't look good, but I'm not sure what to tweak
 #--
