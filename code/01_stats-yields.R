@@ -30,6 +30,16 @@ d %>%
   ggplot(aes(crop, yield_dry_Mgha)) +
   geom_jitter(aes(shape = till_id, color = cctrt_id))
 
+d %>% 
+  group_by(crop) %>% 
+  summarise(minY = min(yield_dry_Mgha),
+            maxY = max(yield_dry_Mgha))
+            
+d %>% 
+  ggplot(aes(crop, yield_dry_Mgha)) +
+  geom_jitter()
+
+
 #--I don't think we need subplot_id, as yield was not repeatedly measured on a subplot
 #--failed to converge
 m1 <- lmer(yield_dry_Mgha ~ till_id * cctrt_id * straw_id * crop + 
@@ -71,8 +81,60 @@ r %>%
 r %>% 
   filter(p.value < 0.05)
 
+
+r %>% 
+  filter(grepl("crop", term)) %>% 
+  filter(term != "crop")
+
 #--effect of crop, but no interactions
 #--effect of cover crop
 #--effect of tillage, depending on straw
 
-emmeans(m2)
+
+# cover crops -------------------------------------------------------------
+em_cc <- emmeans(m2, specs = pairwise ~ cctrt_id)
+em_cc_means <- tidy(em_cc$emmeans) 
+
+em_cc_means %>% 
+  mutate(letter_sig = c("a", "a", "ab", "ab", "b")) %>% 
+  ggplot(aes(cctrt_id, estimate)) +
+  geom_errorbar(aes(x = cctrt_id, ymin = estimate - std.error, ymax = estimate + std.error),
+                width = 0.2) +
+  geom_point() +
+  geom_text(aes(x = cctrt_id, y = estimate + 0.3, label = letter_sig)) +
+  scale_y_continuous(limits = c(0, 4.5))
+
+em_cc
+radM <- c(0, 0, 0, 0, 1)
+mixes <- c(0.5, 0.5, 0, 0, 0)
+contrast(em_cc, method = list("radM - mixes" = radM - mixes))
+
+
+# tillage by straw --------------------------------------------------------
+
+em_ts <- emmeans(m2, specs = pairwise ~ till_id:straw_id)
+
+em_ts$contrasts
+
+#--when removing straw, no-till yields less than the other tillages
+#--when retaining straw, no difference in yields
+
+#--compare no-till to other two tillages for each 
+notillnostraw <- c(0, 0, 1, 0, 0, 0)
+othersnostraw <- c(0.5, 0.5, 0, 0, 0, 0)
+
+
+contrast(em_ts, method = list("notill - all" = notill - othersnostraw) )
+
+# emmeans for all (except crop)---------------------------------------------------------
+
+em_all <- tidy(emmeans(m2, specs = pairwise ~ till_id|straw_id|cctrt_id)$emmeans) 
+
+em_all %>% 
+  ggplot(aes(straw_id, estimate)) +
+  geom_errorbar(aes(x = straw_id, ymin = estimate - std.error, ymax = estimate + std.error, 
+                    color = cctrt_id),
+                width = 0.2) +
+  geom_point(aes(color = cctrt_id)) +
+  facet_grid(.~till_id) +
+  scale_y_continuous(limits = c(0, 4.7))
