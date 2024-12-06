@@ -72,6 +72,8 @@ d_cat.tst %>%
 
 # viz ---------------------------------------------------------------------
 
+d_cat 
+
 #--there are a fair number of zeros in the data
 d_cat %>% 
   ggplot(aes(cover_pct)) +
@@ -109,6 +111,39 @@ d_till_order <-
   arrange(till_id) %>% 
   pull(till_id) %>% 
   unique()
+
+#--correlation of raw data, cover crop and other
+d_cat %>% 
+  filter(cover_cat != "soil") %>% 
+  select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
+  pivot_wider(names_from = cover_cat, values_from = cover_frac) %>% 
+  ggplot(aes(covercrop, other)) +
+  geom_point(aes(color = weayear))
+
+#--correlation of raw data
+d_cat %>% 
+  filter(cover_cat != "other") %>% 
+  select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
+  pivot_wider(names_from = cover_cat, values_from = cover_frac) %>% 
+  ggplot(aes(covercrop, soil)) +
+  geom_point(aes(color = weayear))
+
+library(Hmisc)
+library(corrplot)
+library(PerformanceAnalytics)
+
+d_corr <- 
+  d_cat %>% 
+  ungroup() %>% 
+  select(subplot_id, weayear, subrep, cover_cat, cover_pct) %>% 
+  pivot_wider(names_from = cover_cat, values_from = cover_pct) %>% 
+  select(covercrop, other, soil)
+
+res <- 
+  cor(d_corr)
+
+corrplot(res)
+chart.Correlation(d_corr)
 
 #--kind of a nonsense fig, but to get the idea
 d_sp %>% 
@@ -159,6 +194,10 @@ m_bilogit <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * we
                    (1|straw_id),
                  family=binomial(link="logit"), 
               data=d_cat)
+
+Anova(m_bilogit)
+m_bilogit_simres <- simulateResiduals(m_bilogit)
+plot(m_bilogit_simres)
 
 #--trying suggestion for a zero-inflated model
 #--zero inflation applied to all equally (?)
