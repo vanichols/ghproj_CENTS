@@ -2,6 +2,8 @@
 # purpose: do stats on fall biomass
 # notes: It is not clear if in 2019 the volunteers were omitted, 
 # -- or if they got lumped in another cat
+# -- Bo says they got lumped in 'non crop' category
+# -- must combine volunteer and weeds data into 'non-cover crop'
 
 
 library(tidyverse)
@@ -14,13 +16,25 @@ library(glmmTMB)
 library(DHARMa)
 library(car)
 
+library(multcomp)
+
 rm(list = ls())
 
 # data --------------------------------------------------------------------
 
 eu <- as_tibble(cents_eukey)
 y <- as_tibble(cents_fallbio)
-w <- read_csv("data/tidy_weaclass.csv")
+c <- 
+  as_tibble(cents_cropyields) %>% 
+  mutate(year = year(date2)) %>% 
+  dplyr::select(year, crop)
+
+w <- 
+  read_csv("data/tidy_weaclass.csv") %>% 
+  unite(col = "weayear", precip, te, sep  = "/") %>%
+  left_join(c) %>% 
+  mutate(weayear = paste(year, weayear, crop, sep = ", ")) %>% 
+  dplyr::select(-crop)
 
 
 #--data
@@ -29,204 +43,255 @@ d <-
   left_join(y) %>% 
   mutate(year = year(date2)) %>% 
   left_join(w) %>% 
-  unite(col = "weayear", precip, te, sep  = "-") %>% 
-  select(weayear, everything())
-
-#--total biomass
-d_tot <-
-  d %>% 
-  group_by(weayear)
+  dplyr::select(weayear, everything()) %>% 
+  distinct()
 
 # viz ---------------------------------------------------------------------
 
 #--there are a fair number of zeros in the data
-d_cat %>% 
-  ggplot(aes(cover_pct)) +
+d %>% 
+  ggplot(aes(dm_gm2)) +
   geom_histogram()
 
-#--it is mostly from the covercrop category
-#--this makes sense since there is a nocover treatment
-d_cat %>% 
-  ggplot(aes(cover_pct)) +
+#--it is mostly from the weeds category in 2018
+d %>% 
+  ggplot(aes(dm_gm2)) +
   geom_histogram() +
-  facet_grid(.~cover_cat)
+  facet_grid(year~dm_type)
 
-#--indeed, it is mostly in the nocc, but also the mid_M
-d_cat %>% 
-  ggplot(aes(cover_pct)) +
+#--pretty evenly dist throughout the treatments
+d %>% 
+  ggplot(aes(dm_gm2)) +
   geom_histogram() +
-  facet_grid(cctrt_id~cover_cat)
+  facet_grid(cctrt_id~dm_type)
 
-#--mostly in the dry-hot year
-d_cat %>% 
-  ggplot(aes(cover_pct)) +
-  geom_histogram() +
-  facet_grid(weayear~cover_cat)
+d %>% 
+  ggplot(aes(dm_type, dm_gm2)) +
+  geom_point() +
+  facet_grid(.~year) +
+  labs(title = "Fall dry matter")
 
-### NEED TO ASK MAARIT ABOUT THIS
 
-d_cc_order <- 
-  d_sp %>% 
-  arrange(cctrt_id) %>% 
-  pull(cctrt_id) %>% 
-  unique()
+# combine weeds and volunteers --------------------------------------------
 
-d_till_order <- 
-  d_sp %>% 
-  arrange(till_id) %>% 
-  pull(till_id) %>% 
-  unique()
+d1 <- 
+  d %>% 
+  mutate(dm_type2 = case_when(
+    dm_type == "volunteer" ~ "other",
+    dm_type == "weeds" ~ "other",
+    dm_type == "grass_cl" ~ "covercrop",
+    dm_type == "radish" ~ "covercrop",
+    TRUE ~ dm_type)
+    ) %>% 
+  group_by(subplot_id, date2, year, dm_type2) %>% 
+  summarise(dm_gm2 = sum(dm_gm2, na.rm = T)) %>% 
+  left_join(eu) %>% 
+  left_join(w) %>% 
+  distinct()
 
-#--kind of a nonsense fig, but to get the idea
-d_sp %>% 
-  arrange(date2, straw_id, till_id, cctrt_id) %>% 
-  mutate(subplot_id = fct_inorder(subplot_id)) %>% 
-  ggplot(aes(cctrt_id, cover_pct)) +
-  geom_col(aes(fill = cover_cat)) +
-  scale_x_discrete(labels = d_cc_order) +
-  facet_grid(weayear~straw_id+till_id, scales = "free") +
-  coord_flip() +
-  scale_fill_manual(values = c("soil" = "brown4",
-                               "covercrop" = "green3",
-                               "other" = "gold"))
-
-# it doesn't look like a dependence on tillage or straw removal
-d_sp %>% 
-  arrange(date2, straw_id, till_id, cctrt_id) %>% 
-  mutate(subplot_id = fct_inorder(subplot_id)) %>% 
-  ggplot(aes(till_id, cover_pct)) +
-  geom_col(aes(fill = cover_cat)) +
-  scale_x_discrete(labels = d_till_order) +
-  facet_grid(weayear~straw_id + cctrt_id, scales = "free") +
-  coord_flip() +
-  scale_fill_manual(values = c("soil" = "brown4",
-                               "covercrop" = "green3",
-                               "other" = "gold"))
-
-# model -------------------------------------------------------------------
-
-# For the 4-way proportions for cover, you could actually analyse this a little di􀆯erently to what we talked about
-# as well. You could pivot your data into long-format that has a column for the proportions, and another column
-# for the Cover category (Soil, Weeds, Volunteers and CC). If you then analyse the proportions with a model like
-# this:
-  # model <- glmmTMB(proportion ~ CoverCategory * Tillage * CC * Straw * Year +
-  #                    (1|Block) + (1|CC:Tillage:Straw) + (1|Tillage:Straw) + (1|Straw),
-  #                  family=binomial(link=”logit”), data=DATA)
-# You get an estimate of how di􀆯erent the proportions of each cover category are, and you are checking whether
-# that is dependent on tillage, CC, straw or year e􀆯ects.
-
-d
-
-m1 <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * weayear +
-                   (1|block_id) + 
-                   (1|cctrt_id:till_id:straw_id) + 
-                   (1|till_id:straw_id) + 
-                   (1|straw_id),
-                 family=binomial(link="logit"), 
-              data=d_cat)
-
-#--what if I only include two of the categories, 
-#--since if you know two, the third is just 100 - their sum
-m2 <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * weayear +
-                (1|block_id) + 
-                (1|cctrt_id:till_id:straw_id) + 
-                (1|till_id:straw_id) + 
-                (1|straw_id),
-              family=binomial(link="logit"), 
-              data=d_cat %>% filter(cover_cat != "other"))
-
-#--these don't look good, but I'm not sure what to tweak
-#--
-m1_simres <- simulateResiduals(m1)
-plot(m1_simres)
-
-#--these look worse
-m2_simres <- simulateResiduals(m2)
-plot(m2_simres)
-
-#--I think I ran out of DF
-Anova(m1)
-
-#--if I plow ahead, 
-#--sig terms:
-cover_cat:cctrt_id:weayear
-cover_cat:weayear
-cover_cat:cctrt_id 
-cover_cat
-
-#--nothing is interacting with tillage or straw removal, consistent w/perception
-#--the effect of cctrt depends on the weayear
-#--I think some cctrts are more reslient to weather conditions than others
-
-em1_pairs <- emmeans(m1, specs = pairwise ~ cover_cat:cctrt_id:weayear)
-
-#--I am not sure how to interpret these estimates on the logit scale
-emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear)
-#--I think this back-transforms them
-emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear, type = "response")
-
-em1_est <- tidy(emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear, type = "response"))
-
-em1_est %>% 
-  ggplot(aes(cover_cat, prob)) +
-  geom_jitter(aes(color = cctrt_id, shape = weayear), size = 4, width = 0.1)
-
-#--correlation of modelled data
-em1_est %>% 
-  filter(cover_cat != "soil") %>% 
-  select(cover_cat, cctrt_id, weayear, prob) %>% 
-  pivot_wider(names_from = cover_cat, values_from = prob) %>% 
+#--they are not strongly related
+d1 %>% 
+  pivot_wider(names_from = dm_type2, values_from = dm_gm2)  %>% 
+  left_join(eu) %>% 
   ggplot(aes(covercrop, other)) +
-  geom_point()
+  geom_point(aes(color = cctrt_id))
+
+library(patchwork)
+
+#--radish-mid had higher biomass, always?
+p1  <- 
+  d1 %>% 
+  group_by(weayear, till_id, straw_id, cctrt_id, dm_type2) %>% 
+  summarise(dm_gm2 = mean(dm_gm2, na.rm  = T)) %>%
+  filter(straw_id == "removed") %>% 
+  ggplot(aes(till_id, dm_gm2)) +
+  geom_col(aes(fill = dm_type2), color = "black") +
+  facet_grid(weayear ~ straw_id + cctrt_id) +
+  scale_fill_manual(values = c("gold", "darkblue"))
+
+p2  <- 
+  d1 %>% 
+  group_by(weayear, till_id, straw_id, cctrt_id, dm_type2) %>% 
+  summarise(dm_gm2 = mean(dm_gm2, na.rm  = T)) %>%
+  filter(straw_id == "retained") %>% 
+  ggplot(aes(till_id, dm_gm2)) +
+  geom_col(aes(fill = dm_type2), color = "black") +
+  facet_grid(weayear ~ straw_id + cctrt_id) +
+  scale_fill_manual(values = c("gold", "darkblue"))
 
 
-#--correlation of raw data
-d_cat %>% 
-  filter(cover_cat != "soil") %>% 
-  select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
-  pivot_wider(names_from = cover_cat, values_from = cover_frac) %>% 
-  ggplot(aes(covercrop, other)) +
-  geom_point(aes(color = weayear))
-
-#--comparing covercrop category in each weayear and cctrt
-
-#--the early mix covercrop pctcover was strongly impacted by weather
-r1 <- 
-  tidy(em1_pairs$contrasts) %>% 
-  separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
-  filter(grepl("covercrop", t1)) %>% 
-  filter(grepl("covercrop", t2)) %>% 
-  separate(t1, into = c("covercat1", "cctrt_id1", "weayear1"), sep = " ") %>% 
-  separate(t2, into = c("covercat2", "cctrt_id2", "weayear2"), sep = " ") %>% 
-  filter(cctrt_id1 == cctrt_id2)
-  
-#--soil coverage was not impacted by cctrt
-#--volunteers or weeds filled in what the cc did not
-r2 <- 
-  tidy(em1_pairs$contrasts) %>% 
-  separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
-  filter(grepl("soil", t1)) %>% 
-  filter(grepl("soil", t2)) %>% 
-  separate(t1, into = c("covercat1", "cctrt_id1", "weayear1"), sep = " ") %>% 
-  separate(t2, into = c("covercat2", "cctrt_id2", "weayear2"), sep = " ") %>% 
-  filter(cctrt_id1 == cctrt_id2)
-
-#--only the mix_E 'other'category was impacted by weather
-#--this is probably due to a lot of barley volunteers
-r3 <- 
-  tidy(em1_pairs$contrasts) %>% 
-  separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
-  filter(grepl("other", t1)) %>% 
-  filter(grepl("other", t2)) %>% 
-  separate(t1, into = c("covercat1", "cctrt_id1", "weayear1"), sep = " ") %>% 
-  separate(t2, into = c("covercat2", "cctrt_id2", "weayear2"), sep = " ") %>% 
-  filter(cctrt_id1 == cctrt_id2)
+p1 + p2
 
 
+#--removing straw had lowest impact, and no interactions
+d1 %>% 
+  group_by(weayear, till_id, cctrt_id, dm_type2) %>% 
+  summarise(dm_gm2 = mean(dm_gm2, na.rm  = T)) %>%
+  ggplot(aes(till_id, dm_gm2)) +
+  geom_col(aes(fill = dm_type2), color = "black") +
+  facet_grid(weayear ~ cctrt_id) +
+  scale_fill_manual(values = c("gold", "darkblue"))
 
 
+# model on total biomass-------------------------------------------------------------------
 
-# example code ------------------------------------------------------------
+dtot <- 
+  d1 %>% 
+  group_by(subplot_id, date2, year, eu_id, block_id, plot_id, till_id, 
+           rot_id, straw_id, cctrt_id, weayear) %>% 
+  summarise(dm_gm2 = sum(dm_gm2, na.rm = T))
+
+#--same model as for crop yields
+
+m1 <- lmer(dm_gm2 ~ till_id * cctrt_id * straw_id * weayear + 
+             (1|block_id),
+           #(1|cctrt_id:till_id:straw_id) + 
+           #(1|till_id:straw_id) +
+           #(1|straw_id), 
+           data = dtot)
+
+summary(m1)
+anova(m1)
+plot(simulateResiduals(m1))
+plot(m1)
+#--this looks good, the pattern is fine
+qqnorm(resid(m1))
+qqline(resid(m1))
+
+r <- tidy(anova(m1))
+
+r %>% 
+  filter(p.value < 0.05)
+
+r %>% 
+  filter(p.value < 0.01)
+
+#--year had strongest effect by far
+#--effect of straw, no moderators 
+
+#--effect of tillage, depending on year and cc if p= 0.05
+#--effect of cc, depnding on tillage and year
+
+
+# full model straw -------------------------------------------------------------------
+
+emmeans(m1, specs = pairwise ~straw_id:weayear) 
+
+
+# full model tillage ------------------------------------------------------
+
+a <- 
+  tidy(emmeans(m1, specs = pairwise ~till_id:weayear)$contrasts) %>% 
+  separate(contrast, into = c("v1", "v2"), sep = "-")
+
+a18 <- 
+  a %>% 
+  filter(grepl("2018", v1) & grepl("2018", v2))
+
+a19 <- 
+  a %>% 
+  filter(grepl("2019", v1) & grepl("2019", v2))
+
+# full model cc ------------------------------------------------------
+
+b <- 
+  tidy(emmeans(m1, specs = pairwise ~cctrt_id:weayear)$contrasts) %>% 
+  separate(contrast, into = c("v1", "v2"), sep = "-")
+
+b18 <- 
+  b %>% 
+  filter(grepl("2018", v1) & grepl("2018", v2)) %>% 
+  arrange(estimate)
+
+b19 <- 
+  b %>% 
+  filter(grepl("2019", v1) & grepl("2019", v2))%>% 
+  arrange(estimate)
+
+
+# run separately for each year --------------------------------------------
+
+m2018 <- lmer(dm_gm2 ~ till_id * cctrt_id * straw_id + 
+             (1|block_id),
+           #(1|cctrt_id:till_id:straw_id) + 
+           #(1|till_id:straw_id) +
+           #(1|straw_id), 
+           data = dtot %>% filter(year == 2018))
+
+m2019 <- lmer(dm_gm2 ~ till_id * cctrt_id * straw_id + 
+                (1|block_id),
+              #(1|cctrt_id:till_id:straw_id) + 
+              #(1|till_id:straw_id) +
+              #(1|straw_id), 
+              data = dtot %>% filter(year == 2019))
+
+#--no interactions
+tidy(anova(m2018)) %>% 
+  filter(p.value < 0.05)
+
+#--no interactions
+tidy(anova(m2019)) %>% 
+  filter(p.value < 0.05)
+
+# main effects -------------------------------------------------------------
+
+ex <- emmeans(m2018, specs = ~ cctrt_id) 
+cld(ex)
+
+#--2018
+ex2 <- emmeans(m2018, specs = ~ cctrt_id:till_id:straw_id, alpha = 0.01) 
+res2 <- tidy(cld(ex2))
+
+
+res2 %>% 
+  arrange(estimate) %>% 
+  mutate(group = as.factor(.group),
+         trt = paste(cctrt_id, till_id, straw_id)) %>%
+  ggplot(aes(trt, estimate)) +
+  geom_point(aes(color = group), size = 5) +
+  coord_flip() +
+  facet_grid(till_id + straw_id ~ ., scales = "free_y")
+
+
+#--2019
+ex3 <- emmeans(m2019, specs = ~ cctrt_id:till_id:straw_id, alpha = 0.01) 
+res3 <- tidy(cld(ex3))
+
+
+res3 %>% 
+  arrange(estimate) %>% 
+  mutate(group = as.factor(.group),
+         trt = paste(cctrt_id, till_id, straw_id)) %>%
+  ggplot(aes(trt, estimate)) +
+  geom_point(aes(color = group), size = 5) +
+  coord_flip() +
+  facet_grid(till_id + straw_id ~ ., scales = "free_y")
+
+
+emmeans(m2018, specs = ~ cctrt_id) %>% 
+  tidy() %>% arrange(estimate)
+
+emmeans(m1, specs = ~ cctrt_id)
+
+em_cc <- emmeans(m1, specs = pairwise ~ cctrt_id)
+em_cc_means <- tidy(em_cc$emmeans) 
+
+em_cc_means %>% 
+  mutate(letter_sig = c("a", "a", "ab", "ab", "b")) %>% 
+  ggplot(aes(cctrt_id, estimate)) +
+  geom_errorbar(aes(x = cctrt_id, ymin = estimate - std.error, ymax = estimate + std.error),
+                width = 0.2) +
+  geom_point() +
+  geom_text(aes(x = cctrt_id, y = estimate + 0.3, label = letter_sig)) +
+  scale_y_continuous(limits = c(0, 4.5))
+
+em_cc
+radM <- c(0, 0, 0, 0, 1)
+mixes <- c(0.5, 0.5, 0, 0, 0)
+contrast(em_cc, method = list("radM - mixes" = radM - mixes))
+
+
+# tillage by straw --------------------------------------------------------
 
 em_ts <- emmeans(m2, specs = pairwise ~ till_id:straw_id)
 
