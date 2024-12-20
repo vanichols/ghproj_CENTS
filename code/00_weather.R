@@ -79,8 +79,9 @@ w3 <-
 w3 %>% 
   ggplot() +
   geom_line(aes(doy, dprec_mm, group = year, color = year)) +
-  gghighlight(year == 2019) 
+  gghighlight(year == 2018) 
 
+summary(w3$year)
 
 # temperature after harvest-------------------------------------------------------------
 

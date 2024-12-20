@@ -48,7 +48,7 @@ tst <-
 
 tst %>% 
   ggplot(aes(subrep, cover_pct)) +
-  geom_col(aes(fill = cover_type))
+  geom_col(aes(fill = eppo_code))
 
 #--data separated by cateogry (covercrop, soil, other)
 d_cat <-
@@ -230,7 +230,7 @@ m2_simres <- simulateResiduals(m2)
 plot(m2_simres)
 
 #--I think I ran out of DF
-Anova(m1)
+Anova(m2)
 
 #--if I plow ahead, 
 #--sig terms:
@@ -246,15 +246,18 @@ cover_cat
 em1_pairs <- emmeans(m1, specs = pairwise ~ cover_cat:cctrt_id:weayear)
 
 #--I am not sure how to interpret these estimates on the logit scale
-emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear)
+emmeans(m2, specs = ~ cover_cat:cctrt_id:weayear)
 #--I think this back-transforms them
-emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear, type = "response")
+emmeans(m2, specs = ~ cover_cat:cctrt_id:weayear, type = "response")
 
-em1_est <- tidy(emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear, type = "response"))
+em1_est <- tidy(emmeans(m2, specs = ~ cover_cat:cctrt_id:weayear, type = "response"))
 
 em1_est %>% 
   ggplot(aes(cover_cat, prob)) +
   geom_jitter(aes(color = cctrt_id, shape = weayear), size = 4, width = 0.1)
+
+tidy(emmeans(m2, specs = ~ cover_cat, type = "response"))
+(emmeans(m2, specs = pairwise ~ cover_cat:cctrt_id, type = "response"))
 
 #--correlation of modelled data
 em1_est %>% 

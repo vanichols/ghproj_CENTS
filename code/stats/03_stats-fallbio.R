@@ -161,6 +161,14 @@ qqline(resid(m1))
 r <- tidy(anova(m1))
 
 r %>% 
+  mutate_at(c("sumsq", "meansq", "NumDF", "DenDF"), round) %>% 
+  mutate(
+    statistic = round(statistic, 2),
+    p.value = round(p.value, 3),
+         p.value = ifelse(p.value == 0, "<.001", p.value)) %>% 
+  write_csv("data/stats_anovafallbio.csv")
+
+r %>% 
   filter(p.value < 0.05)
 
 r %>% 
@@ -176,6 +184,15 @@ r %>%
 # full model straw -------------------------------------------------------------------
 
 emmeans(m1, specs = pairwise ~straw_id:weayear) 
+emmeans(m1, specs = ~weayear) 
+
+em_m1till <- emmeans(m1, specs = pairwise ~ till_id) 
+
+#--compare no-till to other two tillages for each 
+notill <- c(0, 0, 1)
+others <- c(0.5, 0.5, 0)
+
+contrast(em_m1till, method = list("notill - all" = notill - others) )
 
 
 # full model tillage ------------------------------------------------------
@@ -191,6 +208,52 @@ a18 <-
 a19 <- 
   a %>% 
   filter(grepl("2019", v1) & grepl("2019", v2))
+
+
+# full model till x cctrt -------------------------------------------------
+
+txc <- 
+  tidy(emmeans(m1, specs = pairwise ~till_id:cctrt_id)$contrasts) %>% 
+  separate(contrast, into = c("v1", "v2"), sep = "-")
+
+#--radish late
+  txc %>% 
+  filter(grepl("rad_L", v1) & grepl("rad_L", v2))
+
+#--radish mid
+txc %>% 
+  filter(grepl("rad_M", v1) & grepl("rad_M", v2))
+
+
+#--nocc vs radish mid
+zzz<- 
+  txc %>% 
+  filter(grepl("nocc", v1) & grepl("rad_M", v2))
+
+#--mix e
+txc %>% 
+  filter(grepl("mix_E", v1) & grepl("mix_E", v2))
+
+#--mix m
+txc %>% 
+  filter(grepl("mix_M", v1) & grepl("mix_M", v2))
+
+#--mix e
+txc %>% 
+  filter(grepl("mix_E", v1) & grepl("mix_E", v2))
+
+#--nocc
+zzz<-txc %>% 
+  filter(grepl("nocc", v1) & grepl("nocc", v2))
+
+#--notill
+zzz <- txc %>% 
+  filter(grepl("notill", v1) & grepl("notill", v2))
+
+#--noninv
+zzz <- txc %>% 
+  filter(grepl("non", v1) & grepl("non", v2))
+
 
 # full model cc ------------------------------------------------------
 
@@ -232,6 +295,9 @@ tidy(anova(m2018)) %>%
 #--no interactions
 tidy(anova(m2019)) %>% 
   filter(p.value < 0.05)
+
+emmeans(m2019, specs = pairwise ~ till_id) 
+emmeans(m2019, specs = pairwise ~ till_id) 
 
 # main effects -------------------------------------------------------------
 
