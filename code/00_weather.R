@@ -14,6 +14,17 @@ rm(list = ls())
 w <- cents_wea
 #h <- cents_gdds
 
+
+# LT values ---------------------------------------------------------------
+
+w %>% 
+  summarise(avgte = mean(avgte))
+
+w %>% 
+  group_by(year) %>% 
+  summarise(precip = sum(prec_mm)) %>% 
+  summarise(mp = mean(precip))
+
 # precip all year ------------------------------------------------------------------
 
 w2 <- 

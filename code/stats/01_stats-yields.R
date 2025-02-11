@@ -18,6 +18,8 @@ y <- as_tibble(cents_cropyields)
 
 d <- eu %>% left_join(y)
 
+d$till_id %>% 
+  unique()
 
 # model -------------------------------------------------------------------
 
