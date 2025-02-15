@@ -62,7 +62,13 @@ yvoz %>%
   pull(eppo_code) %>% 
   unique()
 
-#--change cirss to cirar for merge
+#--how many of ours have a match?
+d2 <- 
+  d1 %>% 
+  left_join(cents_species) %>% 
+  select(eppo_code, cover_pct, latin_name) %>% 
+  left_join(yvoz) 
+
 #--ger values, take the average? or the median?
 #--ver values, take the median
 #--2 sen values, they are pretty differnt, refine it later
@@ -70,6 +76,13 @@ yvoz %>%
 
 yvoz %>% 
   filter(grepl("lam", eppo_code)) %>%
+  pivot_longer(Pol1:Harm3) %>% 
+  ggplot(aes(eppo_code, value)) +
+  geom_point() +
+  facet_wrap(~name, scales = "free")
+
+yvoz %>% 
+  filter(grepl("sen", eppo_code)) %>%
   pivot_longer(Pol1:Harm3) %>% 
   ggplot(aes(eppo_code, value)) +
   geom_point() +
@@ -86,8 +99,8 @@ d1 %>%
 #--change cirss to cirar for merge
 d_cir <- 
   yvoz %>% 
-  filter(grepl("cirar", eppo_code)) %>%
-  mutate(eppo_code = "cirss")
+  filter(grepl("cirar", eppo_code)) #%>% #not necessary now
+  #mutate(eppo_code = "cirss")
 
 #--ger values, take the average? or the median?
 d_ger <- 

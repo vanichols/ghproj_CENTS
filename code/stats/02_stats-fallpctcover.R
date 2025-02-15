@@ -340,5 +340,5 @@ em_all %>%
                     color = cctrt_id),
                 width = 0.2) +
   geom_point(aes(color = cctrt_id)) +
-  facet_grid(.~till_id) +
-  scale_y_continuous(limits = c(0, 4.7))
+  facet_grid(.~till_id)# +
+  #scale_y_continuous(limits = c(0, 4.7))
