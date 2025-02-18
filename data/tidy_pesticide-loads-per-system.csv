@@ -1,0 +1,513 @@
+year,till_id,cctrt_id,product,load_cat,load_ha
+2018,inversion,mix_E,Agropol,Environmental behaviour,0
+2018,inversion,mix_E,Agropol,Environmental impact,0
+2018,inversion,mix_E,Agropol,Health,0
+2018,inversion,mix_E,Agropol,Total,0
+2018,inversion,mix_E,Harmony SX,Environmental behaviour,0.12
+2018,inversion,mix_E,Harmony SX,Environmental impact,0.0072
+2018,inversion,mix_E,Harmony SX,Health,0
+2018,inversion,mix_E,Harmony SX,Total,0.1272
+2018,inversion,mix_M,Hussar OD,Environmental behaviour,0.00516
+2018,inversion,mix_M,Hussar OD,Environmental impact,0.00408
+2018,inversion,mix_M,Hussar OD,Health,0.00225
+2018,inversion,mix_M,Hussar OD,Total,0.011519999999999999
+2018,inversion,mix_M,Metaxon,Environmental behaviour,0.434
+2018,inversion,mix_M,Metaxon,Environmental impact,0.2
+2018,inversion,mix_M,Metaxon,Health,0.399
+2018,inversion,mix_M,Metaxon,Total,1.03
+2018,inversion,mix_M,Starane 333 HL,Environmental behaviour,0.095
+2018,inversion,mix_M,Starane 333 HL,Environmental impact,0.005
+2018,inversion,mix_M,Starane 333 HL,Health,0.056
+2018,inversion,mix_M,Starane 333 HL,Total,0.15575
+2018,inversion,nocc,Hussar OD,Environmental behaviour,0.00516
+2018,inversion,nocc,Hussar OD,Environmental impact,0.00408
+2018,inversion,nocc,Hussar OD,Health,0.00225
+2018,inversion,nocc,Hussar OD,Total,0.011519999999999999
+2018,inversion,nocc,Metaxon,Environmental behaviour,0.434
+2018,inversion,nocc,Metaxon,Environmental impact,0.2
+2018,inversion,nocc,Metaxon,Health,0.399
+2018,inversion,nocc,Metaxon,Total,1.03
+2018,inversion,nocc,Starane 333 HL,Environmental behaviour,0.095
+2018,inversion,nocc,Starane 333 HL,Environmental impact,0.005
+2018,inversion,nocc,Starane 333 HL,Health,0.056
+2018,inversion,nocc,Starane 333 HL,Total,0.15575
+2018,inversion,rad_L,Hussar OD,Environmental behaviour,0.00516
+2018,inversion,rad_L,Hussar OD,Environmental impact,0.00408
+2018,inversion,rad_L,Hussar OD,Health,0.00225
+2018,inversion,rad_L,Hussar OD,Total,0.011519999999999999
+2018,inversion,rad_L,Metaxon,Environmental behaviour,0.434
+2018,inversion,rad_L,Metaxon,Environmental impact,0.2
+2018,inversion,rad_L,Metaxon,Health,0.399
+2018,inversion,rad_L,Metaxon,Total,1.03
+2018,inversion,rad_L,Starane 333 HL,Environmental behaviour,0.095
+2018,inversion,rad_L,Starane 333 HL,Environmental impact,0.005
+2018,inversion,rad_L,Starane 333 HL,Health,0.056
+2018,inversion,rad_L,Starane 333 HL,Total,0.15575
+2018,inversion,rad_M,Hussar OD,Environmental behaviour,0.00516
+2018,inversion,rad_M,Hussar OD,Environmental impact,0.00408
+2018,inversion,rad_M,Hussar OD,Health,0.00225
+2018,inversion,rad_M,Hussar OD,Total,0.011519999999999999
+2018,inversion,rad_M,Metaxon,Environmental behaviour,0.434
+2018,inversion,rad_M,Metaxon,Environmental impact,0.2
+2018,inversion,rad_M,Metaxon,Health,0.399
+2018,inversion,rad_M,Metaxon,Total,1.03
+2018,inversion,rad_M,Starane 333 HL,Environmental behaviour,0.095
+2018,inversion,rad_M,Starane 333 HL,Environmental impact,0.005
+2018,inversion,rad_M,Starane 333 HL,Health,0.056
+2018,inversion,rad_M,Starane 333 HL,Total,0.15575
+2018,noninversion,mix_E,Agropol,Environmental behaviour,0
+2018,noninversion,mix_E,Agropol,Environmental impact,0
+2018,noninversion,mix_E,Agropol,Health,0
+2018,noninversion,mix_E,Agropol,Total,0
+2018,noninversion,mix_E,Harmony SX,Environmental behaviour,0.12
+2018,noninversion,mix_E,Harmony SX,Environmental impact,0.0072
+2018,noninversion,mix_E,Harmony SX,Health,0
+2018,noninversion,mix_E,Harmony SX,Total,0.1272
+2018,noninversion,mix_E,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,noninversion,mix_E,Roundup Flex XXL,Environmental impact,0.0418
+2018,noninversion,mix_E,Roundup Flex XXL,Health,0
+2018,noninversion,mix_E,Roundup Flex XXL,Total,0.1984
+2018,noninversion,mix_M,Hussar OD,Environmental behaviour,0.00516
+2018,noninversion,mix_M,Hussar OD,Environmental impact,0.00408
+2018,noninversion,mix_M,Hussar OD,Health,0.00225
+2018,noninversion,mix_M,Hussar OD,Total,0.011519999999999999
+2018,noninversion,mix_M,Metaxon,Environmental behaviour,0.434
+2018,noninversion,mix_M,Metaxon,Environmental impact,0.2
+2018,noninversion,mix_M,Metaxon,Health,0.399
+2018,noninversion,mix_M,Metaxon,Total,1.03
+2018,noninversion,mix_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,noninversion,mix_M,Roundup Flex XXL,Environmental impact,0.0418
+2018,noninversion,mix_M,Roundup Flex XXL,Health,0
+2018,noninversion,mix_M,Roundup Flex XXL,Total,0.1984
+2018,noninversion,mix_M,Starane 333 HL,Environmental behaviour,0.095
+2018,noninversion,mix_M,Starane 333 HL,Environmental impact,0.005
+2018,noninversion,mix_M,Starane 333 HL,Health,0.056
+2018,noninversion,mix_M,Starane 333 HL,Total,0.15575
+2018,noninversion,nocc,Hussar OD,Environmental behaviour,0.00516
+2018,noninversion,nocc,Hussar OD,Environmental impact,0.00408
+2018,noninversion,nocc,Hussar OD,Health,0.00225
+2018,noninversion,nocc,Hussar OD,Total,0.011519999999999999
+2018,noninversion,nocc,Metaxon,Environmental behaviour,0.434
+2018,noninversion,nocc,Metaxon,Environmental impact,0.2
+2018,noninversion,nocc,Metaxon,Health,0.399
+2018,noninversion,nocc,Metaxon,Total,1.03
+2018,noninversion,nocc,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,noninversion,nocc,Roundup Flex XXL,Environmental impact,0.0418
+2018,noninversion,nocc,Roundup Flex XXL,Health,0
+2018,noninversion,nocc,Roundup Flex XXL,Total,0.1984
+2018,noninversion,nocc,Starane 333 HL,Environmental behaviour,0.095
+2018,noninversion,nocc,Starane 333 HL,Environmental impact,0.005
+2018,noninversion,nocc,Starane 333 HL,Health,0.056
+2018,noninversion,nocc,Starane 333 HL,Total,0.15575
+2018,noninversion,rad_L,Hussar OD,Environmental behaviour,0.00516
+2018,noninversion,rad_L,Hussar OD,Environmental impact,0.00408
+2018,noninversion,rad_L,Hussar OD,Health,0.00225
+2018,noninversion,rad_L,Hussar OD,Total,0.011519999999999999
+2018,noninversion,rad_L,Metaxon,Environmental behaviour,0.434
+2018,noninversion,rad_L,Metaxon,Environmental impact,0.2
+2018,noninversion,rad_L,Metaxon,Health,0.399
+2018,noninversion,rad_L,Metaxon,Total,1.03
+2018,noninversion,rad_L,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,noninversion,rad_L,Roundup Flex XXL,Environmental impact,0.0418
+2018,noninversion,rad_L,Roundup Flex XXL,Health,0
+2018,noninversion,rad_L,Roundup Flex XXL,Total,0.1984
+2018,noninversion,rad_L,Starane 333 HL,Environmental behaviour,0.095
+2018,noninversion,rad_L,Starane 333 HL,Environmental impact,0.005
+2018,noninversion,rad_L,Starane 333 HL,Health,0.056
+2018,noninversion,rad_L,Starane 333 HL,Total,0.15575
+2018,noninversion,rad_M,Hussar OD,Environmental behaviour,0.00516
+2018,noninversion,rad_M,Hussar OD,Environmental impact,0.00408
+2018,noninversion,rad_M,Hussar OD,Health,0.00225
+2018,noninversion,rad_M,Hussar OD,Total,0.011519999999999999
+2018,noninversion,rad_M,Metaxon,Environmental behaviour,0.434
+2018,noninversion,rad_M,Metaxon,Environmental impact,0.2
+2018,noninversion,rad_M,Metaxon,Health,0.399
+2018,noninversion,rad_M,Metaxon,Total,1.03
+2018,noninversion,rad_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,noninversion,rad_M,Roundup Flex XXL,Environmental impact,0.0418
+2018,noninversion,rad_M,Roundup Flex XXL,Health,0
+2018,noninversion,rad_M,Roundup Flex XXL,Total,0.1984
+2018,noninversion,rad_M,Starane 333 HL,Environmental behaviour,0.095
+2018,noninversion,rad_M,Starane 333 HL,Environmental impact,0.005
+2018,noninversion,rad_M,Starane 333 HL,Health,0.056
+2018,noninversion,rad_M,Starane 333 HL,Total,0.15575
+2018,notill,mix_E,Agropol,Environmental behaviour,0
+2018,notill,mix_E,Agropol,Environmental impact,0
+2018,notill,mix_E,Agropol,Health,0
+2018,notill,mix_E,Agropol,Total,0
+2018,notill,mix_E,Harmony SX,Environmental behaviour,0.12
+2018,notill,mix_E,Harmony SX,Environmental impact,0.0072
+2018,notill,mix_E,Harmony SX,Health,0
+2018,notill,mix_E,Harmony SX,Total,0.1272
+2018,notill,mix_E,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,notill,mix_E,Roundup Flex XXL,Environmental impact,0.0418
+2018,notill,mix_E,Roundup Flex XXL,Health,0
+2018,notill,mix_E,Roundup Flex XXL,Total,0.1984
+2018,notill,mix_M,Hussar OD,Environmental behaviour,0.00516
+2018,notill,mix_M,Hussar OD,Environmental impact,0.00408
+2018,notill,mix_M,Hussar OD,Health,0.00225
+2018,notill,mix_M,Hussar OD,Total,0.011519999999999999
+2018,notill,mix_M,Metaxon,Environmental behaviour,0.434
+2018,notill,mix_M,Metaxon,Environmental impact,0.2
+2018,notill,mix_M,Metaxon,Health,0.399
+2018,notill,mix_M,Metaxon,Total,1.03
+2018,notill,mix_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,notill,mix_M,Roundup Flex XXL,Environmental impact,0.0418
+2018,notill,mix_M,Roundup Flex XXL,Health,0
+2018,notill,mix_M,Roundup Flex XXL,Total,0.1984
+2018,notill,mix_M,Starane 333 HL,Environmental behaviour,0.095
+2018,notill,mix_M,Starane 333 HL,Environmental impact,0.005
+2018,notill,mix_M,Starane 333 HL,Health,0.056
+2018,notill,mix_M,Starane 333 HL,Total,0.15575
+2018,notill,nocc,Hussar OD,Environmental behaviour,0.00516
+2018,notill,nocc,Hussar OD,Environmental impact,0.00408
+2018,notill,nocc,Hussar OD,Health,0.00225
+2018,notill,nocc,Hussar OD,Total,0.011519999999999999
+2018,notill,nocc,Metaxon,Environmental behaviour,0.434
+2018,notill,nocc,Metaxon,Environmental impact,0.2
+2018,notill,nocc,Metaxon,Health,0.399
+2018,notill,nocc,Metaxon,Total,1.03
+2018,notill,nocc,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,notill,nocc,Roundup Flex XXL,Environmental impact,0.0418
+2018,notill,nocc,Roundup Flex XXL,Health,0
+2018,notill,nocc,Roundup Flex XXL,Total,0.1984
+2018,notill,nocc,Starane 333 HL,Environmental behaviour,0.095
+2018,notill,nocc,Starane 333 HL,Environmental impact,0.005
+2018,notill,nocc,Starane 333 HL,Health,0.056
+2018,notill,nocc,Starane 333 HL,Total,0.15575
+2018,notill,rad_L,Hussar OD,Environmental behaviour,0.00516
+2018,notill,rad_L,Hussar OD,Environmental impact,0.00408
+2018,notill,rad_L,Hussar OD,Health,0.00225
+2018,notill,rad_L,Hussar OD,Total,0.011519999999999999
+2018,notill,rad_L,Metaxon,Environmental behaviour,0.434
+2018,notill,rad_L,Metaxon,Environmental impact,0.2
+2018,notill,rad_L,Metaxon,Health,0.399
+2018,notill,rad_L,Metaxon,Total,1.03
+2018,notill,rad_L,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,notill,rad_L,Roundup Flex XXL,Environmental impact,0.0418
+2018,notill,rad_L,Roundup Flex XXL,Health,0
+2018,notill,rad_L,Roundup Flex XXL,Total,0.1984
+2018,notill,rad_L,Starane 333 HL,Environmental behaviour,0.095
+2018,notill,rad_L,Starane 333 HL,Environmental impact,0.005
+2018,notill,rad_L,Starane 333 HL,Health,0.056
+2018,notill,rad_L,Starane 333 HL,Total,0.15575
+2018,notill,rad_M,Hussar OD,Environmental behaviour,0.00516
+2018,notill,rad_M,Hussar OD,Environmental impact,0.00408
+2018,notill,rad_M,Hussar OD,Health,0.00225
+2018,notill,rad_M,Hussar OD,Total,0.011519999999999999
+2018,notill,rad_M,Metaxon,Environmental behaviour,0.434
+2018,notill,rad_M,Metaxon,Environmental impact,0.2
+2018,notill,rad_M,Metaxon,Health,0.399
+2018,notill,rad_M,Metaxon,Total,1.03
+2018,notill,rad_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2018,notill,rad_M,Roundup Flex XXL,Environmental impact,0.0418
+2018,notill,rad_M,Roundup Flex XXL,Health,0
+2018,notill,rad_M,Roundup Flex XXL,Total,0.1984
+2018,notill,rad_M,Starane 333 HL,Environmental behaviour,0.095
+2018,notill,rad_M,Starane 333 HL,Environmental impact,0.005
+2018,notill,rad_M,Starane 333 HL,Health,0.056
+2018,notill,rad_M,Starane 333 HL,Total,0.15575
+2019,inversion,mix_E,Agropol,Environmental behaviour,0
+2019,inversion,mix_E,Agropol,Environmental impact,0
+2019,inversion,mix_E,Agropol,Health,0
+2019,inversion,mix_E,Agropol,Total,0
+2019,inversion,mix_E,Harmony SX,Environmental behaviour,0.12
+2019,inversion,mix_E,Harmony SX,Environmental impact,0.0072
+2019,inversion,mix_E,Harmony SX,Health,0
+2019,inversion,mix_E,Harmony SX,Total,0.1272
+2019,inversion,mix_E,Trimmer SG,Environmental behaviour,0.013
+2019,inversion,mix_E,Trimmer SG,Environmental impact,0.002
+2019,inversion,mix_E,Trimmer SG,Health,0.0029999999999999996
+2019,inversion,mix_E,Trimmer SG,Total,0.018
+2019,inversion,mix_M,Starane XL,Environmental behaviour,0.07
+2019,inversion,mix_M,Starane XL,Environmental impact,0.00445
+2019,inversion,mix_M,Starane XL,Health,0.2115
+2019,inversion,mix_M,Starane XL,Total,0.286
+2019,inversion,nocc,Starane XL,Environmental behaviour,0.07
+2019,inversion,nocc,Starane XL,Environmental impact,0.00445
+2019,inversion,nocc,Starane XL,Health,0.2115
+2019,inversion,nocc,Starane XL,Total,0.286
+2019,inversion,rad_L,Starane XL,Environmental behaviour,0.07
+2019,inversion,rad_L,Starane XL,Environmental impact,0.00445
+2019,inversion,rad_L,Starane XL,Health,0.2115
+2019,inversion,rad_L,Starane XL,Total,0.286
+2019,inversion,rad_M,Starane XL,Environmental behaviour,0.07
+2019,inversion,rad_M,Starane XL,Environmental impact,0.00445
+2019,inversion,rad_M,Starane XL,Health,0.2115
+2019,inversion,rad_M,Starane XL,Total,0.286
+2019,noninversion,mix_E,Agropol,Environmental behaviour,0
+2019,noninversion,mix_E,Agropol,Environmental impact,0
+2019,noninversion,mix_E,Agropol,Health,0
+2019,noninversion,mix_E,Agropol,Total,0
+2019,noninversion,mix_E,Harmony SX,Environmental behaviour,0.12
+2019,noninversion,mix_E,Harmony SX,Environmental impact,0.0072
+2019,noninversion,mix_E,Harmony SX,Health,0
+2019,noninversion,mix_E,Harmony SX,Total,0.1272
+2019,noninversion,mix_E,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,noninversion,mix_E,Roundup Flex XXL,Environmental impact,0.0418
+2019,noninversion,mix_E,Roundup Flex XXL,Health,0
+2019,noninversion,mix_E,Roundup Flex XXL,Total,0.1984
+2019,noninversion,mix_E,Trimmer SG,Environmental behaviour,0.013
+2019,noninversion,mix_E,Trimmer SG,Environmental impact,0.002
+2019,noninversion,mix_E,Trimmer SG,Health,0.0029999999999999996
+2019,noninversion,mix_E,Trimmer SG,Total,0.018
+2019,noninversion,mix_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,noninversion,mix_M,Roundup Flex XXL,Environmental impact,0.0418
+2019,noninversion,mix_M,Roundup Flex XXL,Health,0
+2019,noninversion,mix_M,Roundup Flex XXL,Total,0.1984
+2019,noninversion,mix_M,Starane XL,Environmental behaviour,0.07
+2019,noninversion,mix_M,Starane XL,Environmental impact,0.00445
+2019,noninversion,mix_M,Starane XL,Health,0.2115
+2019,noninversion,mix_M,Starane XL,Total,0.286
+2019,noninversion,nocc,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,noninversion,nocc,Roundup Flex XXL,Environmental impact,0.0418
+2019,noninversion,nocc,Roundup Flex XXL,Health,0
+2019,noninversion,nocc,Roundup Flex XXL,Total,0.1984
+2019,noninversion,nocc,Starane XL,Environmental behaviour,0.07
+2019,noninversion,nocc,Starane XL,Environmental impact,0.00445
+2019,noninversion,nocc,Starane XL,Health,0.2115
+2019,noninversion,nocc,Starane XL,Total,0.286
+2019,noninversion,rad_L,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,noninversion,rad_L,Roundup Flex XXL,Environmental impact,0.0418
+2019,noninversion,rad_L,Roundup Flex XXL,Health,0
+2019,noninversion,rad_L,Roundup Flex XXL,Total,0.1984
+2019,noninversion,rad_L,Starane XL,Environmental behaviour,0.07
+2019,noninversion,rad_L,Starane XL,Environmental impact,0.00445
+2019,noninversion,rad_L,Starane XL,Health,0.2115
+2019,noninversion,rad_L,Starane XL,Total,0.286
+2019,noninversion,rad_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,noninversion,rad_M,Roundup Flex XXL,Environmental impact,0.0418
+2019,noninversion,rad_M,Roundup Flex XXL,Health,0
+2019,noninversion,rad_M,Roundup Flex XXL,Total,0.1984
+2019,noninversion,rad_M,Starane XL,Environmental behaviour,0.07
+2019,noninversion,rad_M,Starane XL,Environmental impact,0.00445
+2019,noninversion,rad_M,Starane XL,Health,0.2115
+2019,noninversion,rad_M,Starane XL,Total,0.286
+2019,notill,mix_E,Agropol,Environmental behaviour,0
+2019,notill,mix_E,Agropol,Environmental impact,0
+2019,notill,mix_E,Agropol,Health,0
+2019,notill,mix_E,Agropol,Total,0
+2019,notill,mix_E,Harmony SX,Environmental behaviour,0.12
+2019,notill,mix_E,Harmony SX,Environmental impact,0.0072
+2019,notill,mix_E,Harmony SX,Health,0
+2019,notill,mix_E,Harmony SX,Total,0.1272
+2019,notill,mix_E,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,notill,mix_E,Roundup Flex XXL,Environmental impact,0.0418
+2019,notill,mix_E,Roundup Flex XXL,Health,0
+2019,notill,mix_E,Roundup Flex XXL,Total,0.1984
+2019,notill,mix_E,Trimmer SG,Environmental behaviour,0.013
+2019,notill,mix_E,Trimmer SG,Environmental impact,0.002
+2019,notill,mix_E,Trimmer SG,Health,0.0029999999999999996
+2019,notill,mix_E,Trimmer SG,Total,0.018
+2019,notill,mix_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,notill,mix_M,Roundup Flex XXL,Environmental impact,0.0418
+2019,notill,mix_M,Roundup Flex XXL,Health,0
+2019,notill,mix_M,Roundup Flex XXL,Total,0.1984
+2019,notill,mix_M,Starane XL,Environmental behaviour,0.07
+2019,notill,mix_M,Starane XL,Environmental impact,0.00445
+2019,notill,mix_M,Starane XL,Health,0.2115
+2019,notill,mix_M,Starane XL,Total,0.286
+2019,notill,nocc,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,notill,nocc,Roundup Flex XXL,Environmental impact,0.0418
+2019,notill,nocc,Roundup Flex XXL,Health,0
+2019,notill,nocc,Roundup Flex XXL,Total,0.1984
+2019,notill,nocc,Starane XL,Environmental behaviour,0.07
+2019,notill,nocc,Starane XL,Environmental impact,0.00445
+2019,notill,nocc,Starane XL,Health,0.2115
+2019,notill,nocc,Starane XL,Total,0.286
+2019,notill,rad_L,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,notill,rad_L,Roundup Flex XXL,Environmental impact,0.0418
+2019,notill,rad_L,Roundup Flex XXL,Health,0
+2019,notill,rad_L,Roundup Flex XXL,Total,0.1984
+2019,notill,rad_L,Starane XL,Environmental behaviour,0.07
+2019,notill,rad_L,Starane XL,Environmental impact,0.00445
+2019,notill,rad_L,Starane XL,Health,0.2115
+2019,notill,rad_L,Starane XL,Total,0.286
+2019,notill,rad_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2019,notill,rad_M,Roundup Flex XXL,Environmental impact,0.0418
+2019,notill,rad_M,Roundup Flex XXL,Health,0
+2019,notill,rad_M,Roundup Flex XXL,Total,0.1984
+2019,notill,rad_M,Starane XL,Environmental behaviour,0.07
+2019,notill,rad_M,Starane XL,Environmental impact,0.00445
+2019,notill,rad_M,Starane XL,Health,0.2115
+2019,notill,rad_M,Starane XL,Total,0.286
+2020,inversion,mix_E,Fighter 480,Environmental behaviour,0.2296
+2020,inversion,mix_E,Fighter 480,Environmental impact,0.0816
+2020,inversion,mix_E,Fighter 480,Health,0.4584
+2020,inversion,mix_E,Fighter 480,Total,0.7696000000000001
+2020,inversion,mix_E,Roundup Flex XXL,Environmental behaviour,0.1566
+2020,inversion,mix_E,Roundup Flex XXL,Environmental impact,0.0418
+2020,inversion,mix_E,Roundup Flex XXL,Health,0
+2020,inversion,mix_E,Roundup Flex XXL,Total,0.1984
+2020,inversion,mix_E,Stomp CS,Environmental behaviour,0.886
+2020,inversion,mix_E,Stomp CS,Environmental impact,0.134
+2020,inversion,mix_E,Stomp CS,Health,0.35
+2020,inversion,mix_E,Stomp CS,Total,1.37
+2020,inversion,mix_M,Fighter 480,Environmental behaviour,0.2296
+2020,inversion,mix_M,Fighter 480,Environmental impact,0.0816
+2020,inversion,mix_M,Fighter 480,Health,0.4584
+2020,inversion,mix_M,Fighter 480,Total,0.7696000000000001
+2020,inversion,mix_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2020,inversion,mix_M,Roundup Flex XXL,Environmental impact,0.0418
+2020,inversion,mix_M,Roundup Flex XXL,Health,0
+2020,inversion,mix_M,Roundup Flex XXL,Total,0.1984
+2020,inversion,mix_M,Stomp CS,Environmental behaviour,0.886
+2020,inversion,mix_M,Stomp CS,Environmental impact,0.134
+2020,inversion,mix_M,Stomp CS,Health,0.35
+2020,inversion,mix_M,Stomp CS,Total,1.37
+2020,inversion,nocc,Fighter 480,Environmental behaviour,0.2296
+2020,inversion,nocc,Fighter 480,Environmental impact,0.0816
+2020,inversion,nocc,Fighter 480,Health,0.4584
+2020,inversion,nocc,Fighter 480,Total,0.7696000000000001
+2020,inversion,nocc,Roundup Flex XXL,Environmental behaviour,0.1566
+2020,inversion,nocc,Roundup Flex XXL,Environmental impact,0.0418
+2020,inversion,nocc,Roundup Flex XXL,Health,0
+2020,inversion,nocc,Roundup Flex XXL,Total,0.1984
+2020,inversion,nocc,Stomp CS,Environmental behaviour,0.886
+2020,inversion,nocc,Stomp CS,Environmental impact,0.134
+2020,inversion,nocc,Stomp CS,Health,0.35
+2020,inversion,nocc,Stomp CS,Total,1.37
+2020,inversion,rad_L,Fighter 480,Environmental behaviour,0.2296
+2020,inversion,rad_L,Fighter 480,Environmental impact,0.0816
+2020,inversion,rad_L,Fighter 480,Health,0.4584
+2020,inversion,rad_L,Fighter 480,Total,0.7696000000000001
+2020,inversion,rad_L,Roundup Flex XXL,Environmental behaviour,0.1566
+2020,inversion,rad_L,Roundup Flex XXL,Environmental impact,0.0418
+2020,inversion,rad_L,Roundup Flex XXL,Health,0
+2020,inversion,rad_L,Roundup Flex XXL,Total,0.1984
+2020,inversion,rad_L,Stomp CS,Environmental behaviour,0.886
+2020,inversion,rad_L,Stomp CS,Environmental impact,0.134
+2020,inversion,rad_L,Stomp CS,Health,0.35
+2020,inversion,rad_L,Stomp CS,Total,1.37
+2020,inversion,rad_M,Fighter 480,Environmental behaviour,0.2296
+2020,inversion,rad_M,Fighter 480,Environmental impact,0.0816
+2020,inversion,rad_M,Fighter 480,Health,0.4584
+2020,inversion,rad_M,Fighter 480,Total,0.7696000000000001
+2020,inversion,rad_M,Roundup Flex XXL,Environmental behaviour,0.1566
+2020,inversion,rad_M,Roundup Flex XXL,Environmental impact,0.0418
+2020,inversion,rad_M,Roundup Flex XXL,Health,0
+2020,inversion,rad_M,Roundup Flex XXL,Total,0.1984
+2020,inversion,rad_M,Stomp CS,Environmental behaviour,0.886
+2020,inversion,rad_M,Stomp CS,Environmental impact,0.134
+2020,inversion,rad_M,Stomp CS,Health,0.35
+2020,inversion,rad_M,Stomp CS,Total,1.37
+2020,noninversion,mix_E,Fighter 480,Environmental behaviour,0.2296
+2020,noninversion,mix_E,Fighter 480,Environmental impact,0.0816
+2020,noninversion,mix_E,Fighter 480,Health,0.4584
+2020,noninversion,mix_E,Fighter 480,Total,0.7696000000000001
+2020,noninversion,mix_E,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,noninversion,mix_E,Roundup Flex XXL,Environmental impact,0.0836
+2020,noninversion,mix_E,Roundup Flex XXL,Health,0
+2020,noninversion,mix_E,Roundup Flex XXL,Total,0.3968
+2020,noninversion,mix_E,Stomp CS,Environmental behaviour,0.886
+2020,noninversion,mix_E,Stomp CS,Environmental impact,0.134
+2020,noninversion,mix_E,Stomp CS,Health,0.35
+2020,noninversion,mix_E,Stomp CS,Total,1.37
+2020,noninversion,mix_M,Fighter 480,Environmental behaviour,0.2296
+2020,noninversion,mix_M,Fighter 480,Environmental impact,0.0816
+2020,noninversion,mix_M,Fighter 480,Health,0.4584
+2020,noninversion,mix_M,Fighter 480,Total,0.7696000000000001
+2020,noninversion,mix_M,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,noninversion,mix_M,Roundup Flex XXL,Environmental impact,0.0836
+2020,noninversion,mix_M,Roundup Flex XXL,Health,0
+2020,noninversion,mix_M,Roundup Flex XXL,Total,0.3968
+2020,noninversion,mix_M,Stomp CS,Environmental behaviour,0.886
+2020,noninversion,mix_M,Stomp CS,Environmental impact,0.134
+2020,noninversion,mix_M,Stomp CS,Health,0.35
+2020,noninversion,mix_M,Stomp CS,Total,1.37
+2020,noninversion,nocc,Fighter 480,Environmental behaviour,0.2296
+2020,noninversion,nocc,Fighter 480,Environmental impact,0.0816
+2020,noninversion,nocc,Fighter 480,Health,0.4584
+2020,noninversion,nocc,Fighter 480,Total,0.7696000000000001
+2020,noninversion,nocc,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,noninversion,nocc,Roundup Flex XXL,Environmental impact,0.0836
+2020,noninversion,nocc,Roundup Flex XXL,Health,0
+2020,noninversion,nocc,Roundup Flex XXL,Total,0.3968
+2020,noninversion,nocc,Stomp CS,Environmental behaviour,0.886
+2020,noninversion,nocc,Stomp CS,Environmental impact,0.134
+2020,noninversion,nocc,Stomp CS,Health,0.35
+2020,noninversion,nocc,Stomp CS,Total,1.37
+2020,noninversion,rad_L,Fighter 480,Environmental behaviour,0.2296
+2020,noninversion,rad_L,Fighter 480,Environmental impact,0.0816
+2020,noninversion,rad_L,Fighter 480,Health,0.4584
+2020,noninversion,rad_L,Fighter 480,Total,0.7696000000000001
+2020,noninversion,rad_L,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,noninversion,rad_L,Roundup Flex XXL,Environmental impact,0.0836
+2020,noninversion,rad_L,Roundup Flex XXL,Health,0
+2020,noninversion,rad_L,Roundup Flex XXL,Total,0.3968
+2020,noninversion,rad_L,Stomp CS,Environmental behaviour,0.886
+2020,noninversion,rad_L,Stomp CS,Environmental impact,0.134
+2020,noninversion,rad_L,Stomp CS,Health,0.35
+2020,noninversion,rad_L,Stomp CS,Total,1.37
+2020,noninversion,rad_M,Fighter 480,Environmental behaviour,0.2296
+2020,noninversion,rad_M,Fighter 480,Environmental impact,0.0816
+2020,noninversion,rad_M,Fighter 480,Health,0.4584
+2020,noninversion,rad_M,Fighter 480,Total,0.7696000000000001
+2020,noninversion,rad_M,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,noninversion,rad_M,Roundup Flex XXL,Environmental impact,0.0836
+2020,noninversion,rad_M,Roundup Flex XXL,Health,0
+2020,noninversion,rad_M,Roundup Flex XXL,Total,0.3968
+2020,noninversion,rad_M,Stomp CS,Environmental behaviour,0.886
+2020,noninversion,rad_M,Stomp CS,Environmental impact,0.134
+2020,noninversion,rad_M,Stomp CS,Health,0.35
+2020,noninversion,rad_M,Stomp CS,Total,1.37
+2020,notill,mix_E,Fighter 480,Environmental behaviour,0.2296
+2020,notill,mix_E,Fighter 480,Environmental impact,0.0816
+2020,notill,mix_E,Fighter 480,Health,0.4584
+2020,notill,mix_E,Fighter 480,Total,0.7696000000000001
+2020,notill,mix_E,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,notill,mix_E,Roundup Flex XXL,Environmental impact,0.0836
+2020,notill,mix_E,Roundup Flex XXL,Health,0
+2020,notill,mix_E,Roundup Flex XXL,Total,0.3968
+2020,notill,mix_E,Stomp CS,Environmental behaviour,0.886
+2020,notill,mix_E,Stomp CS,Environmental impact,0.134
+2020,notill,mix_E,Stomp CS,Health,0.35
+2020,notill,mix_E,Stomp CS,Total,1.37
+2020,notill,mix_M,Fighter 480,Environmental behaviour,0.2296
+2020,notill,mix_M,Fighter 480,Environmental impact,0.0816
+2020,notill,mix_M,Fighter 480,Health,0.4584
+2020,notill,mix_M,Fighter 480,Total,0.7696000000000001
+2020,notill,mix_M,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,notill,mix_M,Roundup Flex XXL,Environmental impact,0.0836
+2020,notill,mix_M,Roundup Flex XXL,Health,0
+2020,notill,mix_M,Roundup Flex XXL,Total,0.3968
+2020,notill,mix_M,Stomp CS,Environmental behaviour,0.886
+2020,notill,mix_M,Stomp CS,Environmental impact,0.134
+2020,notill,mix_M,Stomp CS,Health,0.35
+2020,notill,mix_M,Stomp CS,Total,1.37
+2020,notill,nocc,Fighter 480,Environmental behaviour,0.2296
+2020,notill,nocc,Fighter 480,Environmental impact,0.0816
+2020,notill,nocc,Fighter 480,Health,0.4584
+2020,notill,nocc,Fighter 480,Total,0.7696000000000001
+2020,notill,nocc,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,notill,nocc,Roundup Flex XXL,Environmental impact,0.0836
+2020,notill,nocc,Roundup Flex XXL,Health,0
+2020,notill,nocc,Roundup Flex XXL,Total,0.3968
+2020,notill,nocc,Stomp CS,Environmental behaviour,0.886
+2020,notill,nocc,Stomp CS,Environmental impact,0.134
+2020,notill,nocc,Stomp CS,Health,0.35
+2020,notill,nocc,Stomp CS,Total,1.37
+2020,notill,rad_L,Fighter 480,Environmental behaviour,0.2296
+2020,notill,rad_L,Fighter 480,Environmental impact,0.0816
+2020,notill,rad_L,Fighter 480,Health,0.4584
+2020,notill,rad_L,Fighter 480,Total,0.7696000000000001
+2020,notill,rad_L,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,notill,rad_L,Roundup Flex XXL,Environmental impact,0.0836
+2020,notill,rad_L,Roundup Flex XXL,Health,0
+2020,notill,rad_L,Roundup Flex XXL,Total,0.3968
+2020,notill,rad_L,Stomp CS,Environmental behaviour,0.886
+2020,notill,rad_L,Stomp CS,Environmental impact,0.134
+2020,notill,rad_L,Stomp CS,Health,0.35
+2020,notill,rad_L,Stomp CS,Total,1.37
+2020,notill,rad_M,Fighter 480,Environmental behaviour,0.2296
+2020,notill,rad_M,Fighter 480,Environmental impact,0.0816
+2020,notill,rad_M,Fighter 480,Health,0.4584
+2020,notill,rad_M,Fighter 480,Total,0.7696000000000001
+2020,notill,rad_M,Roundup Flex XXL,Environmental behaviour,0.3132
+2020,notill,rad_M,Roundup Flex XXL,Environmental impact,0.0836
+2020,notill,rad_M,Roundup Flex XXL,Health,0
+2020,notill,rad_M,Roundup Flex XXL,Total,0.3968
+2020,notill,rad_M,Stomp CS,Environmental behaviour,0.886
+2020,notill,rad_M,Stomp CS,Environmental impact,0.134
+2020,notill,rad_M,Stomp CS,Health,0.35
+2020,notill,rad_M,Stomp CS,Total,1.37
