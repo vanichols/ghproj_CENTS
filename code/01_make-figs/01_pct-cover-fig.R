@@ -35,7 +35,7 @@ ord.cctrt_nice <- c("NoCC", "MixE", "MixM", "RadM", "RadL")
 ord.till_id <- c("notill", "noninversion", "inversion")
 
 #--desired till_nice order
-ord.till_nice <- c("No-till", "Non-inversion", "Inversion")
+ord.till_nice <- c("No-till", "Non-inv", "Inv")
 
 ord.cover_cat = c("Soil", "Cover Crop", "Other")
 
@@ -70,8 +70,8 @@ d_sp <-
          precip = str_to_title(precip),
          till_nice = case_when(
            till_id == "notill" ~ "No-till",
-           till_id == "inversion" ~ "Inversion",
-           till_id == "noninversion" ~ "Non-inversion",
+           till_id == "inversion" ~ "Inv",
+           till_id == "noninversion" ~ "Non-inv",
            TRUE ~ "XXX"
          ),
          till_nice = factor(till_nice, levels = ord.till_nice)) %>% 
@@ -112,3 +112,47 @@ d_sp %>%
 ggsave("figs/fig_fall-cover.png",
        width = 8, 
        height = 4)  
+
+
+# separate reps -----------------------------------------------------------
+
+library(ggh4x)
+
+d_sp %>%
+  group_by(cctrt_id, wea_straw, till_nice, cover_cat,
+           cctrt_nice, block_id) %>% 
+  summarise(cover_pct = sum(cover_pct)) %>% 
+  mutate(cover_cat = factor(cover_cat, levels = c("Cover Crop", "Other", "Soil")),
+         cover_cat = fct_rev(cover_cat)
+         #till_nice = fct_rev(till_nice)
+  ) %>% 
+  ggplot(aes(block_id, cover_pct/300)) +
+  geom_col(aes(fill = cover_cat), color = "black") +
+  facet_nested(wea_straw + till_nice ~cctrt_nice, scales = "free", 
+               solo_line = TRUE) +
+  coord_flip() +
+  scale_fill_manual(values = c("Soil" = bv1,
+                               "Cover Crop" = bv2,
+                               "Other" = bv3),
+                    guide = guide_legend(reverse = TRUE)) +
+  theme_bw() +
+  theme(axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.x = element_text(size = rel(1.3)),
+        panel.border = element_blank(),
+        panel.spacing = unit(0,"lines"),
+        strip.background.y=element_rect(color="grey30", fill="grey90"),
+        #panel.border=element_rect(color="grey90")
+        )+
+  labs(y = "Fall ground coverage (%)",
+       x = NULL,
+       fill = "Category") +
+  scale_y_continuous(labels = label_percent(),
+                     breaks = c(.25, .75)) 
+
+ggsave("figs/fig_fall-cover-reps.png",
+       width = 8, 
+       height = 7)
