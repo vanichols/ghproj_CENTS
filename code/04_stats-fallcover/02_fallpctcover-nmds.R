@@ -6,14 +6,7 @@
 
 Sys.setLanguage("en")
 library(tidyverse)
-library(lme4)
-library(lmerTest)
 library(CENTSdata)
-library(broom)
-library(emmeans)
-library(glmmTMB)
-library(DHARMa)
-library(car)
 library(vegan)
 
 
@@ -46,10 +39,80 @@ mat_dat <-
   column_to_rownames(var = "eu")
 
 #--if you exclude soil, it doesn't converge
-nmds_res <- metaMDS(mat_dat, distance = 'bray', autotransform = F, expand = F)
+nmds_res <- metaMDS(mat_dat, 
+                    distance = 'bray', 
+                    autotransform = F, 
+                    expand = F, 
+                    k = 3)
+
+#-close to 0.10, pretty reliable
+nmds_res$stress
+
+#--are individual points being problematic?
+gof <- goodness(object = nmds_res)
+
+plot(nmds_res, 
+     display = "sites",
+     type = "none")
+
+points(nmds_res, display = "sites",
+       cex = 2*gof/mean(gof))
 # the left is 2018, the right is 2019
 plot(nmds_res)
 cc_pdist <- dist(scores(nmds_res, display = 'sites'))
+
+#--run it for individual years?
+mat_dat18 <- 
+  y1 %>% 
+  filter(year == 2018) %>% 
+  select(eu, eppo_code, cover_pct) %>%
+  pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
+  replace(is.na(.), 0) %>% 
+  column_to_rownames(var = "eu")
+
+#--if you exclude soil, it doesn't converge
+nmds_res18 <- metaMDS(mat_dat18, 
+                    distance = 'bray', 
+                    autotransform = F, 
+                    expand = F, 
+                    k = 3)
+
+#--oh much better
+nmds_res18$stress
+plot(nmds_res18)
+gof18 <- goodness(object = nmds_res18)
+
+plot(nmds_res18, 
+     display = "sites",
+     type = "none")
+
+points(nmds_res18, display = "sites",
+       cex = 2*gof/mean(gof))
+
+mat_dat19 <- 
+  y1 %>% 
+  filter(year == 2019) %>% 
+  select(eu, eppo_code, cover_pct) %>%
+  pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
+  replace(is.na(.), 0) %>% 
+  column_to_rownames(var = "eu")
+
+#--if you exclude soil, it doesn't converge
+nmds_res19 <- metaMDS(mat_dat19, 
+                      distance = 'bray', 
+                      autotransform = F, 
+                      expand = F, 
+                      k = 3)
+nmds_res19$stress
+plot(nmds_res19)
+gof19 <- goodness(object = nmds_res19)
+
+plot(nmds_res19, 
+     display = "sites",
+     type = "none")
+
+points(nmds_res19, display = "sites",
+       cex = 2*gof/mean(gof))
 
 #--need help knowing what to report about this fit
 
@@ -91,19 +154,27 @@ site_hull_xtill <-
 
 
 # do anova ----------------------------------------------------------------
-dd <- 
-  df_dat %>%
+
+df_dat18 <- 
+  y1 %>% 
+  filter(year == 2018) %>% 
+  select(eu, eppo_code, cover_pct) %>%
+  pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
+  replace(is.na(.), 0)
+
+dd18 <- 
+  df_dat18 %>%
   left_join(y1 %>% 
-              select(eu, eu_id, date2, subrep) %>% 
+              select(eu, eu_id, year, date2, subrep) %>% 
+              filter(year == 2018) %>% 
               distinct()) %>% 
   left_join(eu) %>% 
-  mutate_if(is.character, as.factor) %>% 
-  mutate(yearF = as.factor(year(date2))) 
+  mutate_if(is.character, as.factor) 
 
 
 #--everything is significnat, year most of all (3000x), then cc (500x), then straw (14), then till (7)
-adonis2(df_dat %>% select(-1) %>% as.matrix() ~ 
-          cctrt_id + till_id + straw_id + yearF, data = (dd),
+adonis2(df_dat18 %>% select(-1) %>% as.matrix() ~ 
+          cctrt_id + till_id + straw_id, data = (dd18),
         by = "margin"
 )
 
@@ -202,34 +273,173 @@ ggplot() +
 
 
 
+# present separate analyses by year ---------------------------------------
+
+site_scores18 <- 
+  as.data.frame(scores(nmds_res18, "sites")) %>%
+  rownames_to_column(., var = "eu")  %>% 
+  left_join(y1 %>% 
+              select(eu, eu_id, year, date2, subrep) %>% 
+              filter(year == 2018) %>% 
+              distinct()) %>% 
+  left_join(eu) %>% 
+  as_tibble()
+
+site_scores19 <- 
+  as.data.frame(scores(nmds_res19, "sites")) %>%
+  rownames_to_column(., var = "eu")  %>% 
+  left_join(y1 %>% 
+              select(eu, eu_id, year, date2, subrep) %>% 
+              filter(year == 2019) %>% 
+              distinct()) %>% 
+  left_join(eu) %>% 
+  as_tibble()
 
 
-  #geom_hline(yintercept = 0, lty = 2) +
-  #geom_vline(xintercept = 0, lty = 2) +
-  # -- the following stuff is for aesthetic purposes --
-  scale_color_manual(values = c(p_pink, p_green, p_blue, p_orange, p_purp)) +
-  scale_fill_manual(values = c(p_yellow, p_yellow,
-                               p_purp, p_purp,
-                               p_green, p_green,
-                               p_blue, p_blue,
-                               p_orange, p_orange)) +
-  labs(color = "Site",
-       linetype = "Cover Crop Treatment")+
-  guides(fill = FALSE,
-         shape = F)+
-  theme_minimal() + 
+spp_scores18  <- 
+  as.data.frame(scores(nmds_res18, "species")) %>%
+  rownames_to_column(., var = "eppo_code")
+
+spp_scores19  <- 
+  as.data.frame(scores(nmds_res19, "species")) %>%
+  rownames_to_column(., var = "eppo_code")
+
+
+# Makes polygons for site by treatment
+site_hull18 <- 
+  site_scores18 %>% # dataframe of site scores
+  unite("till_straw_cc", till_id, straw_id, cctrt_id, remove = FALSE) %>%
+  group_by(till_straw_cc) %>% # grouping variables: farm AND treatmnet
+  slice(chull(NMDS1, NMDS2)) # points that polygons will connect
+
+# Makes polygons for site by treatment
+site_hull18_xstraw <- 
+  site_scores18 %>% # dataframe of site scores
+  unite("till_cc", till_id, cctrt_id, remove = FALSE) %>%
+  group_by(till_cc) %>% # grouping variables: farm AND treatmnet
+  slice(chull(NMDS1, NMDS2)) # points that polygons will connect
+
+site_hull18_onlycc <- 
+  site_scores18 %>% # dataframe of site scores
+  #unite("till_cc", till_id, cctrt_id, remove = FALSE) %>%
+  group_by(cctrt_id) %>% # grouping variables: farm AND treatmnet
+  slice(chull(NMDS1, NMDS2)) # points that polygons will connect
+
+site_hull19 <- 
+  site_scores19 %>% # dataframe of site scores
+  unite("till_straw_cc", till_id, straw_id, cctrt_id, remove = FALSE) %>%
+  group_by(till_straw_cc) %>% # grouping variables: farm AND treatmnet
+  slice(chull(NMDS1, NMDS2)) # points that polygons will connect
+
+site_hull19_onlycc <- 
+  site_scores19 %>% # dataframe of site scores
+  #unite("till_straw_cc", till_id, straw_id, cctrt_id, remove = FALSE) %>%
+  group_by(cctrt_id) %>% # grouping variables: farm AND treatmnet
+  slice(chull(NMDS1, NMDS2)) # points that polygons will connect
+
+# do anova ----------------------------------------------------------------
+dd18 <-
+  df_dat %>%
+  left_join(y1 %>%
+              select(eu, eu_id, date2, subrep) %>%
+              distinct()) %>%
+  left_join(eu) %>%
+  mutate_if(is.character, as.factor) %>%
+  mutate(yearF = as.factor(year(date2)))
+# 
+# 
+# #--everything is significnat, year most of all (3000x), then cc (500x), then straw (14), then till (7)
+# adonis2(df_dat %>% select(-1) %>% as.matrix() ~ 
+#           cctrt_id + till_id + straw_id + yearF, data = (dd),
+#         by = "margin"
+# )
+# 
+# 
+
+# individual years? ---------------------------------
+#--just for exploring, if make manu fig it will be in other folder
+library(ggrepel)
+library(ggpubr)
+library(ggh4x)
+
+
+mylegendtheme <- theme(legend.position = c(0.1, 0.9),
+                       legend.justification = c(0,1),
+                       legend.background = element_rect(color = "black"))
+
+myaxistexttheme <- theme(axis.text = element_text(size = rel(1.2)),
+                         legend.text = element_text(size = rel(1.3)),
+                         axis.title = element_text(size = rel(1.3)),
+                         strip.text = element_text(size = rel(1.3)))
+
+
+
+# #--not sure if necessary...
+# site_hull_xtill <- 
+#   site_hull %>% 
+#   group_by(cctrt_id, year, straw_id) %>% 
+#   slice(c(1, n()))
+
+p1 <-
+  ggplot() +
+  geom_hline(yintercept = 0, lty = 2) +
+  geom_vline(xintercept = 0, lty = 2) +
+  # geom_point(data = site_scores, 
+  #            aes(x = NMDS1, 
+  #                y = NMDS2, 
+  #                color = cctrt_id, shape = till_id), 
+  #            size = 3, 
+  #            alpha = 0.6) +
+  geom_text_repel(data = spp_scores18, 
+                  aes(x = NMDS1, 
+                      y = NMDS2, 
+                      label = eppo_code), 
+                  alpha = 0.5) + # Species as text - better!
+  geom_polygon(data = site_hull18_onlycc,
+               aes(x = NMDS1,
+                   y = NMDS2,
+                   fill = cctrt_id),
+               alpha = 0.3) +
+  facet_wrap( ~ year) +
   theme(legend.direction  = "vertical",
         legend.background = element_rect(color = "black"),
-        legend.justification = c(1, 0),
-        legend.position = c(0.95, 0.15),
-        #legend.text       = element_text(size = 12),
-        #legend.title      = element_text(size = 14),
-        #axis.title        = element_text(size = 14),
-        #axis.text         = element_text(size = 12),
-        strip.text = element_text(face = "bold", size = rel(1.2)),
-        #legend.key.size = unit(0.8, "lines"),
-        legend.title = element_text(size = rel(1), face = "bold"),
-        legend.text = element_text(size = rel(1)))
+        legend.text       = element_text(size = 12),
+        legend.title      = element_text(size = 14),
+        axis.title        = element_text(size = 14),
+        axis.text         = element_text(size = 12))
 
 
-ggsave("02_make-figs/manu/fig3.jpg", width = 8.3, height = 5.7)
+
+
+p2 <- 
+  ggplot() +
+  geom_hline(yintercept = 0, lty = 2) +
+  geom_vline(xintercept = 0, lty = 2) +
+  # geom_point(data = site_scores, 
+  #            aes(x = NMDS1, 
+  #                y = NMDS2, 
+  #                color = cctrt_id, shape = till_id), 
+  #            size = 3, 
+  #            alpha = 0.6) +
+  geom_text_repel(data = spp_scores19, 
+                  aes(x = NMDS1, 
+                      y = NMDS2, 
+                      label = eppo_code), 
+                  alpha = 0.5) + # Species as text - better!
+  geom_polygon(data = site_hull19_onlycc,
+               aes(x = NMDS1,
+                   y = NMDS2,
+                   fill = cctrt_id), show.legend = F,
+               alpha = 0.3) +
+  facet_wrap( ~ year) +
+  theme(legend.direction  = "vertical",
+        legend.background = element_rect(color = "black"),
+        legend.text       = element_text(size = 12),
+        legend.title      = element_text(size = 14),
+        axis.title        = element_text(size = 14),
+        axis.text         = element_text(size = 12))
+library(patchwork)
+
+p1 +p2 
+
+
