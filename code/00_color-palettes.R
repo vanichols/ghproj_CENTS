@@ -26,3 +26,29 @@ cv5 <- '#0d0887'
   
 th1 <- theme(strip.background = element_rect(fill = "gray80"),
              strip.text = element_text(size = rel(1.5)))
+
+
+# nice labels -------------------------------------------------------------
+
+#--desired cctrt_id order
+ord.cctrt_id <- c("nocc", "mix_E", "mix_M", "rad_M", "rad_L")
+
+#--desired cctrt_nice order
+ord.cctrt_nice <- c("NoCC", "MixE", "MixM", "RadM", "RadL")
+
+#--desired till_id order
+ord.till_id <- c("notill", "noninversion", "inversion")
+
+#--desired till_nice order
+ord.till_nice <- c("No-till", "Non-inv", "Inv")
+
+ord.cover_cat2 <-  c("Soil", "Cover Crop", "Weed", "Volunteer")
+
+ord.crop <- c("Spring barley (2018)", "Oat (2019)", "Faba bean (2020)")
+
+
+# labels ------------------------------------------------------------------
+
+myyieldlab <- (expression(atop("Dry grain yield", paste("(Mg "~ha^-1*")"))))
+
+

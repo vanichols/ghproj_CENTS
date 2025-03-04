@@ -95,3 +95,4 @@ d1 %>%
   geom_col(aes(fill = dm_cat)) +
   facet_grid(precip + straw_id  ~ till_id) +
   scale_fill_manual(values = c("gold", "darkblue"))
+
