@@ -38,6 +38,43 @@ d %>%
 
 # model -------------------------------------------------------------------
 
+model <- glmmTMB(count ~ weed_type + till_id * straw_id * cctrt_id * weayear + 
+                   (1 | block_id/till_id/cctrt_id),# + 
+                   #(1 | weed_type), 
+                 ziformula = ~ weed_type,  # Allow different zero-inflation per species
+                 family = nbinom2, 
+                 data = d)
+
+
+# Check the model summary
+summary(model)
+
+#--simplify to only circ
+d_cir <- 
+  d %>% 
+  filter(weed_type == "cirar") %>% 
+  group_by(eu_id, date2, weed_type, year, block_id, plot_id, till_id, straw_id, cctrt_id, weayear) %>% 
+  summarise(count = sum(count)) %>% 
+  select(count, everything())
+
+
+d_cir %>% 
+  ggplot(aes(plot_id, count)) +
+  geom_point()
+
+model_cir <- glmmTMB(count ~ till_id * cctrt_id + 
+                   (1 | till_id),# + 
+                 #(1 | weed_type), 
+                 ziformula = ~ cctrt_id,  
+                 family = poisson, 
+                 data = d_cir)
+
+
+summary(model_cir)
+Anova(model_cir, type = "III")
+#--this gives the 'likelihood' of finding a circ in a thing
+pairs(emmeans(model_cir, ~ cctrt_id | till_id, type = "response"))
+plot(emmeans(model_cir, ~ cctrt_id * till_id))
 # For the 4-way proportions for cover, you could actually analyse this a little di􀆯erently to what we talked about
 # as well. You could pivot your data into long-format that has a column for the proportions, and another column
 # for the Cover category (Soil, Weeds, Volunteers and CC). If you then analyse the proportions with a model like

@@ -30,7 +30,7 @@ w <- read_csv("data/tidy_weaclass.csv")
 ord.cctrt_id <- c("nocc", "mix_E", "mix_M", "rad_M", "rad_L")
 
 #--desired cctrt_nice order
-ord.cctrt_nice <- c("NoCC", "MixE", "MixM", "RadM", "RadL")
+ord.cctrt_nice <- c("NoCC", "MixEarly", "MixMid", "RadMid", "RadLate")
 
 #--desired till_id order
 ord.till_id <- c("notill", "noninversion", "inversion")
@@ -48,14 +48,14 @@ d_sp <-
   mutate(year = year(date2)) %>% 
   left_join(w) %>% 
   mutate(weayear = paste(precip, te, sep  = "-"),
-         straw_sym = ifelse(straw_id == "retained", "+", "-"),
+         straw_sym = ifelse(straw_id == "retained", "+res", "-res"),
          cover_frac = cover_pct / 100,
          cctrt_nice = case_when(
            cctrt_id == "nocc" ~ "NoCC",
-           cctrt_id == "mix_E" ~ "MixE",
-           cctrt_id == "mix_M" ~ "MixM",
-           cctrt_id == "rad_M" ~ "RadM",
-           cctrt_id == "rad_L" ~ "RadL",
+           cctrt_id == "mix_E" ~ "MixEarly",
+           cctrt_id == "mix_M" ~ "MixMid",
+           cctrt_id == "rad_M" ~ "RadMid",
+           cctrt_id == "rad_L" ~ "RadLate",
            TRUE~"XXX"
          ),
          cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
@@ -76,7 +76,7 @@ d_sp <-
            TRUE ~ "XXX"
          ),
          till_nice = factor(till_nice, levels = ord.till_nice)) %>% 
-  unite(precip, straw_sym, col = "wea_straw", sep = "")
+  unite(precip, straw_sym, col = "wea_straw", sep = " ")
   
 
 
@@ -115,6 +115,40 @@ ggsave("figs/fig_fall-cover.png",
        width = 8, 
        height = 4)  
 
+
+
+d_sp %>%
+  group_by(cctrt_id, wea_straw, till_nice, cover_cat2,
+           cctrt_nice) %>% 
+  summarise(cover_pct = sum(cover_pct)) %>% 
+  mutate(cover_cat2 = fct_rev(cover_cat2),
+         #till_nice = fct_rev(till_nice)
+  ) %>% 
+  ggplot(aes(till_nice, cover_pct/1200)) +
+  geom_col(aes(fill = cover_cat2), color = "black", size = 1.1) +
+  facet_grid(wea_straw ~cctrt_nice, scales = "free") +
+  coord_flip() +
+  scale_fill_manual(values = c("Soil" = bv1,
+                               "Cover Crop" = bv2,
+                               "Volunteer" = bv3,
+                               "Weed" = "red"),
+                    guide = guide_legend(reverse = TRUE)) +
+  theme_bw() +
+  theme(axis.ticks.y = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.x = element_text(size = rel(1.3)),
+        panel.border = element_blank())+
+  labs(y = "Fall Ground Coverage (%)",
+       x = NULL,
+       fill = "Cover Category") +
+  scale_y_continuous(labels = label_percent(),
+                     breaks = c(.25, .75)) 
+
+ggsave("figs/fig_fall-cover.png",
+       width = 8, 
+       height = 4)
 
 # separate reps -----------------------------------------------------------
 
@@ -156,5 +190,5 @@ d_sp %>%
                      breaks = c(.25, .75)) 
 
 ggsave("figs/fig_fall-cover-reps.png",
-       width = 8, 
+       width = 7, 
        height = 7)

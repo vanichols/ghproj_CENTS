@@ -125,3 +125,36 @@ p1 + p2 +  plot_layout(widths = c(3, 1))
 ggsave("figs/fig_crop-yields.png",
        width = 8, height = 4)
        
+
+
+# 3. include spring weed counts regressed with yields ------------------------
+
+d3 <- 
+  cents_spweedcount %>%
+  mutate(year = year(date2)) %>%
+  group_by(eu_id, weed_type, year) %>% 
+  summarise(count = sum(count)) %>% 
+  left_join(cents_cropyields %>% 
+              mutate(year = year(date2)) %>% 
+              select(-date2))
+
+d3 %>% 
+  filter(weed_type %in% c("cirar", "equar"),
+         crop == "faba bean") %>% 
+  ggplot(aes(count, yield_dry_Mgha)) +
+  geom_point() +
+  geom_smooth(method = "lm")+
+  facet_grid(crop~weed_type, scales = "free")
+
+d3 %>% 
+  left_join(cents_eukey) %>% 
+  group_by(straw_id, till_id, cctrt_id, crop, weed_type) %>% 
+  summarise(count = mean(count),
+            yield = mean(yield_dry_Mgha)) %>% 
+  filter(weed_type %in% c("cirar", "equar"),
+         crop == "faba bean") %>% 
+  ggplot(aes(count, yield)) +
+  geom_point() +
+  geom_smooth(method = "lm")+
+  facet_grid(crop~weed_type, scales = "free")
+
