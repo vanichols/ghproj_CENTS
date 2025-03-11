@@ -89,5 +89,21 @@ p4 %>%
   scale_size(range = c(1, 15))
 
 
-p4 %>% 
-  write_csv("data/tidy_pesticide-loads-per-system.csv")
+# make it on an eu basis --------------------------------------------------
+
+p5 <- 
+  p4 %>% 
+  filter(year != 2020) %>% 
+  filter(load_cat == "Total") %>% 
+  group_by(year, till_id, cctrt_id) %>% 
+  summarise(load_ha = sum(load_ha)) %>% 
+  left_join(cents_eukey, relationship = "many-to-many") %>% 
+  ungroup() %>% 
+  select(eu_id, year, load_ha) %>% 
+  arrange(eu_id, year)
+
+p5 %>%
+  write_csv("data/tidy_pesticide-load-by-eu.csv")
+
+p5 %>% 
+  left_join(cents_eukey)

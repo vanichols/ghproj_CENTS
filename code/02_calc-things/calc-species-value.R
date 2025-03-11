@@ -193,13 +193,40 @@ d5 %>%
   geom_point() +
   facet_wrap(~cat)
 
+d5 %>%
+  mutate(sc_value2_sum = ifelse(cat == "harm", -sc_value2_sum, sc_value2_sum)) %>% 
+  ggplot(aes(eppo_code, sc_value2_sum)) +
+  geom_point(aes(color = cat), size = 3) +
+  scale_color_manual(values = c("purple", "red", "green4")) +
+  coord_flip()
 
-# 6. average pollin and pcont ---------------------------------------------
+
+d5 %>%
+  mutate(sc_value2_sum = ifelse(cat == "harm", -sc_value2_sum, sc_value2_sum)) %>% 
+  ggplot(aes(eppo_code, sc_value2_sum)) +
+  geom_point(aes(color = cat), size = 3) +
+  scale_color_manual(values = c("purple", "red", "green4")) +
+  coord_flip()
+
+d6 %>%
+  ungroup() %>% 
+  filter(eppo_code != "soil") %>% 
+  mutate(harm = -harm) %>%
+  select(eppo_code, benef, harm) %>% 
+  pivot_longer(benef:harm) %>%
+  arrange(name, value) %>% 
+  mutate(eppo_code2 = fct_inorder(eppo_code)) %>% 
+  ggplot(aes(eppo_code2, value)) +
+  geom_point(aes(color = name), size = 3) +
+  scale_color_manual(values = c("green4", "red"))
+
+
+# 6. take max of pollin and econt---------------------------------------------
 
 d6 <- 
   d5 %>%
   pivot_wider(names_from = cat, values_from = sc_value2_sum) %>% 
-  mutate(benef = (ecocont + pollinator)/2,
+  mutate(benef = max(ecocont, pollinator),
          net = benef - harm) 
 
 
