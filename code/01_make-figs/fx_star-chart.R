@@ -83,31 +83,126 @@ dat <-
   #not sure how to scale from 0-1
   mutate(value2 = value/max(value))
 
-#--single example
-p1 <- 
+dat_p <- 
   dat %>% 
   left_join(cents_eukey) %>%
   group_by(cctrt_id, till_id, straw_id, name, cat) %>% 
-  summarise(value2 = mean(value2))  %>%
+  summarise(value2 = mean(value2)) %>% 
+  mutate(name_nice = case_when(
+    name == "dm_gm2" ~ "Biom",
+    name == "yield_dry_Mgha" ~ "Grain",
+    name == "benef" ~ "Bene",
+    name == "load_ha" ~ "Tox",
+    name == "harm" ~ "Harm",
+    name == "count" ~ "Leg",
+  ))
+
+
+#--which are best net wise?
+dat_p %>% 
+  mutate(value3 = ifelse(cat == "disservices", -value2, value2)) %>% 
+  group_by(cctrt_id, till_id, straw_id) %>% 
+  summarise(netval = sum(value3)) %>% 
+  arrange(-netval)
+
+#--do a correlation chart or something
+dat_p %>% 
+  mutate(value3 = ifelse(cat == "disservices", -value2, value2)) %>% 
+  ggplot(aes(name, cctrt_id)) +
+  geom_point(aes(size = value3, color = cat)) +
+  facet_grid(.~till_id + straw_id) + 
+  scale_size_continuous(range = c(2, 15))
+
+
+# try highlighting an individual ------------------------------------------
+dat_p %>% 
+  ungroup() %>% 
+  mutate(order = 1:n()) %>% 
+  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
+  geom_rect(data = . %>% filter(cctrt_id %in% c("mix_E") & till_id %in% c("inversion") & straw_id %in% c("removed")), 
+            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
+            ymin = -Inf,ymax = Inf) +
+  geom_rect(data = . %>% filter(cctrt_id %in% c("rad_M") & till_id %in% c("notill") & straw_id %in% c("retained")), 
+            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
+            ymin = -Inf,ymax = Inf) +
+  geom_col(aes(fill = cat), color = "black") +
+  facet_nested(till_id + straw_id ~cctrt_id) +
+  coord_polar(clip = "off") +
+  theme_bw() +
+  theme(axis.ticks = element_blank(), 
+        axis.text.y = element_blank(),
+        panel.spacing = unit(2, "lines"),
+        panel.border = element_blank()) +
+  scale_fill_manual(values = c(av1, "dodgerblue")) 
+
+#--highlighted examples
+p2 <- 
+  dat_p %>% 
+  filter(cctrt_id %in% c("mix_E") & till_id %in% c("inversion") & straw_id %in% c("removed")) %>% 
+  ungroup() %>% 
+  mutate(order = 1:n()) %>% 
+  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
+  geom_rect(data = . %>% filter(cctrt_id %in% c("mix_E") & till_id %in% c("inversion") & straw_id %in% c("removed")), 
+            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
+            ymin = -Inf,ymax = Inf) +
+  geom_rect(data = . %>% filter(cctrt_id %in% c("rad_M") & till_id %in% c("notill") & straw_id %in% c("retained")), 
+            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
+            ymin = -Inf,ymax = Inf) +
+  geom_col(aes(fill = cat), color = "black") +
+  facet_nested(till_id + straw_id ~cctrt_id) +
+  coord_polar(clip = "off") +
+  theme_bw() +
+  theme(axis.ticks = element_blank(), 
+        axis.text.y = element_blank(),
+        panel.spacing = unit(2, "lines"),
+        panel.border = element_blank()) +
+  scale_fill_manual(values = c(av1, "dodgerblue")) 
+
+
+p3 <- 
+  dat_p %>% 
+  filter(cctrt_id %in% c("rad_M") & till_id %in% c("notill") & straw_id %in% c("retained")) %>% 
+  ungroup() %>% 
+  mutate(order = 1:n()) %>% 
+  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
+  geom_rect(data = . %>% filter(cctrt_id %in% c("mix_E") & till_id %in% c("inversion") & straw_id %in% c("removed")), 
+            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
+            ymin = -Inf,ymax = Inf) +
+  geom_rect(data = . %>% filter(cctrt_id %in% c("rad_M") & till_id %in% c("notill") & straw_id %in% c("retained")), 
+            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
+            ymin = -Inf,ymax = Inf) +
+  geom_col(aes(fill = cat), color = "black") +
+  facet_nested(till_id + straw_id ~cctrt_id) +
+  coord_polar(clip = "off") +
+  theme_bw() +
+  theme(axis.ticks = element_blank(), 
+        axis.text.y = element_blank(),
+        panel.spacing = unit(2, "lines"),
+        panel.border = element_blank()) +
+  scale_fill_manual(values = c(av1, "dodgerblue")) 
+
+  
+p2 + p3
+
+#--single examples
+p1 <- 
+  dat_p  %>%
   filter(till_id == "notill" & cctrt_id %in% c("mix_E", "rad_M")) %>% 
   ggplot(aes(name, value2)) +
   geom_col(aes(fill = cat), color = "black") +
   facet_grid(till_id + straw_id~cctrt_id) +
-  coord_polar() +
+  coord_polar(clip = "off") +
     theme_bw() +
   theme(axis.text.y = element_blank()) +
     scale_fill_manual(values = c(av1, "dodgerblue")) 
   
 
 p2 <- 
-  dat %>% 
-  left_join(cents_eukey) %>%
-  group_by(cctrt_id, till_id, straw_id, name, cat) %>% 
-  summarise(value2 = mean(value2))  %>% 
+  dat_p %>% 
   ggplot(aes(name, value2)) +
   geom_col(aes(fill = cat), color = "black") +
   facet_nested(till_id + straw_id ~cctrt_id) +
-  coord_polar() +
+  coord_polar(clip = "off") +
   theme_bw() +
   theme(axis.text = element_blank()) +
   scale_fill_manual(values = c(av1, "dodgerblue")) 
@@ -119,3 +214,4 @@ design <- "
 #p1 + p2 + guide_area() + plot_layout(design=design, guides = "collect") 
 
 p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = "top")
+
