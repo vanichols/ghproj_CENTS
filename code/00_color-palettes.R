@@ -54,4 +54,5 @@ ord.crop <- c("Spring barley (2018)", "Oat (2019)", "Faba bean (2020)")
 
 myyieldlab <- (expression(atop("Dry grain yield", paste("(Mg "~ha^-1*")"))))
 
+mybmlab <- (expression(atop("Fall biomass", paste("(g "~m^-2*")"))))
 

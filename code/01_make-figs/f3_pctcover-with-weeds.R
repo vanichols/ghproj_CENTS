@@ -113,9 +113,9 @@ d_sp %>%
                                           color = "white"),
         strip.text.x = element_text(size = rel(1.3)),
         panel.border = element_blank())+
-  labs(y = "Fall Ground Coverage (%)",
+  labs(y = "Fall Ground Cover (%)",
        x = NULL,
-       fill = "Cover Category") +
+       fill = NULL) +
     scale_y_continuous(labels = label_percent(),
                        breaks = c(.25, .75)) 
 

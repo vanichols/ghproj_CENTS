@@ -21,7 +21,7 @@ c <-
 w <- 
   read_csv("data/tidy_weaclass.csv")
 
-
+b_stats <- read_csv("data/stats_em_fallbio.csv")
 
 # orders ------------------------------------------------------------------
 
@@ -42,18 +42,6 @@ ord.till_nice <- c("No-till", "Non-inv", "Inv")
 # were biomass and cover correlated ---------------------------------------
 #--get average coverage for each catgory by plot
 
-d_pct <- 
-  cents_fallpctcover %>%
-  #--sum by category
-  group_by(eu_id, date2, subrep, cover_cat) %>% 
-  summarise(cover_pct = sum(cover_pct)) %>% 
-  #--average over subreps
-  group_by(eu_id, date2, cover_cat) %>% 
-  summarise(cover_pct = mean(cover_pct)) %>% 
-  mutate(year = year(date2),
-         dm_cat = cover_cat) %>% 
-  select(-date2)
-  
 #--get biomass into same format
 d_bio <- 
   y %>% 
@@ -80,7 +68,6 @@ d1 <-
   left_join(eu) %>% 
   left_join(w) %>% 
   distinct()
-
 
 # 2. make nice lables cc ------------------------------------------------
 
@@ -114,23 +101,70 @@ d3 <-
          till_nice = factor(till_nice, levels = ord.till_nice))
 
 
+# 4. make nice straw and weather column combo -----------------------------
+
 d4 <- 
   d3 %>% 
-  mutate(
-    straw_thing = ifelse(straw_id == "retained", "+", "-"),
-    wea_straw = paste0(precip, straw_thing)) %>% 
-  unite(precip, straw_thing, col = "wea_straw", sep = " ", remove = F)
+  mutate(year_prec = paste0("(", year, ") ", precip)) 
 
-d5 <-
+# 5. group  ---------------------------------------------------------------
+
+d5a <-
   d4 %>%  
-  group_by(cctrt_id, dm_cat, wea_straw, till_id, precip, straw_id) %>% 
+  group_by(cctrt_id, till_id, year, year_prec,
+           cctrt_nice, till_nice, precip) %>% 
   summarise(dm_gm2 = mean(dm_gm2)) 
 
-d5 %>% 
-  ggplot(aes(till_id, dm_gm2)) +
-  geom_col(aes(fill = dm_cat)) +
-  facet_nested(precip + straw_id  ~ cctrt_id) +
-  scale_fill_manual(values = c("gold", "darkblue"))
+#--keep dm cat
+d5 <-
+  d4 %>%  
+  group_by(dm_cat,
+           cctrt_id, till_id, year, year_prec,
+           cctrt_nice, till_nice, precip) %>% 
+  summarise(dm_gm2 = mean(dm_gm2)) 
+
+# 6. merge w-stats --------------------------------------------------------
+
+#--should be a straight line
+d6a <- 
+  d5a %>% 
+  left_join(b_stats, relationship = "many-to-many") %>% 
+  mutate(letters = as.character(.group),
+         letters = ifelse(year == 2019, str_to_lower(letters), letters))
+
+d6a %>% 
+  ggplot(aes(dm_gm2, estimate)) +
+  geom_point()
+
+d6 <- 
+  d5 %>% 
+  left_join(b_stats, relationship = "many-to-many")
+  
+ggplot() +
+  geom_col(data = d6, 
+           aes(till_nice, dm_gm2, fill = dm_cat)) +
+  geom_linerange(data = d6a, 
+                aes(x = till_nice, 
+                    ymin = conf.low,
+                    ymax = conf.high),
+                color = "white") +
+  geom_text(data = d6a, aes(x = till_nice, 
+                             y = estimate + 10, 
+                             label = letters),
+            size = 2) +
+  facet_nested(year_prec  ~ cctrt_nice) +
+  scale_fill_manual(values = c("gold", "darkblue")) +
+  labs(x = "Tillage",
+       y = mybmlab, 
+       fill = NULL) +
+  theme_bw() +
+  theme(axis.ticks.y = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.x = element_text(size = rel(1.3)),
+        panel.border = element_blank()
+        )
 
 
 
