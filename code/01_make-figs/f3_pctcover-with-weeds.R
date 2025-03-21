@@ -90,9 +90,17 @@ d_sp %>%
          #till_nice = fct_rev(till_nice)
          ) %>% 
   ggplot(aes(wea_straw, cover_pct/1200)) +
-  geom_col(aes(fill = cover_cat2), color = "black", size = 1.1) +
+  geom_col(aes(fill = cover_cat2 
+               #alpha = cover_cat2
+               ), color = "black",
+           size = 1.05) +
   facet_grid(till_nice ~cctrt_nice, scales = "free") +
   coord_flip() +
+  # scale_alpha_manual(values = c("Soil" = 0.8,
+  #                                   "Cover Crop" = 0.8,
+  #                                   "Volunteer" = 0.8,
+  #                                   "Weed" = 1),
+  #                        guide = F) +
   scale_fill_manual(values = c("Soil" = bv1,
                                "Cover Crop" = bv2,
                                "Volunteer" = bv3,
