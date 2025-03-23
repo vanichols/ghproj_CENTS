@@ -173,7 +173,7 @@ p1 <-
         legend.position = "top",
         strip.background.x = element_rect(fill = "white", 
                                           color = "white"),
-        strip.text.x = element_text(size = rel(1.3))) +
+        strip.text = element_text(size = rel(1.3))) +
   scale_fill_manual(values = c("red", "dodgerblue4")) 
 
 p1
@@ -201,7 +201,7 @@ p_hi1 <-
         legend.position = "top",
         strip.background.x = element_rect(fill = "white", 
                                           color = "white"),
-        strip.text.x = element_text(size = rel(1.3))) +
+        strip.text = element_text(size = rel(1.3))) +
   scale_fill_manual(values = c("red", "dodgerblue4")) 
 
 p_hi1
@@ -225,7 +225,7 @@ p_hi2 <-
         legend.position = "top",
         strip.background.x = element_rect(fill = "white", 
                                           color = "white"),
-        strip.text.x = element_text(size = rel(1.3))) +
+        strip.text = element_text(size = rel(1.3))) +
   scale_fill_manual(values = c("red", "dodgerblue4")) 
 
 p_hi2
@@ -249,7 +249,7 @@ p_hi3 <-
         legend.position = "top",
         strip.background.x = element_rect(fill = "white", 
                                           color = "white"),
-        strip.text.x = element_text(size = rel(1.3))) +
+        strip.text = element_text(size = rel(1.3))) +
   scale_fill_manual(values = c("red", "dodgerblue4")) 
 
 p_hi3
@@ -272,19 +272,13 @@ p_hi4 <-
         legend.position = "top",
         strip.background.x = element_rect(fill = "white", 
                                           color = "white"),
-        strip.text.x = element_text(size = rel(1.3))) +
+        strip.text = element_text(size = rel(1.3))) +
   scale_fill_manual(values = c("red", "dodgerblue4")) 
 
 # combine plots -----------------------------------------------------------
 
-design <- "
-66666
-11135
-11124
-"    
-
 p_square <- 
-  (p_hi2 + p_hi1) / (p_hi3 + p_hi4) +
+  (p_hi2 + p_hi4) / (p_hi1 + p_hi3) +
   plot_layout(guides = "collect")& theme(legend.position = 'top') 
 
 ggsave("figs/fig_star-chart-highlights.png", height = 6, width = 5)
@@ -294,6 +288,14 @@ p_all <-
 
 ggsave("figs/fig_star-chart-all.png", p_all, 
        height = 12, width = 10)
+
+
+
+design <- "
+66666
+11135
+11124
+"    
 
 p1 + p_hi1 + p_hi2 + p_hi3 + p_hi4 + guide_area() + 
   plot_layout(design=design, guides = "collect", heights = c(1, 3)) 
