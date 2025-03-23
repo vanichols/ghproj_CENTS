@@ -22,23 +22,6 @@ w <-
   read_csv("data/tidy_weaclass.csv")
 
 b_stats <- read_csv("data/stats_em_fallbio.csv")
-
-# orders ------------------------------------------------------------------
-
-
-#--desired cctrt_id order
-ord.cctrt_id <- c("nocc", "mix_E", "mix_M", "rad_M", "rad_L")
-
-#--desired cctrt_nice order
-ord.cctrt_nice <- c("NoCC", "MixEarly", "MixMid", "RadMid", "RadLate")
-
-#--desired till_id order
-ord.till_id <- c("notill", "noninversion", "inversion")
-
-#--desired till_nice order
-ord.till_nice <- c("No-till", "Non-inv", "Inv")
-
-
 # were biomass and cover correlated ---------------------------------------
 #--get average coverage for each catgory by plot
 

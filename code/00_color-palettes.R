@@ -37,7 +37,9 @@ th1 <- theme(strip.background = element_rect(fill = "gray80"),
 ord.cctrt_id <- c("nocc", "mix_E", "mix_M", "rad_M", "rad_L")
 
 #--desired cctrt_nice order
-ord.cctrt_nice <- c("NoCC", "MixE", "MixM", "RadM", "RadL")
+ord.cctrt_niceS <- c("NoCC", "MixE", "MixM", "RadM", "RadL")
+ord.cctrt_niceL <- c("NoCC", "MixEarly", "MixMid", "RadMid", "RadLate")
+
 
 #--desired till_id order
 ord.till_id <- c("notill", "noninversion", "inversion")

@@ -26,18 +26,6 @@ eu <- as_tibble(cents_eukey)
 y <- as_tibble(cents_fallpctcover)
 w <- read_csv("data/tidy_weaclass.csv")
 
-#--desired cctrt_id order
-ord.cctrt_id <- c("nocc", "mix_E", "mix_M", "rad_M", "rad_L")
-
-#--desired cctrt_nice order
-ord.cctrt_nice <- c("NoCC", "MixEarly", "MixMid", "RadMid", "RadLate")
-
-#--desired till_id order
-ord.till_id <- c("notill", "noninversion", "inversion")
-
-#--desired till_nice order
-ord.till_nice <- c("No-till", "Non-inv", "Inv")
-
 ord.cover_cat2= c("Soil", "Cover Crop", "Weed", "Volunteer")
 
 
@@ -59,7 +47,7 @@ d_sp <-
            TRUE~"XXX"
          ),
          cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_nice),
+         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceL),
          till_id = factor(till_id, levels = ord.till_id),
          cover_cat2 = case_when(
            cover_cat2 == "soil" ~ "Soil",
@@ -76,7 +64,7 @@ d_sp <-
            TRUE ~ "XXX"
          ),
          till_nice = factor(till_nice, levels = ord.till_nice)) %>% 
-  unite(precip, straw_sym, col = "wea_straw", sep = " ")
+  unite(precip, straw_sym, col = "wea_straw", sep = ", ")
   
 
 
@@ -123,6 +111,9 @@ ggsave("figs/fig_fall-cover.png",
        width = 8, 
        height = 4)  
 
+
+
+# drafts ------------------------------------------------------------------
 
 
 d_sp %>%
