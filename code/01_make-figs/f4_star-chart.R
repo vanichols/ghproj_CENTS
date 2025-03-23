@@ -90,15 +90,14 @@ d6 %>%
   scale_color_viridis_c()
 
 
-# 7. figs -----------------------------------------------------------------
+# 7. fig data -----------------------------------------------------------------
 
 d7 <- 
   d5 %>% 
-  left_join(d6) %>% 
-  mutate(cat = str_to_sentence(cat))
-
-#--pick which to highlight
-d6
+  left_join(d6) %>%
+  ungroup() %>%
+  mutate(cat = str_to_sentence(cat),
+         order = 1:n()) 
 
 #--these both score high net wise
 #mix_E noninv removed
@@ -119,30 +118,53 @@ d7 %>%
 
 #--not sure what to highlight yet
 #--maybe 'best' of each cc?
+d_hi1 <- 
+  d7 %>% 
+  filter(netval == max(netval))
 
-d7 %>% 
-  ungroup() %>%
-  mutate(order = 1:n()) %>% 
+d_hi2 <- 
+  d7 %>% 
+  filter(netval == min(netval))
+
+d_hi3 <- 
+  d7 %>% 
+  filter(netval == 0.8,
+         cctrt_id == "rad_M",
+         till_id == "notill")
+
+d_hi4 <- 
+  d7 %>% 
+  filter(netval == 0.2,
+         cctrt_id == "rad_M",
+         till_id == "notill")
+         
+         
+
+
+# 8. figs -----------------------------------------------------------------
+
+p1 <- 
+  d7 %>% 
   ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
-  geom_rect(data = . %>% 
-              filter(cctrt_id %in% c("mix_E") & 
-                       till_id %in% c("noninversion") & 
-                       straw_id %in% c("removed")), 
+  geom_rect(data = d_hi1, 
             fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
             ymin = -Inf,ymax = Inf) +
-  geom_rect(data = . %>% 
-              filter(cctrt_id %in% c("rad_M") & 
-                       till_id %in% c("noninversion") & 
-                       straw_id %in% c("removed")), 
+  geom_rect(data = d_hi2, 
             fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
             ymin = -Inf,ymax = Inf) +
-  geom_col(aes(fill = cat), color = "black") +
+  geom_rect(data = d_hi3, 
+            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
+            ymin = -Inf,ymax = Inf) +
+  geom_rect(data = d_hi4, 
+            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
+            ymin = -Inf,ymax = Inf) +
+  geom_col(aes(fill = cat), color = "black", show.legend = F) +
   geom_label(aes(x = 0, y = 0, label = netval)) +
+  facet_nested(till_nice + straw_nice ~cctrt_nice) +
+  coord_polar(clip = "off") +
   labs(x = NULL,
        y = NULL,
        fill = NULL) +
-  facet_nested(till_nice + straw_nice ~cctrt_nice) +
-  coord_polar(clip = "off") +
   theme_bw() +
   theme(axis.ticks = element_blank(), 
         axis.text.y = element_blank(),
@@ -154,90 +176,136 @@ d7 %>%
         strip.text.x = element_text(size = rel(1.3))) +
   scale_fill_manual(values = c("red", "dodgerblue4")) 
 
-ggsave("figs/fig_star-chart-all.png", height = 12, width = 10)
+p1
+ggsave("figs/fig_star-chart-all.png", height = 10, width = 10)
+
+
+# highlighted ind plots ---------------------------------------------------
 
 #--highlighted examples
-d6
-d7 %>% 
-  filter(name_nice == "Gra") %>% 
-  arrange(till_id, cctrt_id, straw_id)
-
-d7 %>% 
-  filter(cctrt_id %in% c("mix_E") & 
-           till_id %in% c("notill") & 
-           straw_id %in% c("removed")) %>% 
-  ungroup() %>% 
-  mutate(order = 1:n()) %>% 
+p_hi1 <- 
+  d_hi1 %>% 
   ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
   geom_col(aes(fill = cat), color = "black") +
-  geom_label(data = d6  %>% 
-               filter(cctrt_id %in% c("mix_E") & 
-                                  till_id %in% c("notill") & 
-                                  straw_id %in% c("removed")),
-             aes(x = 0, y = 0, label = netval)) +
-  facet_nested(till_id + straw_id ~cctrt_id) +
+  geom_label(aes(x = 0, y = 0, label = netval)) +
+  facet_nested(till_nice + straw_nice ~cctrt_nice) +
   coord_polar(clip = "off") +
+  labs(x = NULL,
+       y = NULL,
+       fill = NULL) +
   theme_bw() +
   theme(axis.ticks = element_blank(), 
         axis.text.y = element_blank(),
-        panel.spacing = unit(2, "lines"),
-        panel.border = element_blank()) +
-  scale_fill_manual(values = c(av1, "dodgerblue")) 
+        panel.spacing = unit(1, "lines"),
+        panel.border = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.x = element_text(size = rel(1.3))) +
+  scale_fill_manual(values = c("red", "dodgerblue4")) 
 
+p_hi1
 
-p3 <- 
-  dat_p %>% 
-  filter(cctrt_id %in% c("rad_M") & till_id %in% c("notill") & straw_id %in% c("retained")) %>% 
-  ungroup() %>% 
-  mutate(order = 1:n()) %>% 
+#--highlighted examples
+p_hi2 <- 
+  d_hi2 %>% 
   ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
-  geom_rect(data = . %>% filter(cctrt_id %in% c("mix_E") & till_id %in% c("inversion") & straw_id %in% c("removed")), 
-            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
-            ymin = -Inf,ymax = Inf) +
-  geom_rect(data = . %>% filter(cctrt_id %in% c("rad_M") & till_id %in% c("notill") & straw_id %in% c("retained")), 
-            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
-            ymin = -Inf,ymax = Inf) +
   geom_col(aes(fill = cat), color = "black") +
-  facet_nested(till_id + straw_id ~cctrt_id) +
+  geom_label(aes(x = 0, y = 0, label = netval)) +
+  facet_nested(till_nice + straw_nice ~cctrt_nice) +
   coord_polar(clip = "off") +
+  labs(x = NULL,
+       y = NULL,
+       fill = NULL) +
   theme_bw() +
   theme(axis.ticks = element_blank(), 
         axis.text.y = element_blank(),
-        panel.spacing = unit(2, "lines"),
-        panel.border = element_blank()) +
-  scale_fill_manual(values = c(av1, "dodgerblue")) 
+        panel.spacing = unit(1, "lines"),
+        panel.border = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.x = element_text(size = rel(1.3))) +
+  scale_fill_manual(values = c("red", "dodgerblue4")) 
 
-  
-p2 + p3
+p_hi2
 
-#--single examples
-p1 <- 
-  dat_p  %>%
-  filter(till_id == "notill" & cctrt_id %in% c("mix_E", "rad_M")) %>% 
-  ggplot(aes(name, value2)) +
+#--highlighted examples
+p_hi3 <- 
+  d_hi3 %>% 
+  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
   geom_col(aes(fill = cat), color = "black") +
-  facet_grid(till_id + straw_id~cctrt_id) +
+  geom_label(aes(x = 0, y = 0, label = netval)) +
+  facet_nested(till_nice + straw_nice ~cctrt_nice) +
   coord_polar(clip = "off") +
-    theme_bw() +
-  theme(axis.text.y = element_blank()) +
-    scale_fill_manual(values = c(av1, "dodgerblue")) 
-  
-
-p2 <- 
-  dat_p %>% 
-  ggplot(aes(name, value2)) +
-  geom_col(aes(fill = cat), color = "black") +
-  facet_nested(till_id + straw_id ~cctrt_id) +
-  coord_polar(clip = "off") +
+  labs(x = NULL,
+       y = NULL,
+       fill = NULL) +
   theme_bw() +
-  theme(axis.text = element_blank()) +
-  scale_fill_manual(values = c(av1, "dodgerblue")) 
+  theme(axis.ticks = element_blank(), 
+        axis.text.y = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        panel.border = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.x = element_text(size = rel(1.3))) +
+  scale_fill_manual(values = c("red", "dodgerblue4")) 
+
+p_hi3
+
+p_hi4 <- 
+  d_hi4 %>% 
+  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
+  geom_col(aes(fill = cat), color = "black") +
+  geom_label(aes(x = 0, y = 0, label = netval)) +
+  facet_nested(till_nice + straw_nice ~cctrt_nice) +
+  coord_polar(clip = "off") +
+  labs(x = NULL,
+       y = NULL,
+       fill = NULL) +
+  theme_bw() +
+  theme(axis.ticks = element_blank(), 
+        axis.text.y = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        panel.border = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.x = element_text(size = rel(1.3))) +
+  scale_fill_manual(values = c("red", "dodgerblue4")) 
+
+# combine plots -----------------------------------------------------------
 
 design <- "
-3322
-1122
+66666
+11135
+11124
 "    
-#p1 + p2 + guide_area() + plot_layout(design=design, guides = "collect") 
 
-p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = "top")
+p_square <- 
+  (p_hi2 + p_hi1) / (p_hi3 + p_hi4) +
+  plot_layout(guides = "collect")& theme(legend.position = 'top') 
+
+ggsave("figs/fig_star-chart-highlights.png", height = 6, width = 5)
+
+p_all <- 
+  p1 + p_square 
+
+ggsave("figs/fig_star-chart-all.png", p_all, 
+       height = 12, width = 10)
+
+p1 + p_hi1 + p_hi2 + p_hi3 + p_hi4 + guide_area() + 
+  plot_layout(design=design, guides = "collect", heights = c(1, 3)) 
+
+ggsave("figs/fig_star-chart-all.png", height = 12, width = 10)
+
+
+p1 +  (p_hi1 / p_hi2)  + (p_hi3 / p_hi4)  +
+  plot_layout(guides = "collect", 
+              widths = c(3, 1, 1),
+              heights = c(3,3,1)
+              ) 
+
+ggsave("figs/fig_star-chart-all.png", height = 12, width = 10)
 
