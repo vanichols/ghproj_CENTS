@@ -1,6 +1,7 @@
 # created 15 oct 2024
 # purpose: do stats on crop yields, using new CENTSdata package
 # notes: starting with basic response variable w/maarit's help
+#--1 april 2025 - I need to clean this up and pick a model and use it
 
 library(tidyverse)
 library(lme4)
@@ -151,6 +152,8 @@ m2 <- m2e
 anova(m2)
 tidy(anova(m2))
 
+em_crop <- emmeans(m2e, ~crop)
+
 em_cc <- emmeans(m2e, ~cctrt_id)
 
 tidy(pairs(emmeans(m2e, ~ cctrt_id))) %>% 
@@ -218,14 +221,32 @@ r %>%
 # contrast(em_cc, method = list("radM - mixes" = radM - mixes))
 # 
 # 
-# # tillage by straw --------------------------------------------------------
+# # tillage by straw by crop--------------------------------------------------------
 # 
-# em_ts <- emmeans(m2, specs = pairwise ~ till_id:straw_id)
-# 
-# em_ts$contrasts
-# 
-# #--when removing straw, no-till yields less than the other tillages
-# #--when retaining straw, no difference in yields
+em_ts <- emmeans(m2, specs = pairwise ~ till_id:straw_id:crop)
+
+res_tsc <- 
+  em_ts$contrasts %>% 
+  tidy(.) %>% 
+  filter(adj.p.value < 0.05)
+
+res_tsc2 <- 
+  res_tsc %>% 
+  separate(contrast, sep = "-", into = c("C1", "C2")) %>% 
+  mutate(C1 = str_squish(C1),
+         C2 = str_squish(C2)) %>% 
+  separate(C1, sep = " ", into = c("t1", "s1", "c1")) %>% 
+  separate(C2, sep = " ", into = c("t2", "s2", "c2")) 
+
+
+d %>% 
+  filter(till_id == "notill", 
+         straw_id == "removed") %>% 
+  ggplot(aes(crop, yield_dry_Mgha)) +
+  geom_point()
+
+#--when removing straw, no-till yields less than the other tillages
+#--when retaining straw, no difference in yields
 # 
 # #--compare no-till to other two tillages for each 
 # notillnostraw <- c(0, 0, 1, 0, 0, 0)

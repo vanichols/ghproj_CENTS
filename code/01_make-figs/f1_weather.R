@@ -28,9 +28,9 @@ p1 <-
   mutate(facet = "Precipitation") %>% 
   ggplot() +
   geom_line(aes(doy, dprec_mm, group = year, color = yearH)) +
+  geom_hline(yintercept = 0) +
   geom_line(data = . %>% filter(year %in% c(2018, 2019)), 
             aes(doy, dprec_mm, group = year, color = yearH), linewidth = 1.2) +
-  geom_hline(yintercept = 0) +
   # geom_text(data = . %>% select(cprecip) %>% distinct(),
   #           aes(x = 20, y = 190, label = paste("Long-term mean precipitation = ", cprecip, " mm"), 
   #               hjust = 0, fontface = "italic")) +
@@ -79,9 +79,9 @@ p2 <-
   mutate(facet = "Air Temperature") %>% 
   ggplot() +
   geom_line(aes(doy, cdt_c, group = year, color = yearH)) +
+  geom_hline(yintercept = 0) +
   geom_line(data = . %>% filter(year %in% c(2018, 2019)), 
             aes(doy, cdt_c, group = year, color = yearH), linewidth = 1.2) +
-  geom_hline(yintercept = 0) +
   # geom_text(data = . %>% select(meanT) %>% distinct(),
   #           aes(x = 20, y = 480, label = paste("Long-term mean air temperature = ", meanT, " deg C"), 
   #               hjust = 0, fontface = "italic")) +
@@ -167,10 +167,14 @@ p3 <-
   geom_point(data = d3 %>% filter(yearH == "2019"),
              aes(x = cprec_mm, y = avgT), 
              size = 8, color = dkbl1) +
-  geom_text(aes(x = 675, y = 7, label = "Wet and cool"), check_overlap = T, hjust = 0) +
-  geom_text(aes(x = 675, y = 10, label = "Wet and hot"), check_overlap = T, hjust = 0) +
-  geom_text(aes(x = 450, y = 7, label = "Dry and cool"), check_overlap = T, hjust = 0) +
-  geom_text(aes(x = 450, y = 10, label = "Dry and hot"), check_overlap = T, hjust = 0) +
+  geom_text(aes(x = 675, y = 7, label = "Wet and cool"), 
+            check_overlap = T, hjust = 0, fontface = "italic") +
+  geom_text(aes(x = 675, y = 10, label = "Wet and hot"), 
+            check_overlap = T, hjust = 0, fontface = "italic") +
+  geom_text(aes(x = 450, y = 7, label = "Dry and cool"), 
+            check_overlap = T, hjust = 0, fontface = "italic") +
+  geom_text(aes(x = 450, y = 10, label = "Dry and hot"), 
+            check_overlap = T, hjust = 0, fontface = "italic") +
   scale_color_manual(values = c("gray80", ylw1, dkbl1)) +
   theme_bw() +
   th1 +

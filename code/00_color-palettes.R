@@ -11,6 +11,10 @@ av3 <-"#FFFFBF"
 av4 <- "#ABD9E9"
 av5 <- "#313695"
 
+c1 <- "#a0ccea"
+c2 <- "#f66255"
+c3 <- "#faae05"
+
 
 dkbl1 <- "#2d2d8a"
 ylw1 <- "#ffc000"
