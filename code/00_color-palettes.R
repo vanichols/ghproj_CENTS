@@ -46,10 +46,10 @@ ord.cctrt_niceL <- c("NoCC", "MixEarly", "MixMid", "RadMid", "RadLate")
 
 
 #--desired till_id order
-ord.till_id <- c("notill", "noninversion", "inversion")
+ord.till_id <- c("notill", "surface", "inversion")
 
 #--desired till_nice order
-ord.till_nice <- c("No-till", "Non-inv", "Inv")
+ord.till_nice <- c("No-till", "Surf", "Inv")
 
 ord.cover_cat2 <-  c("Soil", "Cover Crop", "Weed", "Volunteer")
 
@@ -60,5 +60,5 @@ ord.crop <- c("Spring barley (2018)", "Oat (2019)", "Faba bean (2020)")
 
 myyieldlab <- (expression(atop("Dry grain yield", paste("(Mg "~ha^-1*")"))))
 
-mybmlab <- (expression(atop("Fall biomass", paste("(g "~m^-2*")"))))
+mybmlab <- (expression(atop("Fall biomass", paste("(Mg "~ha^-1*")"))))
 

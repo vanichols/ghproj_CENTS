@@ -39,10 +39,10 @@ d_bio <-
   summarise(dm_gm2 = sum(dm_gm2))
   
 #--not really linear, worth showing separately?
-d_bio %>% 
-  left_join(d_pct) %>% 
-  ggplot(aes(dm_gm2, cover_pct)) +
-  geom_point(aes(color = dm_cat)) 
+# d_bio %>% 
+#   left_join(d_pct) %>% 
+#   ggplot(aes(dm_gm2, cover_pct)) +
+#   geom_point(aes(color = dm_cat)) 
 
 
 # 1. biomass linked to trts ---------------------------------------------------------------------
@@ -65,7 +65,7 @@ d2 <-
            TRUE~"XXX"
          ),
          cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_nice))
+         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceL))
 
 
 # 3. make nice tillage ----------------------------------------------------
@@ -78,17 +78,18 @@ d3 <-
          till_nice = case_when(
            till_id == "notill" ~ "No-till",
            till_id == "inversion" ~ "Inv",
-           till_id == "noninversion" ~ "Non-inv",
+           till_id == "surface" ~ "Surf",
            TRUE ~ "XXX"
          ),
          till_nice = factor(till_nice, levels = ord.till_nice))
 
 
-# 4. make nice straw and weather column combo -----------------------------
+# 4. make nice straw, weather column combo and dm cat -----------------------------
 
 d4 <- 
   d3 %>% 
-  mutate(year_prec = paste0("(", year, ") ", precip)) 
+  mutate(year_prec = paste0("(", year, ") ", precip),
+         dm_cat = ifelse(dm_cat == "covercrop", "Cover crop", "Other")) 
 
 # 5. group  ---------------------------------------------------------------
 
@@ -125,14 +126,15 @@ d6 <-
   
 ggplot() +
   geom_col(data = d6, 
-           aes(till_nice, dm_gm2, fill = dm_cat)) +
+           aes(till_nice, dm_gm2*0.01, fill = dm_cat),
+           color = "black") +
   geom_linerange(data = d6a, 
                 aes(x = till_nice, 
-                    ymin = conf.low,
-                    ymax = conf.high),
+                    ymin = conf.low*0.01,
+                    ymax = conf.high*0.01),
                 color = "white") +
   geom_text(data = d6a, aes(x = till_nice, 
-                             y = estimate + 10, 
+                             y = estimate*0.01 + 0.5, 
                              label = letters),
             size = 2) +
   facet_nested(year_prec  ~ cctrt_nice) +
@@ -149,7 +151,7 @@ ggplot() +
         panel.border = element_blank()
         )
 
-
+ggsave("figs/fig_fall-biomass.png", width = 8, height = 5)
 
 # other versions ----------------------------------------------------------
 

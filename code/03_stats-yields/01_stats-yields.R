@@ -1,7 +1,7 @@
 # created 15 oct 2024
 # purpose: do stats on crop yields, using new CENTSdata package
 # notes: starting with basic response variable w/maarit's help
-#--1 april 2025 - I need to clean this up and pick a model and use it
+#--1 april 2025 - cleaned up and picked a model
 
 library(tidyverse)
 library(lme4)
@@ -13,6 +13,52 @@ library(glmmTMB)
 library(broom.mixed)
 
 rm(list = ls())
+
+
+# DK yields ---------------------------------------------------------------
+
+readxl::read_excel("data/dkstats-small-grain-yields-over-time.xlsx", 
+                   skip = 2) %>% 
+  select(6:ncol(.)) %>% 
+  slice(1:6) %>% 
+  janitor::clean_names() %>%
+  mutate(x2009 = as.numeric(x2009)) %>% 
+  pivot_longer(2:ncol(.), names_to = "year", values_to = "yield") %>% 
+  mutate(year = str_remove(year, "x"),
+         year = as.numeric(year)) %>% 
+  filter(year > 2017) %>% 
+  group_by(crop) %>% 
+  summarise(yield = mean(yield)/10)
+
+dk_y <- 
+  readxl::read_excel("data/dkstats-small-grain-yields-over-time.xlsx", 
+                   skip = 2) %>% 
+  select(6:ncol(.)) %>% 
+  slice(1:6) %>% 
+  janitor::clean_names() %>%
+  mutate(x2009 = as.numeric(x2009)) %>% 
+  pivot_longer(2:ncol(.), names_to = "year", values_to = "yield") %>% 
+  mutate(year = str_remove(year, "x"),
+         year = as.numeric(year)) 
+
+dk_y %>% 
+  group_by(crop) %>% 
+  summarise(yield = mean(yield, na.rm = T)/10)
+
+#--barley
+dk_y %>% 
+  filter((crop == "Spring barley" & year == 2018)) %>% 
+  summarise(yield = mean(yield)/10)
+
+#--oats
+dk_y %>% 
+  filter((crop == "Oats, mixed grains and other grains" & year == 2019)) %>% 
+  summarise(yield = mean(yield)/10)
+
+#--faba
+dk_y %>% 
+  filter((crop == "faba beans" & year == 2020)) %>% 
+  summarise(yield = mean(yield)/10)
 
 # data --------------------------------------------------------------------
 
@@ -168,13 +214,18 @@ plot(m1c)
 qqnorm(resid(m1c))
 qqline(resid(m1c))
 
-mwin <- m2c
+mwin <- m1c
 anova(mwin)
 tidy(anova(mwin))
 
 #--marginal means
 em_crop <- emmeans(mwin, ~crop)
 em_cc <- emmeans(mwin, ~cctrt_id)
+
+radM <- c(0, 0, 0, 0, 1)
+other <- c(0.25, 0.25, 0.25, 0.25, 0)
+contrast(em_cc, method = list("radM - other" = radM - other))
+.324/4.20
 
 #--radM is higher than all of them, all others equal
 tidy(pairs(emmeans(mwin, ~ cctrt_id))) %>% 
@@ -206,6 +257,4 @@ r %>%
 
 # # cover crops -------------------------------------------------------------
 # em_cc
-# radM <- c(0, 0, 0, 0, 1)
-# mixes <- c(0.5, 0.5, 0, 0, 0)
-# contrast(em_cc, method = list("radM - mixes" = radM - mixes))
+

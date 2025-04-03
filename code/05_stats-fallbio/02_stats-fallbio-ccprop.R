@@ -177,7 +177,8 @@ r %>%
          p.value = ifelse(p.value == 0, "<.001", p.value)) %>% 
   write_csv("data/stats_anovafallbioprop.csv")
 
-emmeans(m3, specs = ~ cctrt_id:weayear, type = "response") %>% 
+emmeans(m3, specs = ~ cctrt_id:weayear:till_id, type = "response") %>% 
   tidy(.) %>% 
-  ggplot(aes(reorder(cctrt_id, prob), prob)) +
-  geom_point(aes(color = weayear), size = 3)
+  ggplot(aes(reorder(till_id, prob), prob)) +
+  geom_point(aes(color = weayear), size = 3) +
+  facet_grid(.~cctrt_id)
