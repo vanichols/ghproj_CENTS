@@ -1,4 +1,5 @@
 #--calculate community values ysing pct cover as a weight factor
+#--updated 7 april 2025 to new tillage cats
 
 library(tidyverse)
 library(CENTSdata)

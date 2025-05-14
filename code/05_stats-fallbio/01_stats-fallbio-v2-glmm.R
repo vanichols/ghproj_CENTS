@@ -4,6 +4,8 @@
 # -- or if they got lumped in another cat
 # -- Bo says they got lumped in 'non crop' category
 # -- must combine volunteer and weeds data into 'non-cover crop'
+#--23 april 2024 update, don't run separate models for each year except to get letters
+#--working through fixing that...
 
 
 library(tidyverse)
@@ -122,6 +124,75 @@ qqnorm(resid(m1))
 qqline(resid(m1))
 
 
+# straw -------------------------------------------------------------------
+#--straw effect sig, no interactions, results are in g/m2
+#--1/1 000 * 1/1 000 * 10 000 == divide by 100 to get Mg/ha
+
+summary(emmeans(m1, specs = ~straw_id, type = "response"))
+emmeans(m1, specs = pairwise~straw_id)$contrasts
+
+# tillage -------------------------------------------------------------------
+#--effect depended on year, and also on cover crop, but not an intxn
+
+summary(emmeans(m1, specs = ~till_id:weayear, type = "response"))
+189/286
+82/106
+
+summary(emmeans(m1, specs = ~till_id, type = "response"))
+135/196
+
+#--the difference between years was stronger in no-till than the other two tillages
+emmeans(m1, specs = pairwise~till_id:weayear)$contrasts %>% 
+  tidy(.) %>% 
+  filter(adj.p.value < 0.05) %>% 
+  separate(contrast, into = c("x1", "x2"), sep = "-") %>% 
+  mutate(x1 = str_squish(x1),
+         x2 = str_squish(x2)) %>% 
+  separate(x1, into = c("c1a", "c1b", "c1c"), sep = " ") %>% 
+  separate(x2, into = c("c2a", "c2b", "c2c"), sep = " ") %>% 
+  filter(c1b != c2b) %>% 
+  filter(c1a == c2a)
+
+
+# cctrt -------------------------------------------------------------------
+#--effect depended on year, and also on tillage, but not an intxn
+summary(emmeans(m1, specs = ~cctrt_id:weayear, type = "response"))
+188/278
+63/134
+
+summary(emmeans(m1, specs = ~cctrt_id, type = "response"))
+emmeans(m1, specs = pairwise~cctrt_id)$contrasts %>% 
+  tidy(.) %>% 
+  filter(adj.p.value < 0.05)
+
+#--the difference between years was stronger xx cctrt
+emmeans(m1, specs = pairwise~cctrt_id:weayear)$contrasts %>% 
+  tidy(.) %>% 
+  filter(adj.p.value < 0.05) %>% 
+  separate(contrast, into = c("x1", "x2"), sep = "-") %>% 
+  mutate(x1 = str_squish(x1),
+         x2 = str_squish(x2)) %>% 
+  separate(x1, into = c("c1a", "c1b", "c1c"), sep = " ") %>% 
+  separate(x2, into = c("c2a", "c2b", "c2c"), sep = " ") %>% 
+  filter(c1b != c2b) %>% 
+  filter(c1a == c2a) %>% 
+  arrange(estimate) %>% 
+  dplyr::select(-c1c, -c2c)
+
+
+
+# till x cctrt ------------------------------------------------------------
+
+emmeans(m1, specs = pairwise~till_id:cctrt_id)$contrasts %>% 
+  tidy(.) %>% 
+  filter(adj.p.value < 0.05) %>% 
+  separate(contrast, into = c("x1", "x2"), sep = "-") %>% 
+  mutate(x1 = str_squish(x1),
+         x2 = str_squish(x2)) %>% 
+  separate(x1, into = c("c1a", "c1b"), sep = " ") %>% 
+  separate(x2, into = c("c2a", "c2b"), sep = " ") %>% 
+  filter(c1b == c2b) %>% 
+  filter(c1a == c2a)
 # fit separately by year --------------------------------------------------
 d_18 <- 
   dtot %>% 
@@ -211,6 +282,17 @@ tst <-
     separate(x2, into = c("c2a", "c2b", "c2c"), sep = " ") %>% 
   filter(c1a == c2a)
   
+#--mixM retained, biomass was greater in surface than in inversion
+d_19 %>% 
+  filter(cctrt_id == "mix_M") %>% 
+  filter(straw_id == "retained") %>% 
+  ggplot(aes(till_id, dm_gm2)) +
+  geom_point(aes(colour = block_id))
+
+d_19 %>% 
+  filter(cctrt_id == "mix_M") %>% 
+  filter(straw_id == "retained") %>% 
+  filter(block_id == "b2")
 
 #--for displaying in a readable way, ignore that interaction but make a note
 em_19 <- emmeans(m_19, specs = ~cctrt_id:till_id)

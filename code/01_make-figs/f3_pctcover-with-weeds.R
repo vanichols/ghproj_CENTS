@@ -30,11 +30,16 @@ ord.cover_cat2= c("Soil", "Cover Crop", "Weed", "Volunteer")
 
 
 #--data separated by species
-d_sp <- 
+d1 <- 
   eu %>% 
   left_join(y) %>% 
   mutate(year = year(date2)) %>% 
-  left_join(w) %>% 
+  left_join(w) 
+
+
+#--labels
+d2 <- 
+  d1 %>% 
   mutate(weayear = paste(precip, te, sep  = "-"),
          straw_sym = ifelse(straw_id == "retained", "+res", "-res"),
          cover_frac = cover_pct / 100,
@@ -60,23 +65,26 @@ d_sp <-
          till_nice = case_when(
            till_id == "notill" ~ "No-till",
            till_id == "inversion" ~ "Inv",
-           till_id == "noninversion" ~ "Non-inv",
+           till_id == "surface" ~ "Surf",
            TRUE ~ "XXX"
          ),
          till_nice = factor(till_nice, levels = ord.till_nice)) %>% 
+  #--(2018) Wet, 
+  mutate(precip = paste0("(", year, ")", " ", precip)) %>% 
   unite(precip, straw_sym, col = "wea_straw", sep = ", ")
   
 
-
-
-  
-d_sp %>%
-    group_by(cctrt_id, wea_straw, till_nice, cover_cat2,
+d_sp <- 
+  d2 %>% 
+  group_by(cctrt_id, wea_straw, till_nice, cover_cat2,
              cctrt_nice) %>% 
     summarise(cover_pct = sum(cover_pct)) %>% 
   mutate(cover_cat2 = fct_rev(cover_cat2),
-         #till_nice = fct_rev(till_nice)
-         ) %>% 
+         wea_straw = fct_inorder(wea_straw),
+         wea_straw = fct_rev(wea_straw)
+         ) 
+
+d_sp %>% 
   ggplot(aes(wea_straw, cover_pct/1200)) +
   geom_col(aes(fill = cover_cat2 
                #alpha = cover_cat2
@@ -99,9 +107,9 @@ d_sp %>%
         legend.position = "top",
         strip.background.x = element_rect(fill = "white", 
                                           color = "white"),
-        strip.text.x = element_text(size = rel(1.3)),
+        strip.text = element_text(size = rel(1.3)),
         panel.border = element_blank())+
-  labs(y = "Fall Ground Cover (%)",
+  labs(y = "Fall ground cover (%)",
        x = NULL,
        fill = NULL) +
     scale_y_continuous(labels = label_percent(),

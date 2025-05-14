@@ -1,6 +1,7 @@
 #--make a circular barplot
 #--average values over years...bc some things are 2020 and some are 2018 and 2019
 #--this is sloppy with regards to averaging and scaling right now, but...
+#--7 april 2025 update with new tillage nomenclature
 
 rm(list = ls())
 
@@ -55,7 +56,7 @@ d4 <-
     till_nice = case_when(
       till_id == "notill" ~ "No-till",
       till_id == "inversion" ~ "Inv",
-      till_id == "noninversion" ~ "Non-inv",
+      till_id == "surface" ~ "Surf",
       TRUE ~ "XXX"
     ),
     till_nice = factor(till_nice, levels = ord.till_nice))
@@ -158,7 +159,7 @@ p1 <-
   geom_rect(data = d_hi4, 
             fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
             ymin = -Inf,ymax = Inf) +
-  geom_col(aes(fill = cat), color = "black", show.legend = F) +
+  geom_col(aes(fill = cat), color = "black", show.legend = T) +
   geom_label(aes(x = 0, y = 0, label = netval)) +
   facet_nested(till_nice + straw_nice ~cctrt_nice) +
   coord_polar(clip = "off") +
@@ -179,6 +180,8 @@ p1 <-
 p1
 ggsave("figs/fig_star-chart-all.png", height = 10, width = 10)
 
+
+##--not using any more, but leaving for reference
 
 # highlighted ind plots ---------------------------------------------------
 
@@ -281,6 +284,8 @@ p_square <-
   (p_hi2 + p_hi4) / (p_hi1 + p_hi3) +
   plot_layout(guides = "collect")& theme(legend.position = 'top') 
 
+p_square
+
 ggsave("figs/fig_star-chart-highlights.png", height = 6, width = 5)
 
 p_all <- 
@@ -309,5 +314,5 @@ p1 +  (p_hi1 / p_hi2)  + (p_hi3 / p_hi4)  +
               heights = c(3,3,1)
               ) 
 
-ggsave("figs/fig_star-chart-all.png", height = 12, width = 10)
+#ggsave("figs/fig_star-chart-all.png", height = 12, width = 10)
 
