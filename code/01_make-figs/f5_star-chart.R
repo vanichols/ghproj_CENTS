@@ -2,6 +2,7 @@
 #--average values over years...bc some things are 2020 and some are 2018 and 2019
 #--this is sloppy with regards to averaging and scaling right now, but...
 #--7 april 2025 update with new tillage nomenclature
+#--12 june 2025 - need to change to match pesentation order (top half service)
 
 rm(list = ls())
 
