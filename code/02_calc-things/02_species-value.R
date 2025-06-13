@@ -1,6 +1,7 @@
 # created 6 dec
 # assign weed disservices 
-# based on storkey 2006
+# based on yvoz
+# 13 june 2025 - update values to use 'organ' level
 
 library(tidyverse)
 library(readxl)
@@ -48,95 +49,126 @@ d1 %>%
   left_join(st2)
 
 
-#--yvoz et a. 2021?
-yvoz <- 
+#--yvoz et a. 2021
+#--plant level, mean
+# yvoz <- 
+#   read_excel("data/Yvoz et al 2021 appendices (1).xlsx", 
+#                    sheet = "Plant level") %>% 
+#   mutate_if(is.character, str_to_lower) %>% 
+#   mutate(eppo_code = Species) %>% 
+#   group_by(eppo_code) %>% 
+#   summarise_at(vars(Pol1:Harm3), mean, na.rm = T)
+
+#--yvoz et a. 2021
+#--organ level, mean?
+yvoz_raw <- 
   read_excel("data/Yvoz et al 2021 appendices (1).xlsx", 
-                   sheet = "Plant level") %>% 
+             sheet = "Organ level") %>% 
   mutate_if(is.character, str_to_lower) %>% 
-  mutate(eppo_code = Species) %>% 
-  group_by(eppo_code) %>% 
-  summarise_at(vars(Pol1:Harm3), mean, na.rm = T)
+  janitor::clean_names() 
 
 #--over 150 weeds
-yvoz %>% 
-  pull(eppo_code) %>% 
+yvoz_raw %>% 
+  pull(weed_species) %>% 
   unique()
 
-#--how many of ours have a match?
+#--do any weeds have more than one organ? No. All species have only one value.
+yvoz_raw %>% 
+  select(weed_species, floral_organ) %>% 
+  distinct() %>% 
+  group_by(weed_species) %>% 
+  summarise(n = n()) %>% 
+  filter(n>1)
+
+yvoz <-
+  yvoz_raw %>% 
+  mutate(eppo_code = weed_species) 
+
+#--how many of ours have a match? 6 of the 12, but others are species level
 d2 <- 
   d1 %>% 
   left_join(cents_species) %>% 
   select(eppo_code, cover_pct, latin_name) %>% 
-  left_join(yvoz) 
+  left_join(yvoz) %>% 
+  arrange(eppo_code)
 
-#--ger values, take the average? or the median?
-#--ver values, take the median
-#--2 sen values, they are pretty differnt, refine it later
-#--lam, 5 values, also pretty different
-
+#--ger values, mean woudl be fine
 yvoz %>% 
-  filter(grepl("lam", eppo_code)) %>%
-  pivot_longer(Pol1:Harm3) %>% 
+  filter(str_starts(eppo_code, "ger")) %>%
+  pivot_longer(pol1:harm3) %>% 
   ggplot(aes(eppo_code, value)) +
   geom_point() +
   facet_wrap(~name, scales = "free")
 
+#--ver values, mean would be fine
 yvoz %>% 
-  filter(grepl("sen", eppo_code)) %>%
-  pivot_longer(Pol1:Harm3) %>% 
+  filter(str_starts(eppo_code, "ver")) %>%
+  pivot_longer(pol1:harm3) %>% 
   ggplot(aes(eppo_code, value)) +
   geom_point() +
   facet_wrap(~name, scales = "free")
 
-d1 %>% 
-  left_join(cents_species) %>% 
-  select(eppo_code, cover_pct, latin_name) %>% 
-  left_join(yvoz) 
+#--lam, 2 values, mean would be fine
+yvoz %>% 
+  filter(str_starts(eppo_code, "lam")) %>%
+  pivot_longer(pol1:harm3) %>% 
+  ggplot(aes(eppo_code, value)) +
+  geom_point() +
+  facet_wrap(~name, scales = "free")
+
+#--sen, 2 values, mean would be fine
+yvoz %>% 
+  filter(str_starts(eppo_code, "sen")) %>%
+  pivot_longer(pol1:harm3) %>% 
+  ggplot(aes(eppo_code, value)) +
+  geom_point() +
+  facet_wrap(~name, scales = "free")
+
+#--cir? 2 values, cents data only has cirar anyways
+yvoz %>% 
+  filter(str_starts(eppo_code, "cir")) %>%
+  pivot_longer(pol1:harm3) %>% 
+  ggplot(aes(eppo_code, value)) +
+  geom_point() +
+  facet_wrap(~name, scales = "free")
 
 
-# 3. supplement yvoz data -------------------------------------------------
+# 3. generalize species group values from yvoz data -------------------------------------------------
 
-#--change cirss to cirar for merge
-d_cir <- 
-  yvoz %>% 
-  filter(grepl("cirar", eppo_code)) #%>% #not necessary now
-  #mutate(eppo_code = "cirss")
-
-#--ger values, take the average? or the median?
+#--ger mean
 d_ger <- 
   yvoz %>% 
-  filter(grepl("ger", eppo_code)) %>%
+  filter(str_starts(eppo_code, "ger")) %>%
   mutate(eppo_code = "gerss") %>% 
   group_by(eppo_code) %>% 
-  summarise_at(vars(Pol1:Harm3), median, na.rm = T)
+  summarise_at(vars(pol1:harm3), mean, na.rm = T)
 
-#--ver values, take the median
+#--ver values, take the mean
 d_ver <- 
   yvoz %>% 
-  filter(grepl("ver", eppo_code)) %>%
+  filter(str_starts(eppo_code, "ver")) %>%
   mutate(eppo_code = "verss") %>% 
   group_by(eppo_code) %>% 
-  summarise_at(vars(Pol1:Harm3), median, na.rm = T)
+  summarise_at(vars(pol1:harm3), mean, na.rm = T)
 
-#--2 sen values, they are pretty differnt, refine it later
+#--2 sen values, take the mean
 d_sen <- 
   yvoz %>% 
-  filter(grepl("sen", eppo_code)) %>%
+  filter(str_starts(eppo_code, "sen")) %>%
   mutate(eppo_code = "senss") %>% 
   group_by(eppo_code) %>% 
-  summarise_at(vars(Pol1:Harm3), median, na.rm = T)
+  summarise_at(vars(pol1:harm3), mean, na.rm = T)
 
-#--lam, 5 values, also pretty different
+#--lam, 2 values, mean
 d_lam <- 
   yvoz %>% 
-  filter(grepl("lam", eppo_code)) %>%
+  filter(str_starts(eppo_code, "lam")) %>%
   mutate(eppo_code = "lamss") %>% 
   group_by(eppo_code) %>% 
-  summarise_at(vars(Pol1:Harm3), median, na.rm = T)
+  summarise_at(vars(pol1:harm3), mean, na.rm = T)
 
 yvoz_supp <-
-  d_cir %>% 
-  bind_rows(d_ger) %>% 
+  d_ger %>% 
   bind_rows(d_ver) %>% 
   bind_rows(d_sen) %>% 
   bind_rows(d_lam) %>% 
@@ -144,100 +176,105 @@ yvoz_supp <-
 
 yvoz_supp
 
-d3 <- 
+
+
+
+# 4. deal with cover crop values ------------------------------------------
+
+#--barley, nothing
+yvoz %>% 
+  filter(str_starts(eppo_code, "hor"))
+  
+#--oats avesa isn't the same as avefa (wild oat), don't use it
+yvoz %>% 
+  filter(str_starts(eppo_code, "ave"))
+
+#--radish, rapsr, use it
+d_rap <- 
+  yvoz %>% 
+  filter(str_starts(eppo_code, "rap")) %>% 
+  mutate(eppo_code = "rapsr")
+
+#--lolium, lolss, use it
+d_lol <- 
+  yvoz %>% 
+  filter(str_starts(eppo_code, "lol")) %>% 
+  mutate(eppo_code = "lolpe")
+
+yvoz_supp2 <- 
+  d_rap %>% 
+  bind_rows(d_lol) %>% 
+  bind_rows(yvoz_supp)
+
+
+
+# 5. combine, all values assigned -----------------------------------------
+
+c1 <- 
   d1 %>% 
   left_join(cents_species) %>% 
   select(eppo_code, cover_pct, latin_name) %>% 
-  left_join(yvoz_supp) %>% 
-  pivot_longer(Pol1:Harm3) %>% 
+  left_join(yvoz_supp2)
+
+d5 <- 
+  c1 %>% 
+  select(-weed_species, -floral_organ) %>% 
+  pivot_longer(pol1:harm3) %>% 
   mutate(value2 = ifelse(is.na(value), 0, value))
 
-d3
 
+# 6. scale and add --------------------------------------------------------
 
-# 4. scale and add --------------------------------------------------------
-
-d3 %>% 
+#--rapsr is an outlier for p_cont values
+d5 %>% 
   ggplot(aes(eppo_code, value2)) +
   geom_point() +
-  facet_wrap(~ name, scales = "free")
+  facet_wrap(~ name, scales = "free") +
+  coord_flip()
 
-d4 <- 
-  d3 %>% 
+d6 <- 
+  d5 %>% 
   group_by(name) %>% 
   mutate(maxval = max(value2),
          sc_value2 = value2/maxval) #--make value should be 1
 
 #--we are good
-d4 %>% 
+d6 %>% 
   ggplot(aes(eppo_code, sc_value2)) +
   geom_point() +
-  facet_wrap(~name)
+  facet_wrap(~name) +
+  coord_flip()
 
 
-# 5. sum them -------------------------------------------------------------
+# 7. summarise within a category -------------------------------------------------------------
+#--harm has only one value, others have three
+#--should I take the max instead? it is potential, after all
 
-d5 <- 
-  d4 %>% 
+d7 <- 
+  d6 %>% 
   mutate(cat = case_when(
-    grepl("Pol", name) ~ "pollinator",
-    grepl("PCont", name) ~ "ecocont",
-    grepl("Harm", name) ~ "harm",
+    grepl("pol", name) ~ "pollinator",
+    grepl("cont", name) ~ "ecocont",
+    grepl("harm", name) ~ "harm",
     TRUE ~ name)) %>% 
   group_by(eppo_code, latin_name, cat) %>% 
-  summarise(sc_value2_sum = sum(sc_value2)) 
+  summarise(sc_value2_max = max(sc_value2)) %>% 
+  mutate(sc_value2_max = ifelse(cat == "harm", -sc_value2_max, sc_value2_max))
 
-#--max should be 3, we are good
-d5 %>% 
-  ggplot(aes(eppo_code, sc_value2_sum)) +
+#--max should be 1, we are good
+d7 %>% 
+  ggplot(aes(eppo_code, sc_value2_max)) +
   geom_point() +
   facet_wrap(~cat)
 
-d5 %>%
-  mutate(sc_value2_sum = ifelse(cat == "harm", -sc_value2_sum, sc_value2_sum)) %>% 
-  ggplot(aes(eppo_code, sc_value2_sum)) +
+#--look at the weeds
+#--this is a good figure
+d7 %>%
+  ggplot(aes(eppo_code, sc_value2_max)) +
   geom_point(aes(color = cat), size = 3) +
   scale_color_manual(values = c("purple", "red", "green4")) +
   coord_flip()
 
-
-d5 %>%
-  mutate(sc_value2_sum = ifelse(cat == "harm", -sc_value2_sum, sc_value2_sum)) %>% 
-  ggplot(aes(eppo_code, sc_value2_sum)) +
-  geom_point(aes(color = cat), size = 3) +
-  scale_color_manual(values = c("purple", "red", "green4")) +
-  coord_flip()
-
-d6 %>%
-  ungroup() %>% 
-  filter(eppo_code != "soil") %>% 
-  mutate(harm = -harm) %>%
-  select(eppo_code, benef, harm) %>% 
-  pivot_longer(benef:harm) %>%
-  arrange(name, value) %>% 
-  mutate(eppo_code2 = fct_inorder(eppo_code)) %>% 
-  ggplot(aes(eppo_code2, value)) +
-  geom_point(aes(color = name), size = 3) +
-  scale_color_manual(values = c("green4", "red"))
-
-
-# 6. take max of pollin and econt---------------------------------------------
-
-d6 <- 
-  d5 %>%
-  pivot_wider(names_from = cat, values_from = sc_value2_sum) %>% 
-  mutate(benef = max(ecocont, pollinator),
-         net = benef - harm) 
-
-
-d6 %>% 
-  ggplot(aes(harm, benef)) +
-  geom_point(aes(color = eppo_code), size = 5)
-
-d6 %>% 
-  mutate(color = ifelse(net >= 0, "good", "bad")) %>% 
-  ggplot(aes(eppo_code, net)) +
-  geom_point(aes(color = color), size = 5)
-
-d6 %>% 
+#--write this data 
+d7 %>% 
   write_csv("data/tidy_spvalue.csv")

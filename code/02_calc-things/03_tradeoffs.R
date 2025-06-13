@@ -1,5 +1,6 @@
 #--calculate community values ysing pct cover as a weight factor
 #--updated 7 april 2025 to new tillage cats
+#--16 june abandon? Make everythibng relative to no cc
 
 library(tidyverse)
 library(CENTSdata)
@@ -8,8 +9,25 @@ rm(list = ls())
 
 # 1. species values (harm and benef) --------------------------------------------------------------
 
+d1a <- 
+  read_csv("data/tidy_spvalue.csv")
+
+#--take max of pollin and econt---------------------------------------------
+
+d1b <- 
+  d1a %>%
+  pivot_wider(names_from = cat, values_from = sc_value2_max) %>% 
+  group_by(eppo_code) %>% 
+  mutate(benef = max(ecocont, pollinator),
+         net = benef + harm) 
+
+d1b %>% 
+  mutate(color = ifelse(net >= 0, "good", "bad")) %>% 
+  ggplot(aes(eppo_code, net)) +
+  geom_point(aes(color = color), size = 5)
+
 d1 <- 
-  read_csv("data/tidy_spvalue.csv") %>% 
+  d1b  %>% 
   select(eppo_code, harm, benef)
 
 
@@ -19,7 +37,7 @@ d2 <-
   cents_fallpctcover %>% 
   mutate(year = year(date2)) %>% 
   group_by(eu_id, year, eppo_code) %>% 
-  summarise(cover_pct = sum(cover_pct)) %>% 
+  summarise(cover_pct = mean(cover_pct)) %>% 
   left_join(d1)
 
 
@@ -115,10 +133,12 @@ d5a <-
   group_by(year, eu_id) %>% 
   summarise(benef = sum(benef*cover_pct/100))
 
-#--the max should be 3, if the community was 100% max benef
-#--actual max value is only 0.7
+d5a %>% 
+  ggplot(aes(eu_id, benef)) +
+  geom_point()
+
 #--scale within the experiment? Or on an absolute scale?
-#--decided to scale on relative scale
+#--decided to scale within exp (best trt is assigned value of 1)
 d5b <- 
   d5a %>% 
   left_join(cents_eukey) %>% 
