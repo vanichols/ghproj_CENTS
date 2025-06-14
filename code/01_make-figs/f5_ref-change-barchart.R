@@ -4,8 +4,9 @@ rm(list = ls())
 
 library(tidyverse)
 library(CENTSdata)
-library(ggh4x)
+library(ggh4x) #--for nested facets
 library(patchwork)
+library(tidytext) #--for reorder within
 
 source("code/00_color-palettes.R")
 
@@ -13,7 +14,11 @@ source("code/00_color-palettes.R")
 
 d1a <- 
   read_csv("data/tidy_tradeoffs.csv") %>% 
-  unite(cctrt_id, till_id, straw_id, col = "sys", remove = F)
+  unite(cctrt_id, till_id, straw_id, col = "sys", remove = F) %>% 
+  mutate(value2 = ifelse(name == "pweed_nu", value2 +1, value2))
+
+d1a %>% 
+  filter(name == "harm")
 
 #--pick a reference system
 dref <- 
@@ -22,45 +27,77 @@ dref <-
   rename("ref_val" = value2) %>% 
   select(year, name, cat, ref_val)
 
-#--cal change relative to ref system
+
+#--make nocc the reference sys for each till/straw combo 
+drefnocc <- 
+  d1a %>% 
+  filter(cctrt_id == "nocc") %>% 
+  rename("ref_val" = value2) %>% 
+  select(year, name, cat, till_id, straw_id, ref_val) %>% 
+  distinct()
+
+# 
+# #--cal change relative to one ref system
+# d1 <- 
+#   d1a %>% 
+#   left_join(dref) %>% 
+#   mutate(val_pctchange = (value2 - ref_val)/ref_val*100,
+#          #--use raw change in pweed_nu
+#          val_pctchange = ifelse(name == "pweed_nu", value2 - ref_val, val_pctchange))
+
+#--cal change relative to nocc ref sys
 d1 <- 
   d1a %>% 
-  left_join(dref) %>% 
+  left_join(drefnocc) %>% 
   mutate(val_pctchange = (value2 - ref_val)/ref_val*100,
+         lrr = log(value2/ref_val),
          #--use raw change in pweed_nu
-         val_pctchange = ifelse(name == "pweed_nu", value2 - ref_val, val_pctchange))
+         val_pctchange = ifelse(name == "pweed_nu", value2 - ref_val, val_pctchange),
+         lrr = ifelse(name == "pweed_nu", log(value2/(ref_val+1)), lrr))
 
+d1 %>% 
+  filter(name == "benef")
 
 # 2. average over years ---------------------------------------------------
 
 d2 <- 
   d1 %>% 
   group_by(sys, till_id, cctrt_id, straw_id, cat, name) %>% 
-  summarise(val_pctchange = mean(val_pctchange))
+  summarise(val_pctchange = mean(val_pctchange),
+            lrr = mean(lrr))
 
 d2
 
 # 2. fig playing ----------------------------------------------------------
 
 d2 %>% 
-  filter(sys != "nocc_surface_removed") %>% 
-  ggplot(aes(name, val_pctchange)) +
+  filter(cctrt_id != "nocc") %>% 
+  ggplot(aes(cctrt_id, lrr)) +
   geom_col(aes(fill = cat)) +
-  facet_grid(till_id ~ cctrt_id + straw_id)
+  facet_grid(till_id + straw_id~name, scales = "free_x") +
+  coord_flip()
 
+d2 %>% 
+  filter(cctrt_id != "nocc") %>% 
+  #filter(till_id == "inversion") %>% 
+  filter(straw_id == "removed") %>% 
+  ggplot(aes(name, lrr)) +
+  geom_col(aes(fill = cat)) +
+  facet_grid(cctrt_id~till_id, scales = "free_x") +
+  coord_flip()
 
 
 # 2. labels for metrics -------------------------------------------------------------
 
 d2 <- 
-  d1 %>% 
+  d2 %>% 
   mutate(name_nice = case_when(
-    name == "bio_gm2" ~ "Bio",
-    name == "yield_dry_Mgha" ~ "Gra",
-    name == "benef" ~ "Eco",
-    name == "load_ha" ~ "Tox",
-    name == "harm" ~ "Har",
-    name == "count" ~ "Leg",
+    name == "bio_gm2" ~ "Biomass",
+    name == "yield_dry_Mgha" ~ "Grain yields",
+    name == "benef" ~ "Ecosys benefits",
+    name == "load_ha" ~ "Toxicity",
+    name == "harm" ~ "Future weeds",
+    name == "pweed_nu" ~ "Perennial weeds",
   ))
 
 # 3. make nice lables cc ------------------------------------------------
@@ -69,14 +106,14 @@ d3 <-
   d2 %>% 
   mutate(cctrt_nice = case_when(
     cctrt_id == "nocc" ~ "NoCC",
-    cctrt_id == "mix_E" ~ "MixEarly",
-    cctrt_id == "mix_M" ~ "MixMid",
-    cctrt_id == "rad_M" ~ "RadMid",
-    cctrt_id == "rad_L" ~ "RadLate",
+    cctrt_id == "mix_E" ~ "E-Mix",
+    cctrt_id == "mix_M" ~ "M-Mix",
+    cctrt_id == "rad_M" ~ "M-Rad",
+    cctrt_id == "rad_L" ~ "L-Rad",
     TRUE~"XXX"
   ),
   cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-  cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceL))
+  cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceNEW))
 
 
 # 4. make nice tillage ----------------------------------------------------
@@ -101,250 +138,63 @@ d5 <-
   mutate(straw_nice = ifelse(straw_id == "retained", "+res", "-res"))
 
 
-
-# 6. net value ------------------------------------------------------------
-
-#--need to double check this....
-
-d6 <- 
-  d5 %>%  
-  mutate(value3 = ifelse(cat == "service", value2, -value2)) %>% 
-  group_by(cctrt_id, till_id, straw_id) %>% 
-  summarise(netval = sum(value3)) %>% 
-  mutate(netval = round(netval, 1)) %>% 
-  arrange(-netval)
-
-#--mix_E had largest value in notill, but lowest value in inversion, interesting
-d6 %>% 
-  ggplot(aes(cctrt_id, till_id)) +
-  geom_point(aes(size = netval, color = netval)) +
-  facet_grid(.~straw_id) + 
-  scale_size_continuous(range = c(2, 15)) +
-  scale_color_viridis_c()
-
-
-# 7. fig data -----------------------------------------------------------------
-
-d7 <- 
-  d5 %>% 
-  left_join(d6) %>%
-  ungroup() %>%
-  mutate(cat = str_to_sentence(cat),
-         order = 1:n()) 
-
-#--these both score high net wise
-#mix_E noninv removed
-#rad_M noninv removed
-
-d6 %>% 
-  filter(till_id == "notill")
-#--notill, retained are both good
-
-d6 %>% 
-  filter(till_id == "inversion")
-
-d7 %>% 
-  filter(value2 == 1)
-
-d7 %>% 
-  filter(value2 == max(value2))
-
-#--not sure what to highlight yet
-#--maybe 'best' of each cc?
-d_hi1 <- 
-  d7 %>% 
-  filter(netval == max(netval))
-
-d_hi2 <- 
-  d7 %>% 
-  filter(netval == min(netval))
-
-d_hi3 <- 
-  d7 %>% 
-  filter(netval == 0.8,
-         cctrt_id == "rad_M",
-         till_id == "notill")
-
-d_hi4 <- 
-  d7 %>% 
-  filter(netval == 0.2,
-         cctrt_id == "rad_M",
-         till_id == "notill")
-         
-         
-
-
 # 8. figs -----------------------------------------------------------------
 
-p1 <- 
-  d7 %>% 
-  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
-  geom_rect(data = d_hi1, 
-            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
-            ymin = -Inf,ymax = Inf) +
-  geom_rect(data = d_hi2, 
-            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
-            ymin = -Inf,ymax = Inf) +
-  geom_rect(data = d_hi3, 
-            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
-            ymin = -Inf,ymax = Inf) +
-  geom_rect(data = d_hi4, 
-            fill = "gold", xmin = -Inf,xmax = Inf, alpha = 0.1,
-            ymin = -Inf,ymax = Inf) +
-  geom_col(aes(fill = cat), color = "black", show.legend = T) +
-  geom_label(aes(x = 0, y = 0, label = netval)) +
-  facet_nested(till_nice + straw_nice ~cctrt_nice) +
-  coord_polar(clip = "off") +
-  labs(x = NULL,
-       y = NULL,
-       fill = NULL) +
+#--make things on the right good
+
+d8 <- 
+  d5 %>% 
+  filter(cctrt_id != "nocc") %>% 
+  #filter(till_id == "inversion") %>% 
+  filter(straw_id == "removed") %>% 
+  mutate(lrr_adj = case_when(
+    cat == "service" ~ lrr,
+    cat == "dis-service" ~ -lrr,
+    TRUE ~ 999
+  ),
+  colorhelp = ifelse(lrr_adj < 0, "bad", "good"))
+
+d8 %>% 
+  ggplot(aes(reorder_within(name_nice, lrr_adj, list(cctrt_nice, till_nice)),
+             lrr_adj)) +
+  geom_col(aes(fill = colorhelp), color = "black", show.legend = F) +
+  facet_wrap(till_nice ~ cctrt_nice, scales = "free_y", ncol = 4) +
+  coord_flip() +
+  labs(y = "Log-response-ratio",
+       x = NULL) +
+    scale_x_reordered() +
+  scale_fill_manual(values = c("red4", "dodgerblue")) +
   theme_bw() +
-  theme(axis.ticks = element_blank(), 
-        axis.text.y = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        panel.border = element_blank(),
-        legend.position = "top",
-        strip.background.x = element_rect(fill = "white", 
-                                          color = "white"),
-        strip.text = element_text(size = rel(1.3))) +
-  scale_fill_manual(values = c("red", "dodgerblue4")) 
+  theme(axis.text.y = element_text(size = rel(1.5), color = "gray"),
+        strip.background = element_rect(fill = "tan"),
+        strip.text = element_text(size = rel(1.3)))
 
-p1
-ggsave("figs/fig_star-chart-all.png", height = 10, width = 10)
+ggsave("figs/pfig_logrr.png",
+       width = 12, height = 6)
 
 
-##--not using any more, but leaving for reference
+# 9. fig zoom in -------------------------------------------------------------
 
-# highlighted ind plots ---------------------------------------------------
+d9 <- 
+  d8 %>% 
+  filter(till_id == "surface",
+         cctrt_nice == "E-Mix")
 
-#--highlighted examples
-p_hi1 <- 
-  d_hi1 %>% 
-  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
-  geom_col(aes(fill = cat), color = "black") +
-  geom_label(aes(x = 0, y = 0, label = netval)) +
-  facet_nested(till_nice + straw_nice ~cctrt_nice) +
-  coord_polar(clip = "off") +
-  labs(x = NULL,
-       y = NULL,
-       fill = NULL) +
+d9 %>% 
+ggplot(aes(reorder_within(name_nice, lrr_adj, list(cctrt_nice, till_nice)),
+           lrr_adj)) +
+  geom_col(aes(fill = colorhelp), color = "black", show.legend = F) +
+  facet_wrap(till_nice ~ cctrt_nice, scales = "free_y", ncol = 4) +
+  coord_flip() +
+  labs(y = "\nLog-response-ratio",
+       x = NULL) +
+  scale_x_reordered() +
+  scale_fill_manual(values = c("red4", "dodgerblue")) +
   theme_bw() +
-  theme(axis.ticks = element_blank(), 
-        axis.text.y = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        panel.border = element_blank(),
-        legend.position = "top",
-        strip.background.x = element_rect(fill = "white", 
-                                          color = "white"),
-        strip.text = element_text(size = rel(1.3))) +
-  scale_fill_manual(values = c("red", "dodgerblue4")) 
+  theme(axis.text = element_text(size = rel(1.5), color = "gray"),
+        strip.background = element_rect(fill = "tan"),
+        strip.text = element_text(size = rel(2)),
+        axis.title = element_text(size = rel(1.5)))
 
-p_hi1
-
-#--highlighted examples
-p_hi2 <- 
-  d_hi2 %>% 
-  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
-  geom_col(aes(fill = cat), color = "black") +
-  geom_label(aes(x = 0, y = 0, label = netval)) +
-  facet_nested(till_nice + straw_nice ~cctrt_nice) +
-  coord_polar(clip = "off") +
-  labs(x = NULL,
-       y = NULL,
-       fill = NULL) +
-  theme_bw() +
-  theme(axis.ticks = element_blank(), 
-        axis.text.y = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        panel.border = element_blank(),
-        legend.position = "top",
-        strip.background.x = element_rect(fill = "white", 
-                                          color = "white"),
-        strip.text = element_text(size = rel(1.3))) +
-  scale_fill_manual(values = c("red", "dodgerblue4")) 
-
-p_hi2
-
-#--highlighted examples
-p_hi3 <- 
-  d_hi3 %>% 
-  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
-  geom_col(aes(fill = cat), color = "black") +
-  geom_label(aes(x = 0, y = 0, label = netval)) +
-  facet_nested(till_nice + straw_nice ~cctrt_nice) +
-  coord_polar(clip = "off") +
-  labs(x = NULL,
-       y = NULL,
-       fill = NULL) +
-  theme_bw() +
-  theme(axis.ticks = element_blank(), 
-        axis.text.y = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        panel.border = element_blank(),
-        legend.position = "top",
-        strip.background.x = element_rect(fill = "white", 
-                                          color = "white"),
-        strip.text = element_text(size = rel(1.3))) +
-  scale_fill_manual(values = c("red", "dodgerblue4")) 
-
-p_hi3
-
-p_hi4 <- 
-  d_hi4 %>% 
-  ggplot(aes(reorder(str_wrap(name_nice, 5), order), value2)) +
-  geom_col(aes(fill = cat), color = "black") +
-  geom_label(aes(x = 0, y = 0, label = netval)) +
-  facet_nested(till_nice + straw_nice ~cctrt_nice) +
-  coord_polar(clip = "off") +
-  labs(x = NULL,
-       y = NULL,
-       fill = NULL) +
-  theme_bw() +
-  theme(axis.ticks = element_blank(), 
-        axis.text.y = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        panel.border = element_blank(),
-        legend.position = "top",
-        strip.background.x = element_rect(fill = "white", 
-                                          color = "white"),
-        strip.text = element_text(size = rel(1.3))) +
-  scale_fill_manual(values = c("red", "dodgerblue4")) 
-
-# combine plots -----------------------------------------------------------
-
-p_square <- 
-  (p_hi2 + p_hi4) / (p_hi1 + p_hi3) +
-  plot_layout(guides = "collect")& theme(legend.position = 'top') 
-
-p_square
-
-ggsave("figs/fig_star-chart-highlights.png", height = 6, width = 5)
-
-p_all <- 
-  p1 + p_square 
-
-ggsave("figs/fig_star-chart-all.png", p_all, 
-       height = 12, width = 10)
-
-
-
-design <- "
-66666
-11135
-11124
-"    
-
-p1 + p_hi1 + p_hi2 + p_hi3 + p_hi4 + guide_area() + 
-  plot_layout(design=design, guides = "collect", heights = c(1, 3)) 
-
-ggsave("figs/fig_star-chart-all.png", height = 12, width = 10)
-
-
-p1 +  (p_hi1 / p_hi2)  + (p_hi3 / p_hi4)  +
-  plot_layout(guides = "collect", 
-              widths = c(3, 1, 1),
-              heights = c(3,3,1)
-              ) 
-
-#ggsave("figs/fig_star-chart-all.png", height = 12, width = 10)
-
+ggsave("figs/pfig_logrr-one-panel.png",
+       width = 6, height = 4)

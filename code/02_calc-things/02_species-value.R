@@ -277,4 +277,5 @@ d7 %>%
 
 #--write this data 
 d7 %>% 
+  mutate(sc_value2_max = abs(sc_value2_max)) %>% 
   write_csv("data/tidy_spvalue.csv")

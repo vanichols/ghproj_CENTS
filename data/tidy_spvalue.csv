@@ -1,49 +1,49 @@
 eppo_code,latin_name,cat,sc_value2_max
 avesa,avena sativa,ecocont,0
-avesa,avena sativa,harm,-0
+avesa,avena sativa,harm,0
 avesa,avena sativa,pollinator,0
 capbp,capsella bursa-pastoris,ecocont,0.21621621621621623
-capbp,capsella bursa-pastoris,harm,-0.5
+capbp,capsella bursa-pastoris,harm,0.5
 capbp,capsella bursa-pastoris,pollinator,0.014782320524729282
 cirar,cirsium arvense,ecocont,0.3293918918918919
-cirar,cirsium arvense,harm,-0.1
+cirar,cirsium arvense,harm,0.1
 cirar,cirsium arvense,pollinator,0.6616198406058953
 ephex,euphorbiaceae,ecocont,0.4054054054054054
-ephex,euphorbiaceae,harm,-1
+ephex,euphorbiaceae,harm,1
 ephex,euphorbiaceae,pollinator,0.04912233812297258
 gerss,geranium species,ecocont,0.5157657657657657
-gerss,geranium species,harm,-0.13333333333333333
+gerss,geranium species,harm,0.13333333333333333
 gerss,geranium species,pollinator,0.06421074756999562
 horvw,hordeum vulgare,ecocont,0
-horvw,hordeum vulgare,harm,-0
+horvw,hordeum vulgare,harm,0
 horvw,hordeum vulgare,pollinator,0
 lamss,lamium species,ecocont,0.1266891891891892
-lamss,lamium species,harm,-0.4
+lamss,lamium species,harm,0.4
 lamss,lamium species,pollinator,0.885318029701526
 lolpe,lolium perenne,ecocont,0.013189619358049092
-lolpe,lolium perenne,harm,-0.1
+lolpe,lolium perenne,harm,0.1
 lolpe,lolium perenne,pollinator,0.0026883111190917895
 matin,tripleurospermum inodorum,ecocont,0
-matin,tripleurospermum inodorum,harm,-0
+matin,tripleurospermum inodorum,harm,0
 matin,tripleurospermum inodorum,pollinator,0
 paprh,papaver rhoeas,ecocont,0.01485817495406942
-paprh,papaver rhoeas,harm,-0.5
+paprh,papaver rhoeas,harm,0.5
 paprh,papaver rhoeas,pollinator,0.39480555145717766
 rapsr,raphanus sativus,ecocont,1
-rapsr,raphanus sativus,harm,-0.1
+rapsr,raphanus sativus,harm,0.1
 rapsr,raphanus sativus,pollinator,0.46125146389225746
 senss,senecio species,ecocont,0.30405405405405406
-senss,senecio species,harm,-0.3
+senss,senecio species,harm,0.3
 senss,senecio species,pollinator,0.08859271118365522
 soil,NA,ecocont,0
-soil,NA,harm,-0
+soil,NA,harm,0
 soil,NA,pollinator,0
 tarof,taraxacum officinale,ecocont,0.6081081081081081
-tarof,taraxacum officinale,harm,-0.1
+tarof,taraxacum officinale,harm,0.1
 tarof,taraxacum officinale,pollinator,1
 trfre,trifolium repens,ecocont,0.015644354071908225
-trfre,trifolium repens,harm,-0.3
+trfre,trifolium repens,harm,0.3
 trfre,trifolium repens,pollinator,1
 verss,veronica species,ecocont,0.37162162162162166
-verss,veronica species,harm,-0.35
+verss,veronica species,harm,0.35
 verss,veronica species,pollinator,0.2001833045545553

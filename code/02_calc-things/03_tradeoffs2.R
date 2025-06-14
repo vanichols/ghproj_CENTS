@@ -20,7 +20,7 @@ d1b <-
   pivot_wider(names_from = cat, values_from = sc_value2_max) %>% 
   group_by(eppo_code) %>% 
   mutate(benef = max(ecocont, pollinator),
-         net = benef + harm) 
+         net = benef - harm) 
 
 d1b %>% 
   mutate(color = ifelse(net >= 0, "good", "bad")) %>% 
@@ -198,7 +198,10 @@ d9 %>%
   ggplot(aes(sys, value2)) +
   geom_point(aes(color = as.factor(year))) +
   facet_wrap(~name, scale = "free")
-  
+
+d9 %>% 
+  filter(name == "harm")
+
 # write -------------------------------------------------------------------
 
 d9 %>% 
