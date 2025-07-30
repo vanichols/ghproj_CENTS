@@ -74,7 +74,6 @@ d3 <-
   d2 %>% 
   mutate(
     till_id = factor(till_id, levels = ord.till_id),
-         precip = str_to_title(precip),
          till_nice = case_when(
            till_id == "notill" ~ "No-till",
            till_id == "inversion" ~ "Inv",
@@ -88,7 +87,8 @@ d3 <-
 
 d4 <- 
   d3 %>% 
-  mutate(year_prec = paste0("(", year, ") ", precip),
+  mutate(precip = str_to_title(precip),
+         year_prec = paste0("(", year, ") ", precip),
          dm_cat = ifelse(dm_cat == "covercrop", "Cover crop", "Other")) 
 
 # 5. group  ---------------------------------------------------------------
