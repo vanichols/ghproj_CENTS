@@ -44,7 +44,8 @@ ord.cctrt_id <- c("nocc", "mix_E", "mix_M", "rad_M", "rad_L")
 ord.cctrt_niceS <- c("NoCC", "MixE", "MixM", "RadM", "RadL")
 ord.cctrt_niceL <- c("NoCC", "MixEarly", "MixMid", "RadMid", "RadLate")
 
-ord.cctrt_niceNEW <- c("NoCC", "E-Mix", "M-Mix", "M-Rad", "L-Rad")
+ord.cctrt_niceNEW <- c("No CC", "Early Mix", "Mid Mix", "Mid Rad", "Late Rad")
+ord.cctrt_nicePRES <- c("No CC", "+early mix", "+mid mix", "+mid rad", "+late rad")
 
 
 #--desired till_id order

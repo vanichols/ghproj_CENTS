@@ -106,4 +106,7 @@ p5 %>%
   write_csv("data/tidy_pesticide-load-by-eu.csv")
 
 p5 %>% 
-  left_join(cents_eukey)
+  left_join(cents_eukey) %>% 
+  group_by(year, till_id, rot_id, straw_id, cctrt_id) %>% 
+  summarise(load_ha = mean(load_ha)) %>% 
+  write_csv("data/mette_pli-by-system.csv")

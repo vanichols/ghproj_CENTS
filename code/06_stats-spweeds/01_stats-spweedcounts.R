@@ -46,6 +46,17 @@ draw %>%
   ggplot(aes(count)) +
   geom_histogram(aes(fill = weed_type2))
 
+#--do the number of weeds differ by trt?
+draw %>% 
+  group_by(weed_type2, cctrt_id, till_id, year) %>% 
+  summarise(count = mean(count)) %>% 
+  ggplot(aes(cctrt_id, count)) +
+  geom_col(aes(fill = weed_type2)) +
+  facet_grid(year~till_id) +
+  labs(title = "Mean spring Weed Count") +
+  coord_flip()
+
+
 #--definitely over-dispersed
 #--use negative binomial1 (linear) or nbinom2 (faster ince)
 draw %>% 
