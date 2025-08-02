@@ -1,15 +1,14 @@
 # created 17 feb 2025
 # calculate PLI for each system
+# modified: 2 aug 2025 - reran with updated cents package, till_id now surface instead of noninversion
 
 library(tidyverse)
 library(readxl)
 library(CENTSdata)
 
 
-
 h <- cents_herbops
 pli <- cents_pliherbs
-
 
 
 # 1. combine --------------------------------------------------------------
@@ -96,16 +95,23 @@ p5 <-
   filter(year != 2020) %>% 
   filter(load_cat == "Total") %>% 
   group_by(year, till_id, cctrt_id) %>% 
-  summarise(load_ha = sum(load_ha)) %>% 
+  summarise(load_ha = sum(load_ha)) %>%
+  ungroup()
+
+p5 %>% 
+  pull(till_id) %>% 
+  unique()
+
+p6 <- 
+  p5 %>% 
   left_join(cents_eukey, relationship = "many-to-many") %>% 
-  ungroup() %>% 
   select(eu_id, year, load_ha) %>% 
   arrange(eu_id, year)
 
-p5 %>%
+p6 %>%
   write_csv("data/tidy_pesticide-load-by-eu.csv")
 
-p5 %>% 
+p6 %>% 
   left_join(cents_eukey) %>% 
   group_by(year, till_id, rot_id, straw_id, cctrt_id) %>% 
   summarise(load_ha = mean(load_ha)) %>% 
