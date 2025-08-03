@@ -50,24 +50,20 @@ d1d <-
   group_by(eu_id, year) %>% 
   mutate(fall_ecovalue = cover_pct/100 * fall_ecovalue)
 
-#--not much value in fall vegetation...is it even worth scaling?
-d1d %>% 
-  ggplot(aes(fall_ecovalue)) +
-  geom_histogram()
-
-#--sum all plant values
+#--sum all plant values within an eu and year
 d1c <- 
   d1d %>% 
   group_by(eu_id, year) %>%
   summarise(fall_ecovalue = sum(fall_ecovalue))
+d1c %>% 
+  ggplot(aes(fall_ecovalue)) +
+  geom_histogram()
 
-#--average over years
-
+#--average over years, don't scale yet
 d1d <- 
   d1c %>%
   group_by(eu_id) %>% 
-  summarise(fall_ecovalue = mean(fall_ecovalue)) %>% 
-  mutate(fall_ecovalue = fall_ecovalue/max(fall_ecovalue))
+  summarise(fall_ecovalue = mean(fall_ecovalue)) 
 
 d1d %>% 
   ggplot(aes(fall_ecovalue)) +
@@ -91,22 +87,10 @@ d2a <-
 d2b <- 
   d2a %>% 
   group_by(eu_id) %>% 
-  summarise(dm_gm2 = mean(dm_gm2))
-
-#--scale from 0-1
-
-d2c <- 
-  d2b %>%
-  ungroup() %>% 
-  mutate(fall_bio = dm_gm2/max(dm_gm2))
-
-#--much better range  
-d2c %>% 
-  ggplot(aes(fall_bio)) +
-  geom_histogram()
+  summarise(fall_bio = mean(dm_gm2))
 
 d2 <- 
-  d2c %>% 
+  d2b %>% 
   select(eu_id, fall_bio)
 
 # 3. grain yields --------------------------------------------------
@@ -118,14 +102,11 @@ d3a <-
   group_by(eu_id, year) %>% 
   summarise(grain = mean(yield_dry_Mgha, na.rm = T))
 
-#--average over years
-
-
-#--scale within a year?
+#--sum across years
 d3 <- 
   d3a %>% 
-  group_by(year) %>% 
-  mutate(grain = grain/max(grain))
+  group_by(eu_id) %>% 
+  summarise(grain = sum(grain))
 
 d3 %>% 
   ggplot(aes(grain)) +
@@ -142,12 +123,11 @@ d4a <-
   summarise(value2 = mean(load_ha, na.rm = T)) %>% 
   ungroup()
 
-#--scale within a year
+#--add across years
 d4 <- 
   d4a %>% 
-  group_by(year) %>% 
-  mutate(pli = value2/max(value2)) %>% 
-  select(-value2)
+  group_by(eu_id) %>% 
+  summarise(pli = sum(value2)) 
 
 d4 %>% 
   ggplot(aes(pli)) +
@@ -156,32 +136,20 @@ d4 %>%
 # 5. spring perennial weeds-----------------------------------------------------------
 
 #--total cirar and equar counted (perenn weeds)
-d5a <- 
+#--sum across years for each eu
+d5 <- 
   cents_spweedcount %>% 
   filter(weed_type %in% c("cirar", "equar")) %>%
   mutate(year = year(date2)) %>% 
-  group_by(eu_id, year) %>% 
-  summarise(count = sum(count))
+  group_by(eu_id) %>% 
+  summarise(spweed_count = sum(count))
 
-d5a %>% 
-  ggplot(aes(count)) +
+d5 %>% 
+  ggplot(aes(spweed_count)) +
   geom_histogram()
-
-#--scale within a year
-d5b <- 
-  d5a %>% 
-  group_by(year) %>% 
-  mutate(spweeds_count = count/max(count))
-
-d5 <- 
-  d5b %>% 
-  select(eu_id, year, spweeds_count) %>% 
-  mutate(year = year -1) #--because msmt happened following year
 
 
 # 6. combine -------------------------------------------------------
-d4 %>% 
-  arrange(eu_id)
 
 d6 <- 
   d1 %>%
@@ -194,50 +162,87 @@ d6 <-
 d6
 
 
-# 7. average over blocks --------------------------------------------------
+# 7. get average for each cropsys --------------------------------------------------
 
 d7 <- 
   d6 %>% 
   pivot_longer(fall_ecovalue:ncol(.)) %>% 
   left_join(cents_eukey) %>% 
-  group_by(year, till_id, cctrt_id, straw_id, name) %>% 
+  group_by(till_id, cctrt_id, straw_id, name) %>% 
   summarise(value = mean(value)) %>% 
   mutate(cropsys = paste(till_id, cctrt_id, straw_id)) %>% 
   ungroup() #%>% 
 #select(year, cropsys, name, value)
 
-d7 %>% 
-  ggplot(aes(cropsys, value)) +
-  geom_point(aes(color = name)) +
-  coord_flip() +
-  facet_grid(year ~ cctrt_id)
 
-# 8. use typology weightings ----------------------------------------------
+# 8. scale from 0-1 -------------------------------------------------------
+#--scale everything on absolute terms
 
 d8a <- 
-  d0 %>% 
-  left_join(d7, relationship = "many-to-many")
+  d7 %>% 
+  group_by(name) %>% 
+  mutate(mx = max(value),
+            sc_value = value/mx)
 
 
-d8b <- 
+d8a %>% 
+  ggplot(aes(cropsys, sc_value)) +
+  geom_point(aes(color = name)) +
+  coord_flip() +
+  facet_grid(.~name)
+
+d8 <- 
   d8a %>% 
-  mutate(wgtd_value = value * weight/100) %>% 
-  group_by(farmer_type, cropsys, year) %>% 
-  summarise(valuetot = sum(wgtd_value)/5)
-  
-d8b %>% 
-  group_by(farmer_type, year) %>% 
-  mutate(maxv = max(valuetot),
-         clr = ifelse(valuetot == maxv, "MAX", "normal")) %>% 
-  separate(cropsys, into = c("till_id", "cctrt_id", "straw_id"), sep = " ",
-           remove = F) %>% 
-  ggplot(aes(straw_id, valuetot)) +
-  geom_point(aes(color = clr)) +
-  facet_nested(cctrt_id+ till_id ~ farmer_type + year) +
-  coord_flip()
+  select(cropsys, name, sc_value)
+
+# 9. use typology weightings ----------------------------------------------
+
+d9a <- 
+  d8 %>% 
+  left_join(d0, relationship = "many-to-many")
+
+
+d9b <- 
+  d9a %>% 
+  mutate(wgtd_value = sc_value * weight/100) 
+
+#--I don't know why there are NAs appearing
+d9c <- 
+  d9b %>% 
+  group_by(farmer_type, cropsys) %>% 
+  summarise(valuetot = sum(wgtd_value)) %>% 
+  filter(!is.na(farmer_type))
+
+
+d9c %>% 
+  ggplot(aes(reorder(cropsys, valuetot), valuetot, fill = farmer_type)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  facet_wrap(~farmer_type)
+
+d9d <- 
+  d9c %>% 
+  group_by(farmer_type) %>% 
+  slice_max(n = 3, order_by = valuetot)
+
+d9d %>% 
+  ggplot(aes(farmer_type, valuetot, fill = cropsys)) +
+  geom_col(position = "dodge")
+
+d9d <- 
+  d9c %>% 
+  group_by(farmer_type) %>% 
+  slice_min(n = 3, order_by = valuetot)
+
+d9d %>% 
+  ggplot(aes(farmer_type, valuetot, fill = cropsys)) +
+  geom_col(position = "dodge")
+
+d9 <- 
+  d9c 
 
 # write -------------------------------------------------------------------
 
 d9 %>% 
-  write_csv("data/tidy_tradeoffs.csv")
+  write_csv("data/tidy_typology-values.csv")
 
