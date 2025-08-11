@@ -2,9 +2,12 @@
 # purpose: visualize spring weed counts
 # notes: 3 subreps
 
+devtools::install_github("psyteachr/introdataviz")
+
 library(tidyverse)
 library(CENTSdata)
 library(ggh4x)
+library(introdataviz)
 
 rm(list = ls())
 
@@ -64,7 +67,7 @@ d_meanAP <-
   summarise(count = mean(count, na.rm = T)) 
 
 #--use the blocks
-d1 <- d_block
+d1 <- d_blockAP
 
 # 2. make nice lables cc ------------------------------------------------
 
@@ -115,9 +118,13 @@ d4 %>%
 
 # 5. violin plot ----------------------------------------------------------
 
+d4all <- 
+  d4 %>% 
+  group_by(year, yearF, precip, block_id, straw_id, till_id, cctrt_id, weayear, cctrt_nice, till_nice, year_prec) %>% 
+  summarise(count = sum(count))
 
 ggplot() +
-  geom_violin(data = d4,
+  geom_violin(data = d4all,
               aes(cctrt_nice, count, fill = cctrt_nice),
               show.legend = F) +
   facet_grid(till_nice~.) +
@@ -137,4 +144,29 @@ ggplot() +
 ggsave("figs/fig_spring-weed-counts.png",
        width = 6, height = 6)
 
+
+
+# 6. violin plot sep perenn----------------------------------------------------------
+
+
+ggplot() +
+  geom_split_violin(data = d4,
+              aes(cctrt_nice, count, fill = weed_type2),
+              show.legend = F) +
+  facet_grid(till_nice~.) +
+  #scale_fill_manual(values = c("tan","tan","tan","tan", "black"))+
+  labs(x = "Cover crop treatment",
+       y = myweedcountlab) +
+  theme_bw() +
+  theme(axis.ticks.y = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.y = element_text(size = rel(1.3), angle = 0),
+        #panel.border = element_blank()
+  ) +
+  coord_flip()
+
+ggsave("figs/fig_spring-weed-counts.png",
+       width = 6, height = 6)
 

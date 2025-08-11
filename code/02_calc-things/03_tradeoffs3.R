@@ -18,7 +18,7 @@ d0 <-
   pivot_longer(grain:pli) %>% 
   rename(weight = value)
 
-# 1. species ecovalue --------------------------------------------------------------
+# 1. species ecovalue GOOD--------------------------------------------------------------
 
 d1a <- 
   read_csv("data/tidy_spvalue.csv")
@@ -73,7 +73,7 @@ d1 <-
   d1d %>% 
   select(eu_id, fall_ecovalue)
 
-# 2. biomass -----------------------------------------
+# 2. biomass GOOD-----------------------------------------
 
 #--sum within an eu (across subsamples), each year
 d2a <- 
@@ -93,7 +93,7 @@ d2 <-
   d2b %>% 
   select(eu_id, fall_bio)
 
-# 3. grain yields --------------------------------------------------
+# 3. grain yields GOOD--------------------------------------------------
 
 d3a <- 
   cents_cropyields %>% 
@@ -114,7 +114,7 @@ d3 %>%
 
 d3
 
-# 4. PLI ------------------------------------------------------------------
+# 4. PLI BAD------------------------------------------------------------------
 
 d4a <- 
   read_csv("data/tidy_pesticide-load-by-eu.csv") %>% 
@@ -133,7 +133,7 @@ d4 %>%
   ggplot(aes(pli)) +
   geom_histogram()
 
-# 5. spring perennial weeds-----------------------------------------------------------
+# 5. spring perennial weeds BAD-----------------------------------------------------------
 
 #--total cirar and equar counted (perenn weeds)
 #--sum across years for each eu
@@ -142,10 +142,10 @@ d5 <-
   filter(weed_type %in% c("cirar", "equar")) %>%
   mutate(year = year(date2)) %>% 
   group_by(eu_id) %>% 
-  summarise(spweed_count = sum(count))
+  summarise(spweeds_count = sum(count))
 
 d5 %>% 
-  ggplot(aes(spweed_count)) +
+  ggplot(aes(spweeds_count)) +
   geom_histogram()
 
 
@@ -191,9 +191,21 @@ d8a %>%
   coord_flip() +
   facet_grid(.~name)
 
-d8 <- 
+d8b <- 
   d8a %>% 
   select(cropsys, name, sc_value)
+
+#--adjust for bad versus good outcomes
+d8 <- 
+  d8b %>% 
+  mutate(sc_value2 = case_when(
+    name == "pli" ~ 1-sc_value,
+    name == "spweeds_count" ~ 1-sc_value,
+    TRUE ~ sc_value)
+  )
+  
+d8 %>% 
+  filter(cropsys == "notill mix_E removed")
 
 # 9. use typology weightings ----------------------------------------------
 
@@ -204,14 +216,16 @@ d9a <-
 
 d9b <- 
   d9a %>% 
-  mutate(wgtd_value = sc_value * weight/100) 
+  mutate(wgtd_value = sc_value2 * weight/100) 
 
-#--I don't know why there are NAs appearing
 d9c <- 
   d9b %>% 
   group_by(farmer_type, cropsys) %>% 
-  summarise(valuetot = sum(wgtd_value)) %>% 
-  filter(!is.na(farmer_type))
+  summarise(valuetot = sum(wgtd_value)) 
+
+
+d9c %>% 
+  filter(is.na(farmer_type))
 
 
 d9c %>% 

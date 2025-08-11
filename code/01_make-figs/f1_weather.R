@@ -18,7 +18,8 @@ w2 <-
   ungroup() %>% 
   mutate(yearH = case_when(
     year == 2018 ~ "2018 (Dry and hot)", 
-    year == 2019 ~ "2019 (Wet and hot)", 
+    year == 2019 ~ "2019 (Wet and hot)",
+    year == 2020 ~ "2020 (Dry and hot)", 
     TRUE ~ "1990-2020"
   )) %>% 
   mutate(cprecip = round(max(LTcprec_mm))) 
@@ -26,15 +27,16 @@ w2 <-
 p1 <-
   w2 %>% 
   mutate(facet = "Precipitation") %>% 
+  filter(doy < 364) %>% 
   ggplot() +
   geom_line(aes(doy, dprec_mm, group = year, color = yearH)) +
   geom_hline(yintercept = 0) +
-  geom_line(data = . %>% filter(year %in% c(2018, 2019)), 
+  geom_line(data = . %>% filter(year %in% c(2018, 2019, 2020)), 
             aes(doy, dprec_mm, group = year, color = yearH), linewidth = 1.2) +
   # geom_text(data = . %>% select(cprecip) %>% distinct(),
   #           aes(x = 20, y = 190, label = paste("Long-term mean precipitation = ", cprecip, " mm"), 
   #               hjust = 0, fontface = "italic")) +
-  scale_color_manual(values = c("gray80", ylw1, dkbl1)) +
+  scale_color_manual(values = c("gray80", ylw1, dkbl1, c2)) +
   theme_bw() + 
  th1 +
   labs(x = "Day of year",
@@ -55,6 +57,7 @@ t3 <-
   mutate(yearH = case_when(
     year == 2018 ~ "2018 (Dry and hot)", 
     year == 2019 ~ "2019 (Wet and hot)", 
+    year == 2020 ~ "2020 (Dry and hot)", 
     TRUE ~ "1990-2020"
   )) %>% 
   mutate(meanT = round(mean(LTavgte))) 
@@ -71,21 +74,23 @@ t3alt <-
   mutate(yearH = case_when(
     year == 2018 ~ "2018 (hot and dry)", 
     year == 2019 ~ "2019 (hot and wet)", 
+    year == 2020 ~ "2020 (Dry and xx)", 
     TRUE ~ "1990-2020"
   )) 
 
 p2 <- 
   t3 %>% 
   mutate(facet = "Air Temperature") %>% 
+  filter(doy < 364) %>% 
   ggplot() +
   geom_line(aes(doy, cdt_c, group = year, color = yearH)) +
   geom_hline(yintercept = 0) +
-  geom_line(data = . %>% filter(year %in% c(2018, 2019)), 
+  geom_line(data = . %>% filter(year %in% c(2018, 2019, 2020)), 
             aes(doy, cdt_c, group = year, color = yearH), linewidth = 1.2) +
   # geom_text(data = . %>% select(meanT) %>% distinct(),
   #           aes(x = 20, y = 480, label = paste("Long-term mean air temperature = ", meanT, " deg C"), 
   #               hjust = 0, fontface = "italic")) +
-  scale_color_manual(values = c("gray80", ylw1, dkbl1)) +
+  scale_color_manual(values = c("gray80", ylw1, dkbl1, c2)) +
   theme_bw() + 
   th1 +
   labs(x = "Day of year",
@@ -150,6 +155,7 @@ d3 <-
   mutate(yearH = case_when(
     year == 2018 ~ "2018", 
     year == 2019 ~ "2019", 
+    year == 2020 ~ "2020", 
     TRUE ~ "1990-2020"
   )) %>% 
   mutate(fakefacet = "Summary")
@@ -167,6 +173,9 @@ p3 <-
   geom_point(data = d3 %>% filter(yearH == "2019"),
              aes(x = cprec_mm, y = avgT), 
              size = 8, color = dkbl1) +
+  geom_point(data = d3 %>% filter(yearH == "2020"),
+             aes(x = cprec_mm, y = avgT), 
+             size = 8, color = c2) +
   geom_text(aes(x = 675, y = 7, label = "Wet and cool"), 
             check_overlap = T, hjust = 0, fontface = "italic") +
   geom_text(aes(x = 675, y = 10, label = "Wet and hot"), 
