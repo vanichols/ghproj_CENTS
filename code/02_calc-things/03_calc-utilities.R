@@ -23,21 +23,16 @@ d0 <-
 d1a <- 
   read_csv("data/tidy_spvalue.csv")
 
-#--just keep ecocont
-
-d1b <- 
-  d1a %>%
-  filter(cat == "ecocont")
-
-d1b %>% 
-  ggplot(aes(x = reorder(eppo_code, sc_value2_max), 
-             y = sc_value2_max)) +
-  geom_point(aes(size = sc_value2_max)) +
+d1a %>% 
+  ggplot(aes(x = reorder(eppo_code, pot_value), 
+             y = pot_value)) +
+  geom_point(aes(size = pot_value), color = "green3") +
+  geom_text(aes(label = round(pot_value, 1), size = pot_value), color = "black") +
   coord_flip()
 
 d1c <- 
-  d1b  %>% 
-  select(eppo_code, fall_ecovalue = sc_value2_max)
+  d1a  %>% 
+  select(eppo_code, fall_ecovalue = pot_value)
 
 #--weight pct cover by ecovalue
 
