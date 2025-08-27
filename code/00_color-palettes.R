@@ -56,6 +56,7 @@ ord.till_nice <- c("No-till", "Surf", "Inv")
 ord.till_nice2 <- c("No-till", "Surface", "Inversion")
 
 ord.cover_cat2 <-  c("Soil", "Cover Crop", "Weed", "Volunteer")
+ord.cover_cat3 <-  c("Soil", "Cover Crop", "Other", "Volunteer")
 
 ord.crop <- c("Spring barley (2018)", "Oat (2019)", "Faba bean (2020)")
 

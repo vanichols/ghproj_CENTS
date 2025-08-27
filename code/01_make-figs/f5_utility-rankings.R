@@ -3,6 +3,7 @@
 
 rm(list = ls())
 
+theme_set(theme_bw())
 library(tidyverse)
 library(CENTSdata)
 library(ggh4x)
@@ -24,12 +25,21 @@ d1 <-
   mutate(rank = 1:n()) %>% 
   arrange(farmer_type, rank)
 
+#--
 
 d1 %>% 
   ggplot(aes(farmer_type, rank)) +
-  geom_line(aes(group = cropsys, color = cc, linetype = straw), 
+  geom_line(aes(group = cropsys, color = cc, alpha = straw), 
             linewidth = 2) +
   scale_y_reverse() +
-  scale_linetype_manual(values = c("solid", "solid")) +
-  facet_wrap(~till)
+  scale_alpha_manual(values = c(1, 0.5)) +
+  facet_wrap(~till) +
+  theme(axis.ticks.y = element_blank(),
+        legend.position = "top",
+        strip.background.x = element_rect(fill = "white", 
+                                          color = "white"),
+        strip.text.x = element_text(size = rel(1.3)),
+        panel.border = element_blank()
+  )
+
 

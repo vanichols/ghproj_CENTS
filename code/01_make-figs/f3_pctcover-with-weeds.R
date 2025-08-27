@@ -44,23 +44,23 @@ d2 <-
          straw_sym = ifelse(straw_id == "retained", "+res", "-res"),
          cover_frac = cover_pct / 100,
          cctrt_nice = case_when(
-           cctrt_id == "nocc" ~ "NoCC",
-           cctrt_id == "mix_E" ~ "MixEarly",
-           cctrt_id == "mix_M" ~ "MixMid",
-           cctrt_id == "rad_M" ~ "RadMid",
-           cctrt_id == "rad_L" ~ "RadLate",
+           cctrt_id == "nocc" ~ "No CC",
+           cctrt_id == "mix_E" ~ "Early Mix",
+           cctrt_id == "mix_M" ~ "Mid Mix",
+           cctrt_id == "rad_M" ~ "Mid Rad",
+           cctrt_id == "rad_L" ~ "Late Rad",
            TRUE~"XXX"
          ),
          cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceL),
+         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceNEW),
          till_id = factor(till_id, levels = ord.till_id),
          cover_cat2 = case_when(
            cover_cat2 == "soil" ~ "Soil",
-           cover_cat2 == "weed" ~ "Weed",
+           cover_cat2 == "weed" ~ "Other",
            cover_cat2 == "covercrop" ~ "Cover Crop",
            TRUE ~ "Volunteer"
          ),
-         cover_cat2 = factor(cover_cat2, levels = ord.cover_cat2),
+         cover_cat2 = factor(cover_cat2, levels = ord.cover_cat3),
          precip = str_to_title(precip),
          till_nice = case_when(
            till_id == "notill" ~ "No-till",
@@ -70,8 +70,8 @@ d2 <-
          ),
          till_nice = factor(till_nice, levels = ord.till_nice)) %>% 
   #--(2018) Wet, 
-  mutate(precip = paste0("(", year, ")", " ", precip)) %>% 
-  unite(precip, straw_sym, col = "wea_straw", sep = ", ")
+  mutate(precip = paste0(year)) %>% 
+  unite(precip, straw_sym, col = "wea_straw", sep = " ")
   
 
 d_sp <- 
@@ -89,7 +89,7 @@ d_sp %>%
   geom_col(aes(fill = cover_cat2 
                #alpha = cover_cat2
                ), color = "black",
-           size = 1.05) +
+           linewidth = 1.05) +
   facet_grid(till_nice ~cctrt_nice, scales = "free") +
   coord_flip() +
   # scale_alpha_manual(values = c("Soil" = 0.8,
@@ -100,7 +100,7 @@ d_sp %>%
   scale_fill_manual(values = c("Soil" = bv1,
                                "Cover Crop" = bv2,
                                "Volunteer" = bv3,
-                               "Weed" = "red"),
+                               "Other" = "red"),
                     guide = guide_legend(reverse = TRUE)) +
   theme_bw() +
   theme(axis.ticks.y = element_blank(),

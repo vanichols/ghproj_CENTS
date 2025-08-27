@@ -193,6 +193,28 @@ emmeans(m1, specs = pairwise~till_id:cctrt_id)$contrasts %>%
   separate(x2, into = c("c2a", "c2b"), sep = " ") %>% 
   filter(c1b == c2b) %>% 
   filter(c1a == c2a)
+
+
+
+# make marginal mean tables for supp material -----------------------------
+
+summary(emmeans(m1, specs = ~till_id, type = "response")) %>% 
+  tidy() %>% 
+  write_csv("data/tables/em_fbio-tillage.csv")
+
+summary(emmeans(m1, specs = ~cctrt_id, type = "response")) %>% 
+  tidy() %>% 
+  write_csv("data/tables/em_fbio-cctrt.csv")
+
+summary(emmeans(m1, specs = ~straw_id, type = "response")) %>% 
+  tidy() %>% 
+  write_csv("data/tables/em_fbio-straw.csv")
+
+summary(emmeans(m1, specs = ~weayear, type = "response")) %>% 
+  tidy() %>% 
+  write_csv("data/tables/em_fbio-wea.csv")
+
+
 # fit separately by year --------------------------------------------------
 d_18 <- 
   dtot %>% 

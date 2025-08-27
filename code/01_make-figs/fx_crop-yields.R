@@ -20,7 +20,7 @@ em_cc <-
     TRUE~"XXX"
   ),
   cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-  cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_nice))
+  cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceS))
   
 d <- 
   cents_eukey %>% 
@@ -35,7 +35,7 @@ d <-
          TRUE~"XXX"
        ),
        cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-       cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_nice),
+       cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceS),
        crop = case_when(
          crop == "faba bean" ~ "Faba bean (2020)",
          crop == "oat" ~ "Oat (2019)",
@@ -122,7 +122,7 @@ p2 <-
 
 p1 + p2 +  plot_layout(widths = c(3, 1))
 
-ggsave("figs/fig_crop-yields.png",
+ggsave("figs/sfig_crop-yields.png",
        width = 8, height = 4)
        
 

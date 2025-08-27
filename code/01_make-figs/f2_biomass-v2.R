@@ -57,15 +57,15 @@ d1 <-
 d2 <- 
   d1 %>% 
   mutate(cctrt_nice = case_when(
-           cctrt_id == "nocc" ~ "NoCC",
-           cctrt_id == "mix_E" ~ "MixEarly",
-           cctrt_id == "mix_M" ~ "MixMid",
-           cctrt_id == "rad_M" ~ "RadMid",
-           cctrt_id == "rad_L" ~ "RadLate",
+           cctrt_id == "nocc" ~ "No CC",
+           cctrt_id == "mix_E" ~ "Early Mix",
+           cctrt_id == "mix_M" ~ "Mid Mix",
+           cctrt_id == "rad_M" ~ "Mid Rad",
+           cctrt_id == "rad_L" ~ "Late Rad",
            TRUE~"XXX"
          ),
          cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceL))
+         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceNEW))
 
 
 # 3. make nice tillage ----------------------------------------------------

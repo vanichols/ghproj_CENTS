@@ -115,7 +115,7 @@ d_till_order <-
 #--correlation of raw data, cover crop and other
 d_cat %>% 
   filter(cover_cat != "soil") %>% 
-  select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
+  dplyr::select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
   pivot_wider(names_from = cover_cat, values_from = cover_frac) %>% 
   ggplot(aes(covercrop, other)) +
   geom_point(aes(color = weayear))
@@ -123,7 +123,7 @@ d_cat %>%
 #--correlation of raw data
 d_cat %>% 
   filter(cover_cat != "other") %>% 
-  select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
+  dplyr::select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
   pivot_wider(names_from = cover_cat, values_from = cover_frac) %>% 
   ggplot(aes(covercrop, soil)) +
   geom_point(aes(color = weayear))
@@ -135,9 +135,9 @@ library(PerformanceAnalytics)
 d_corr <- 
   d_cat %>% 
   ungroup() %>% 
-  select(subplot_id, weayear, subrep, cover_cat, cover_pct) %>% 
+  dplyr::select(subplot_id, weayear, subrep, cover_cat, cover_pct) %>% 
   pivot_wider(names_from = cover_cat, values_from = cover_pct) %>% 
-  select(covercrop, other, soil)
+  dplyr::select(covercrop, other, soil)
 
 res <- 
   cor(d_corr)
@@ -198,7 +198,7 @@ m_bilogit <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * we
 Anova(m_bilogit)
 m_bilogit_simres <- simulateResiduals(m_bilogit)
 plot(m_bilogit_simres)
-
+m1 <- m_bilogit
 #--trying suggestion for a zero-inflated model
 #--zero inflation applied to all equally (?)
 m_bilogit_zinf <- update(m_bilogit, ziformula = ~1)
@@ -239,6 +239,10 @@ cover_cat:weayear
 cover_cat:cctrt_id 
 cover_cat
 
+emmeans(m1, specs = ~ cover_cat, type = "response")
+emmeans(m2, specs = ~ cover_cat, type = "response")
+
+
 #--nothing is interacting with tillage or straw removal, consistent w/perception
 #--the effect of cctrt depends on the weayear
 #--I think some cctrts are more reslient to weather conditions than others
@@ -246,23 +250,23 @@ cover_cat
 em1_pairs <- emmeans(m1, specs = pairwise ~ cover_cat:cctrt_id:weayear)
 
 #--I am not sure how to interpret these estimates on the logit scale
-emmeans(m2, specs = ~ cover_cat:cctrt_id:weayear)
+emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear)
 #--I think this back-transforms them
-emmeans(m2, specs = ~ cover_cat:cctrt_id:weayear, type = "response")
+emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear, type = "response")
 
-em1_est <- tidy(emmeans(m2, specs = ~ cover_cat:cctrt_id:weayear, type = "response"))
+em1_est <- tidy(emmeans(m1, specs = ~ cover_cat:cctrt_id:weayear, type = "response"))
 
 em1_est %>% 
   ggplot(aes(cover_cat, prob)) +
   geom_jitter(aes(color = cctrt_id, shape = weayear), size = 4, width = 0.1)
 
-tidy(emmeans(m2, specs = ~ cover_cat, type = "response"))
-(emmeans(m2, specs = pairwise ~ cover_cat:cctrt_id, type = "response"))
+tidy(emmeans(m1, specs = ~ cover_cat, type = "response"))
+(emmeans(m1, specs = pairwise ~ cover_cat:cctrt_id, type = "response"))
 
 #--correlation of modelled data
 em1_est %>% 
   filter(cover_cat != "soil") %>% 
-  select(cover_cat, cctrt_id, weayear, prob) %>% 
+  dplyr::select(cover_cat, cctrt_id, weayear, prob) %>% 
   pivot_wider(names_from = cover_cat, values_from = prob) %>% 
   ggplot(aes(covercrop, other)) +
   geom_point()
@@ -271,7 +275,7 @@ em1_est %>%
 #--correlation of raw data
 d_cat %>% 
   filter(cover_cat != "soil") %>% 
-  select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
+  dplyr::select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
   pivot_wider(names_from = cover_cat, values_from = cover_frac) %>% 
   ggplot(aes(covercrop, other)) +
   geom_point(aes(color = weayear))

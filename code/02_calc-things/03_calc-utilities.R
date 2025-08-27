@@ -50,6 +50,7 @@ d1c <-
   d1d %>% 
   group_by(eu_id, year) %>%
   summarise(fall_ecovalue = sum(fall_ecovalue))
+
 d1c %>% 
   ggplot(aes(fall_ecovalue)) +
   geom_histogram()

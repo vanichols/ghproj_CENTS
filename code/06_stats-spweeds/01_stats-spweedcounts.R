@@ -123,33 +123,44 @@ sim_resp1 <- simulateResiduals(m_p1)
 plot(sim_resp1)
 
 #--both negative binomials give similar answers
+#--freaking everything is significant
 Anova(m_nb1)
 Anova(m_nb2)
 
+m1 <- m_nb1
+
+# 2. summarise total weeds model ---------------------------------------------------------
+
+#--within inv, no diffs
+#--within notill, mix_E diff from everything else
+#--within surface, no diffs
+emmeans(m1, pairwise ~cctrt_id|till_id)
+
 #--year is an amplifier
-emmip(m_nb1, till_id ~ cctrt_id|yearF, type = "response")
+emmip(m1, till_id ~ cctrt_id|yearF, type = "response")
 
 #--tillage is largest driver
-em1 <- emmeans(m_nb1, ~till_id, type = "response")
-pairs(em1)
+em2 <- emmeans(m1, ~till_id, type = "response")
+pairs(em2)
 1/0.501
 #--inversion had 3 times more weeds than NT
 #--surface had 2 times more weeds than NT
 
 #--cctrt next largest
-em2 <- emmeans(m_nb1, ~cctrt_id|till_id, type = "response")
+em2 <- emmeans(m1, ~cctrt_id|till_id, type = "response")
 pairs(em2)
 #--no impact of cc in inv or surf
 #--within NT, mix E had more than twice as many weeds as other trts
 
 #--straw? next largest
-em3 <- emmeans(m_nb1, ~cctrt_id|straw_id|till_id, type = "response")
+em3 <- emmeans(m1, ~cctrt_id|straw_id|till_id, type = "response")
 pairs(em3)
 
-res <- tidy(pairs(em3))
+#--keep emmeans for figure, over straw and year
+res <- tidy(em2)
 
 res %>% 
-  write_csv("data/stats_emmeans-spweedcounts.csv")
+  write_csv("data/stats_emmeans/emmeans-spweedcounts.csv")
 
 
 # 2. model on number of perenn weeds?-------------------------------------------------------------------

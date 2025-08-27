@@ -226,6 +226,7 @@ radM <- c(0, 0, 0, 0, 1)
 other <- c(0.25, 0.25, 0.25, 0.25, 0)
 contrast(em_cc, method = list("radM - other" = radM - other))
 .324/4.20
+0.0734/4.20
 
 #--radM is higher than all of them, all others equal
 tidy(pairs(emmeans(mwin, ~ cctrt_id))) %>% 
