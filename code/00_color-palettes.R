@@ -1,6 +1,7 @@
 # color palettes
 
 library(RColorBrewer)
+library(ggtext)
 
 a <- RColorBrewer::brewer.pal(11, "RdYlBu")
 
@@ -31,8 +32,11 @@ cv4 <- '#7e03a8'
 cv5 <- '#0d0887'
   
   
-th1 <- theme(strip.background = element_rect(fill = "gray80"),
-             strip.text = element_text(size = rel(1.5)))
+# th1 <- theme(strip.background = element_rect(fill = "gray80"),
+#              strip.text = element_text(size = rel(1.5)))
+
+
+th1 <- theme(strip.background = element_rect(fill = "transparent"))
 
 
 # nice labels -------------------------------------------------------------
@@ -58,7 +62,7 @@ ord.till_nice2 <- c("No-till", "Surface", "Inversion")
 ord.cover_cat2 <-  c("Soil", "Cover Crop", "Weed", "Volunteer")
 ord.cover_cat3 <-  c("Soil", "Cover Crop", "Other", "Volunteer")
 
-ord.crop <- c("Spring barley (2018)", "Oat (2019)", "Faba bean (2020)")
+ord.crop <- c("2018 (Spring barley)", "2019 (Oat)", "2020 (Faba bean)")
 
 
 # labels ------------------------------------------------------------------
