@@ -2,6 +2,7 @@
 
 library(RColorBrewer)
 library(ggtext)
+library(scales)
 
 a <- RColorBrewer::brewer.pal(11, "RdYlBu")
 
@@ -59,8 +60,8 @@ ord.till_id <- c("notill", "surface", "inversion")
 ord.till_nice <- c("No-till", "Surf", "Inv")
 ord.till_nice2 <- c("No-till", "Surface", "Inversion")
 
-ord.cover_cat2 <-  c("Soil", "Cover Crop", "Weed", "Volunteer")
-ord.cover_cat3 <-  c("Soil", "Cover Crop", "Other", "Volunteer")
+ord.cover_cat2 <-  c("Soil", "Cover crop", "Weed", "Volunteer")
+ord.cover_cat3 <-  c("Soil", "Cover crop", "Other (weed)", "Volunteer")
 
 ord.crop <- c("2018 (Spring barley)", "2019 (Oat)", "2020 (Faba bean)")
 
