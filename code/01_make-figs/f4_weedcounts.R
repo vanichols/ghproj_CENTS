@@ -3,14 +3,7 @@
 # notes: 3 subreps
 
 library(tidyverse)
-library(lme4)
-library(lmerTest)
 library(CENTSdata)
-library(broom)
-library(emmeans)
-library(glmmTMB)
-library(DHARMa)
-library(car)
 
 rm(list = ls())
 
@@ -128,6 +121,13 @@ d2 %>%
             tot_pct = 100) %>% 
   ggplot() +
   geom_point(aes(x = straw_id, y = till_id, size = tot), color = "black") +
+  geom_point(aes(x = straw_id, y = till_id, size = cat_tot), color = "orange") +
+  scale_radius(range = c(1, 6)) +
+  facet_grid(.~cctrt_id)
+
+d2 %>%
+ ggplot() +
+  geom_col(aes(x = straw_id, y = till_id, size = tot), color = "black") +
   geom_point(aes(x = straw_id, y = till_id, size = cat_tot), color = "orange") +
   scale_radius(range = c(1, 6)) +
   facet_grid(.~cctrt_id)
