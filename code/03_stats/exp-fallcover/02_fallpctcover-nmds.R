@@ -126,15 +126,15 @@ site_scores <-
     as_tibble() %>% 
   mutate(year = year(date2))
   
-site_scores %>%
- write_csv("code/04_stats-fallcover/st_nmds-site.csv")
+# site_scores %>%
+#  write_csv("code/04_stats-fallcover/st_nmds-site.csv")
 
 spp_scores  <- 
   as.data.frame(scores(nmds_res, "species")) %>%
   rownames_to_column(., var = "eppo_code")
 
-spp_scores %>%
-  write_csv("code/04_stats-fallcover/st_nmds-spp.csv")
+# spp_scores %>%
+#   write_csv("code/04_stats-fallcover/st_nmds-spp.csv")
 
 # Makes polygons for site by treatment
 site_hull <- 
@@ -143,8 +143,8 @@ site_hull <-
   group_by(till_straw_cc_year) %>% # grouping variables: farm AND treatmnet
   slice(chull(NMDS1, NMDS2)) # points that polygons will connect
 
-site_hull %>%
- write_csv("code/04_stats-fallcover/st_nmds-site-hulls.csv")
+# site_hull %>%
+#  write_csv("code/04_stats-fallcover/st_nmds-site-hulls.csv")
 
 site_hull_xtill <- 
   site_scores %>% # dataframe of site scores

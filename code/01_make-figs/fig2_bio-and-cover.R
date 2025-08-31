@@ -9,9 +9,12 @@ rm(list = ls())
 
 source("code/00_color-palettes.R")
 
-bl1 <- "#8e8eda"
-bl2 <- "#424275"
+w_clr <- "#d3d3dd"
+wv_clr <- "#A0A0BA"
+v_clr <-  "#7c7c99"
+cc_clr <- bv3
 
+#"#424275"
 th1 <-   theme(axis.ticks.y = element_blank(),
                axis.text.x = element_text(angle = 45, hjust = 1),
                legend.position = "top",
@@ -31,18 +34,32 @@ d1 <- as_tibble(cents_fallbio)
 # 2. biomass plot (d)----------------------------------------------------------
 
 #--regroup
-d2 <- 
+d2a <- 
   d1 %>% 
   mutate(dm_gm2 = ifelse(is.na(dm_gm2), 0, dm_gm2)) %>% 
   mutate(dm_cat = case_when(
     dm_type == "grass_cl" ~ "covercrop",
     dm_type == "radish" ~ "covercrop",
+    dm_type == "volunteer" ~ "volunteer",
+    dm_type == "weeds" ~ "weed",
     TRUE ~ "other"
   ),
   year = year(date2)) %>% 
   group_by(eu_id, year, dm_cat) %>% 
   summarise(dm_gm2 = sum(dm_gm2))
   
+
+#--2019 had no volunteers, make new group
+
+d2 <- 
+  d2a %>% 
+  mutate(dm_cat2 = case_when(
+    (year == 2019 & dm_cat == "volunteer") ~ "weed and/or volunteer",
+    (year == 2019 & dm_cat == "weed") ~ "weed and/or volunteer",
+     TRUE ~ dm_cat)) %>% 
+  group_by(eu_id, year, dm_cat2) %>% 
+  summarise(dm_gm2 = sum(dm_gm2))
+
 #--link to trts
 d3 <- 
   d2 %>% 
@@ -79,8 +96,9 @@ d5 <-
 #--make nice other stuff
 d6 <- 
   d5 %>% 
-  mutate(dm_cat = ifelse(dm_cat == "covercrop", "Cover crop", "Other"),
-         dm_cat = factor(dm_cat, levels = c("Other", "Cover crop"))) 
+  mutate(dm_cat2 = ifelse(dm_cat2 == "covercrop", "Cover crop", dm_cat2),
+         dm_cat2 = str_to_sentence(dm_cat2),
+         dm_cat2 = fct_inorder(dm_cat2)) 
 
 #--group
 d7a <-
@@ -92,7 +110,7 @@ d7a <-
 #--keep dm cat
 d7b <-
   d6 %>%  
-  group_by(dm_cat,
+  group_by(dm_cat2,
            cctrt_id, till_id, year,
            cctrt_nice, till_nice) %>% 
   summarise(dm_gm2 = mean(dm_gm2)) 
@@ -112,7 +130,7 @@ d8b <-
 p1 <-
   ggplot() +
   geom_col(data = d8b, 
-           aes(till_nice, dm_gm2*0.01, fill = dm_cat),
+           aes(till_nice, dm_gm2*0.01, fill = dm_cat2),
            color = "black") +
   geom_linerange(data = d8a, 
                 aes(x = till_nice, 
@@ -124,8 +142,10 @@ p1 <-
                              label = letters),
             size = 2) +
   facet_nested(.  ~ year + cctrt_nice) +
-  scale_fill_manual(values = c("Cover crop" = bv3, 
-                               "Other" = bl2)) +
+  scale_fill_manual(values = c("Cover crop" = cc_clr, 
+                               "Weed and/or volunteer" = wv_clr, 
+                               "Weed" = w_clr,
+                               "Volunteer" = v_clr)) +
   labs(x = NULL,
        y = "Fall biomass<br>(Mg ha<sup>-1</sup>)",
        fill = NULL) +
@@ -196,9 +216,6 @@ a5 <-
   summarise(cover_pct = mean(cover_pct, na.rm = T)) %>% 
   mutate(cover_cat2 = fct_rev(cover_cat2)) 
 
-bl1 <- "#A0A0BA"
-bl2 <- "#424275"
-bl3 <- "#272746"
 
 p2 <-
   a5 %>% 
@@ -206,9 +223,9 @@ p2 <-
   geom_col(aes(fill = cover_cat2), color = "black") +
   facet_nested(.  ~ year + cctrt_nice) +
   scale_fill_manual(values = c("Soil" = bv1,
-                               "Cover crop" = bv3,
-                               "Volunteer" = bl1,
-                               "Weed" = bl3),
+                               "Cover crop" = cc_clr,
+                               "Volunteer" = v_clr,
+                               "Weed" = w_clr),
                     guide = guide_legend(reverse = TRUE)) +
   theme_bw() +
   th1 +  
