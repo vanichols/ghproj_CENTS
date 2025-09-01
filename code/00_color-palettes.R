@@ -6,6 +6,11 @@ library(scales)
 
 a <- RColorBrewer::brewer.pal(11, "RdYlBu")
 
+hue_nocc <- "gray70"
+hue_radm<- "#FDAE61"
+hue_radl <- "#A50026"
+hue_mixe <- "#313695"
+hue_mixm <- "#ABD9E9"
 
 av1 <-"#A50026"
 av2 <-"#FDAE61"

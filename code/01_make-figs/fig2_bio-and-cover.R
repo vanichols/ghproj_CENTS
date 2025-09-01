@@ -4,6 +4,7 @@ library(tidyverse)
 library(CENTSdata)
 library(patchwork)
 library(ggh4x)
+library(ggpattern)
 
 rm(list = ls())
 
@@ -26,7 +27,7 @@ th1 <-   theme(axis.ticks.y = element_blank(),
 # 1. data --------------------------------------------------------------------
 
 eu <- as_tibble(cents_eukey)
-b_stats <- read_csv("data/stats_letters/letters_totbio-by-year.csv")
+b_stats <- read_csv("data/stats/letters/letters_totbio-by-year.csv")
 
 d1 <- as_tibble(cents_fallbio)
 
@@ -129,8 +130,15 @@ d8b <-
 
 p1 <-
   ggplot() +
-  geom_col(data = d8b, 
-           aes(till_nice, dm_gm2*0.01, fill = dm_cat2),
+  geom_col_pattern(data = d8b, 
+           aes(till_nice, 
+               dm_gm2*0.01,
+               fill= dm_cat2,
+               pattern = dm_cat2),
+           pattern_fill = w_clr,
+           pattern_density = 0.5,        # Adjust pattern density
+           pattern_spacing = 0.25,       # Adjust pattern spacing
+           pattern_key_scale_factor=.1,
            color = "black") +
   geom_linerange(data = d8a, 
                 aes(x = till_nice, 
@@ -142,16 +150,24 @@ p1 <-
                              label = letters),
             size = 2) +
   facet_nested(.  ~ year + cctrt_nice) +
-  scale_fill_manual(values = c("Cover crop" = cc_clr, 
-                               "Weed and/or volunteer" = wv_clr, 
+  scale_fill_manual(values = c("Cover crop" = cc_clr,
+                               "Weed and/or volunteer*" = v_clr,
                                "Weed" = w_clr,
-                               "Volunteer" = v_clr)) +
+                               "Volunteer" = v_clr),
+                            ) +
+  scale_pattern_manual(values = c("Cover crop" = "none",
+                                  "Weed and/or volunteer*" = "stripe",
+                                  "Weed" = "none",
+                                  "Volunteer" = "none")) +
   labs(x = NULL,
        y = "Fall biomass<br>(Mg ha<sup>-1</sup>)",
-       fill = NULL) +
+       fill = NULL,
+       pattern = NULL) +
   theme_bw() +
   th1 +
-  theme(axis.title.y = element_markdown())
+  theme(axis.title.y = element_markdown(),
+        #legend.key.size = unit(1, 'cm')
+        )
 
 p1
 
@@ -218,7 +234,13 @@ a5 <-
 
 
 p2 <-
-  a5 %>% 
+  a5 %>%
+  mutate(cover_cat2 = factor(cover_cat2, 
+                             levels = c("Soil", 
+                                        "Cover crop", 
+                                        "Volunteer",
+                                        "Weed")),
+         cover_cat2 = fct_rev(cover_cat2)) %>% 
   ggplot(aes(till_nice, cover_pct/100)) +
   geom_col(aes(fill = cover_cat2), color = "black") +
   facet_nested(.  ~ year + cctrt_nice) +
@@ -226,7 +248,8 @@ p2 <-
                                "Cover crop" = cc_clr,
                                "Volunteer" = v_clr,
                                "Weed" = w_clr),
-                    guide = guide_legend(reverse = TRUE)) +
+                    guide = guide_legend(reverse = TRUE)
+                    ) +
   theme_bw() +
   th1 +  
   theme(legend.position = "bottom") +
