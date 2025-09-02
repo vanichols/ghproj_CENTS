@@ -1,4 +1,6 @@
-#--note: need to redo biomass stats in new way first
+#--created 2 sept 2025
+#--join coverage and biomass figure?
+#--adding GDDs for each cc in each year to figure
 
 library(tidyverse)
 library(CENTSdata)
@@ -9,6 +11,10 @@ library(ggpattern)
 rm(list = ls())
 
 source("code/00_color-palettes.R")
+
+
+
+# figure things -----------------------------------------------------------
 
 w_clr <- "#d3d3dd"
 wv_clr <- "#A0A0BA"
@@ -28,9 +34,22 @@ th1 <-   theme(axis.ticks.y = element_blank(),
 
 eu <- as_tibble(cents_eukey)
 b_stats <- read_csv("data/stats/letters/letters_totbio-by-year.csv")
-
 d1 <- as_tibble(cents_fallbio)
 
+gdds <- 
+  cents_gdds %>% 
+  rename(year = ccest_year) %>% 
+  left_join(eu) %>% 
+  filter(cctrt_id != "nocc") %>% 
+    group_by(cctrt_id, year) %>% 
+    summarise(pl2samp_gdd = mean(pl2samp_gdd)) %>% 
+  mutate(till_id = "Surf",#--just to get it centered in facets
+         pl2samp_gdd = as.character(round(pl2samp_gdd, -1))) %>% 
+  ungroup() %>% 
+  add_row(cctrt_id = "nocc", year = 2018, pl2samp_gdd = "NA", till_id = "surface") %>% 
+  add_row(cctrt_id = "nocc", year = 2019, pl2samp_gdd = "NA", till_id = "surface") %>% 
+  MakeNiceLabels(.) %>% 
+  mutate(till_nice = 2)
 
 # 2. biomass plot (d)----------------------------------------------------------
 
@@ -67,32 +86,10 @@ d3 <-
   left_join(eu) %>% 
   distinct()
 
-#--make nice cctrt
-d4 <- 
-  d3 %>% 
-  mutate(cctrt_nice = case_when(
-           cctrt_id == "nocc" ~ "NoCC",
-           cctrt_id == "mix_E" ~ "MixE",
-           cctrt_id == "mix_M" ~ "MixM",
-           cctrt_id == "rad_M" ~ "RadM",
-           cctrt_id == "rad_L" ~ "RadL",
-           TRUE~"XXX"
-         ),
-         cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-         cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceS))
-
-#--make nice till
+#--make nice cctrt and tilltrt
 d5 <- 
-  d4 %>% 
-  mutate(
-    till_id = factor(till_id, levels = ord.till_id),
-         till_nice = case_when(
-           till_id == "notill" ~ "No-till",
-           till_id == "inversion" ~ "Inv",
-           till_id == "surface" ~ "Surf",
-           TRUE ~ "XXX"
-         ),
-         till_nice = factor(till_nice, levels = ord.till_nice))
+  d3 %>% 
+  MakeNiceLabels(.)
 
 #--make nice other stuff
 d6 <- 
@@ -149,14 +146,18 @@ p1 <-
                              y = estimate*0.01 + 0.5, 
                              label = letters),
             size = 2) +
+  geom_text(data = gdds, aes(x = till_nice, 
+                            y = 4.5, 
+                            label = pl2samp_gdd),
+            size = 3, hjust = 0.5, fontface = "italic") +
   facet_nested(.  ~ year + cctrt_nice) +
   scale_fill_manual(values = c("Cover crop" = cc_clr,
-                               "Weed and/or volunteer*" = v_clr,
+                               "Weed and/or volunteer" = v_clr,
                                "Weed" = w_clr,
                                "Volunteer" = v_clr),
                             ) +
   scale_pattern_manual(values = c("Cover crop" = "none",
-                                  "Weed and/or volunteer*" = "stripe",
+                                  "Weed and/or volunteer" = "stripe",
                                   "Weed" = "none",
                                   "Volunteer" = "none")) +
   labs(x = NULL,
@@ -169,7 +170,7 @@ p1 <-
         #legend.key.size = unit(1, 'cm')
         )
 
-p1
+
 
 # 3. percent cover plot (a)--------------------------------------------------------
 
