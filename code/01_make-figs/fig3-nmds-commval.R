@@ -7,6 +7,7 @@ library(patchwork)
 library(ggh4x)
 library(ggrepel)
 library(ggpubr)
+library(ggpattern)
 
 rm(list = ls())
 
@@ -105,8 +106,8 @@ p1 <-
                      "RadM" = hue_radm,
                      "RadL" = hue_radl)) +
   facet_nested(. ~ year) +
-  labs(shape = "Tillage system",
-       color = "Cover crop system") +
+  labs(shape = "Tillage",
+       color = "Cover crop") +
   theme(legend.direction  = "horizontal",
         legend.position = "top",
         legend.background = element_rect(color = "black"),
@@ -119,26 +120,62 @@ p1 <-
 
 # 2. species value --------------------------------------------------------
 
+#--number of species found
+# d2z <- 
+#   read_csv("data/tidy_nuspecies.csv") %>% 
+#   left_join(cents_eukey) %>% 
+#   group_by(year, till_id, cctrt_id) %>% 
+#   summarise(nu_sp = mean(nu_sp, na.rm = T)) %>% 
+#   ungroup() %>% 
+#   MakeNiceLabels(.)
+
+
 d2a <- read_csv("data/tidy_communityvalue.csv")
 
-#--mean for each system, each year
-d2b <- 
+#--means
+d2 <- 
   d2a %>% 
   left_join(cents_eukey) %>% 
-  group_by(year, till_id, straw_id, cctrt_id) %>% 
+  group_by(year, till_id, cctrt_id) %>% 
   summarise(potval = mean(potval, na.rm = T)) %>% 
-  ungroup() 
+  ungroup() %>% 
+  MakeNiceLabels(.)
 
-d2 <- 
-  d2b %>% 
-  select(year, till_id, straw_id, cctrt_id, potval)
+p2 <- 
+  d2 %>% 
+  ggplot(aes(cctrt_nice, potval)) +
+  geom_col(aes(fill = cctrt_nice,
+                       alpha = till_nice),
+           position = "dodge",
+           color = "black") +
+  # geom_text(data = d2z,
+  #           aes(cctrt_nice, y = -1, label = nu_sp)) +
+  scale_fill_manual(values = c( 
+    "NoCC" = hue_nocc,
+    "MixE" = hue_mixe,
+    "MixM" = hue_mixm,
+    "RadM" = hue_radm,
+    "RadL" = hue_radl)) +
+  guides(fill = "none") +
+  facet_grid(.  ~ year) +
+  labs(alpha = "Tillage system",
+       y = "Potential ecosystem value\n(unitless)",
+       x = "Cover crop") +
+  theme(legend.direction  = "horizontal",
+        legend.position = "top",
+        legend.background = element_rect(color = "black"),
+        legend.text       = element_text(size = 12),
+        legend.title      = element_text(size = 14),
+        axis.title        = element_text(size = 14),
+        axis.text         = element_text(size = 12)) +
+  th1
 
-d2 %>% 
-  ggplot(aes(cctrt_id, potval)) +
-  geom_col() +
-  facet_grid(till_id + straw_id ~ year)
 
-d2 %>% 
-  group_by(year, till_id, cctrt_id)
-  ggplot(aes(cctrt_id, potval)) +
-  geom_col(aes(fill = till_id))
+p2
+
+# 3. combine --------------------------------------------------------------
+
+p1 /p2 + plot_layout(heights = c(1, 1))
+
+ggsave("figs/fig3_comm-and-potval.png",
+       width = 10, height = 10)

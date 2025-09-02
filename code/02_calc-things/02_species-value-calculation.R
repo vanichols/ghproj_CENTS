@@ -17,6 +17,22 @@ library(CENTSdata)
 cents_species
 cents_fallpctcover
 
+
+# 0. number of species ----------------------------------------------------
+
+d0 <- 
+  cents_fallpctcover %>% 
+  filter(cover_pct != 0) %>% 
+  filter(eppo_code != "soil") %>% 
+  mutate(year = year(date2)) %>% 
+  select(year, eu_id, eppo_code) %>% 
+  distinct() %>% 
+  group_by(eu_id, year) %>% 
+  summarise(nu_sp = n())
+
+d0 %>% 
+  write_csv("data/tidy_nuspecies.csv")
+
 # 1. prioritize -----------------------------------------------------------
 
 #--which weeds appear in a significant amount?
