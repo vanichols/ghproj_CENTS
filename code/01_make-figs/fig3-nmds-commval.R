@@ -13,30 +13,6 @@ rm(list = ls())
 
 source("code/00_color-palettes.R")
 theme_set(theme_bw())
-MakeNiceLabels <- function(dat){
-  d <- dat %>% 
-    mutate(cctrt_nice = case_when(
-    cctrt_id == "nocc" ~ "NoCC",
-    cctrt_id == "mix_E" ~ "MixE",
-    cctrt_id == "mix_M" ~ "MixM",
-    cctrt_id == "rad_M" ~ "RadM",
-    cctrt_id == "rad_L" ~ "RadL",
-    TRUE~"XXX"
-  ),
-  cctrt_id = factor(cctrt_id, levels = ord.cctrt_id),
-  cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceS)) %>% 
-    #--make nice till
-    mutate(
-      till_id = factor(till_id, levels = ord.till_id),
-      till_nice = case_when(
-        till_id == "notill" ~ "No-till",
-        till_id == "inversion" ~ "Inv",
-        till_id == "surface" ~ "Surf",
-        TRUE ~ "XXX"
-      ),
-      till_nice = factor(till_nice, levels = ord.till_nice))
-  return(d)
-}
 
 # 1. nmds fig --------------------------------------------------------------------
 

@@ -186,8 +186,8 @@ l3_18 %>%
 #--straw effect sig, no interactions, results are in g/m2
 #--1/1 000 * 1/1 000 * 10 000 == divide by 100 to get Mg/ha
 
-summary(emmeans(m1, specs = ~straw_id, type = "response"))
-emmeans(m1, specs = pairwise~straw_id)$contrasts
+summary(emmeans(m3, specs = ~straw_id, type = "response"))
+emmeans(m3, specs = pairwise~straw_id)$contrasts
 
 # tillage -------------------------------------------------------------------
 #--effect depended on year, and also on cover crop, but not an intxn
@@ -275,8 +275,7 @@ summary(emmeans(m1, specs = ~weayear, type = "response")) %>%
 
 
 
-# 4. fall cover -----------------------------------------------------------
-
+# 4. fall cover community-----------------------------------------------------------
 
 #--nmds separated by year for figure
 library(vegan)
@@ -421,4 +420,142 @@ site_hull18 %>%
   write_csv("data/stats_nmds-site-hulls.csv")
 
 
+# 5. fall cover percentages -----------------------------------------------
+rm(list = ls())
 
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(CENTSdata)
+library(broom)
+library(emmeans)
+library(glmmTMB)
+library(DHARMa)
+library(car)
+
+# For the 4-way proportions for cover, you could actually analyse this a little di􀆯erently to what we talked about
+# as well. You could pivot your data into long-format that has a column for the proportions, and another column
+# for the Cover category (Soil, Weeds, Volunteers and CC). If you then analyse the proportions with a model like
+# this:
+# model <- glmmTMB(proportion ~ CoverCategory * Tillage * CC * Straw * Year +
+#                    (1|Block) + (1|CC:Tillage:Straw) + (1|Tillage:Straw) + (1|Straw),
+#                  family=binomial(link=”logit”), data=DATA)
+# You get an estimate of how di􀆯erent the proportions of each cover category are, and you are checking whether
+# that is dependent on tillage, CC, straw or year e􀆯ects.
+
+
+#--data
+eu <- as_tibble(cents_eukey)
+y <- as_tibble(cents_fallpctcover)
+
+#--data separated by species
+d5 <- 
+  eu %>% 
+  left_join(y) %>% 
+  mutate(year = year(date2),
+         yearF = paste0("Y", year)) %>% 
+  mutate(cover_frac = cover_pct / 100) %>% 
+  group_by(block_id, plot_id, subplot_id, till_id, straw_id, 
+           cctrt_id, subrep, yearF, cover_cat) %>% 
+  summarise(cover_pct = sum(cover_pct),
+            cover_frac = sum(cover_frac))
+
+#--what if I just model soil
+d5_soil <-
+  d5 %>% 
+   filter(cover_cat == "soil")
+
+m5_soil <- glmmTMB(cover_frac ~ till_id * cctrt_id * straw_id * yearF +
+                   (1|block_id) + 
+                   (1|cctrt_id:till_id:straw_id) + 
+                   (1|till_id:straw_id) + 
+                   (1|straw_id),
+                 family=binomial(link="logit"), 
+                 data=d5_soil)
+
+m5_soil_simres <- simulateResiduals(m5_soil)
+plot(m5_soil_simres)
+
+#--anova
+aov5_soil <- 
+  Anova(m5_soil) %>% 
+  tidy(.)
+
+aov5_soil %>% 
+  write_csv("data/stats/anova/anova_pctcov-soil.csv")
+
+#--what is interesting
+Anova(m5_soil) %>% 
+  tidy(.) %>% 
+  filter(p.value < 0.05)
+
+tidy(emmeans(m5_soil, specs = ~ yearF, type = "response"))
+
+#--data separated by cateogry (covercrop, soil, other)
+#--what if I just model covercrop
+d5_cc <-
+  d5 %>% 
+   filter(cover_cat == "covercrop")
+
+m5_cc <- glmmTMB(cover_frac ~ till_id * cctrt_id * straw_id * yearF +
+                       (1|block_id) + 
+                       (1|cctrt_id:till_id:straw_id) + 
+                       (1|till_id:straw_id) + 
+                       (1|straw_id),
+                     family=binomial(link="logit"), 
+                     data=d5_cc)
+
+m5_cc_simres <- simulateResiduals(m5_cc)
+plot(m5_cc_simres)
+
+#--anova
+aov5_cc <- 
+  Anova(m5_cc) %>% 
+  tidy(.)
+
+aov5_cc %>% 
+  write_csv("data/stats/anova/anova_pctcov-cc.csv")
+
+#--what is interesting
+Anova(m5_cc) %>% 
+  tidy(.) %>% 
+  filter(p.value < 0.05)
+
+#--sig terms:
+#cctrt_id
+#cctrt_id : yearF
+
+#--nothing is interacting with tillage or straw removal, consistent w/perception
+#--the effect of cctrt depends on the yearF
+#--I think some cctrts are more reslient to weather conditions than others
+
+#--here are the emmeans
+em5_cc <- tidy(emmeans(m5, specs = ~ cctrt_id:yearF, type = "response"))
+
+#--what was mixe in 2018 and 2019?
+em5_cc %>% 
+  filter(cctrt_id == "mix_E")
+
+em5_ccpairs <- emmeans(m5_cc, specs = pairwise ~ cctrt_id:yearF)
+
+#--the early mix covercrop pctcover was strongly impacted by weather
+tidy(em5_ccpairs$contrasts) %>% 
+  separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
+  separate(t1, into = c("cctrt_id1", "yearF1"), sep = " ") %>% 
+  separate(t2, into = c("cctrt_id2", "yearF2"), sep = " ") %>% 
+  filter(cctrt_id1 == cctrt_id2)
+
+# can just take average over year for other cctrts
+tidy(emmeans(m5_cc, specs = ~ cctrt_id, type = "response")) %>% 
+  filter(cctrt_id != "mix_E")
+
+#--correlation btwn cover crop and volunteer/weed
+d5corr <- 
+  d5 %>% 
+  ungroup() %>% 
+  filter(cover_cat %in% c("covercrop", "other")) %>% 
+  unite(plot_id, subplot_id, subrep, col = "exp_id") %>% 
+  select(exp_id, yearF, cover_cat, cover_pct) %>% 
+  pivot_wider(names_from = cover_cat, values_from = cover_pct)
+
+cor(d5corr$covercrop, d5corr$other)  

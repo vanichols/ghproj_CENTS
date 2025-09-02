@@ -12,8 +12,17 @@ rm(list = ls())
 # data --------------------------------------------------------------------
 
 w <- cents_wea
-#h <- cents_gdds
+h <- cents_gdds
 
+
+
+# 1. GDDs from planting ---------------------------------------------------
+
+#--number of gdds accumulated from planting to sampling biomass
+cents_gdds %>% 
+  left_join(cents_eukey) %>% 
+  select(ccest_year, pl2samp_gdd, cctrt_id) %>% 
+  distinct()
 
 # LT values ---------------------------------------------------------------
 
