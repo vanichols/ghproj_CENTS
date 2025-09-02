@@ -37,7 +37,7 @@ MakeNiceLabels <- function(dat){
   return(d)
 }
 
-# data --------------------------------------------------------------------
+# 1. nmds fig --------------------------------------------------------------------
 
 site_scores <- 
   read_csv("data/stats/stats_nmds-site.csv") %>% 
@@ -49,8 +49,6 @@ site_scores19 <- site_scores %>% filter(year == 2019)
 spp_scores <- 
   read_csv("data/stats/stats_nmds-spp.csv") %>% 
   mutate(eppo_code = str_to_upper(eppo_code))
-# spp_scores18 <- spp_scores %>% filter(year == 2018)
-# spp_scores19 <- spp_scores %>% filter(year == 2019)
 
 site_hull <- 
   read_csv("data/stats/stats_nmds-site-hulls.csv") %>% 
@@ -58,30 +56,10 @@ site_hull <-
 site_hull18 <- site_hull %>% filter(year == 2018)
 site_hull19 <- site_hull %>% filter(year == 2019)
 
-# Makes polygons for site by treatment
-# site_hull18 <- 
-#   site_scores18 %>% # dataframe of site scores
-#   unite("till_straw_cc", till_id, straw_id, cctrt_id, remove = FALSE) %>%
-#   group_by(till_straw_cc) %>% # grouping variables: farm AND treatmnet
-#   slice(chull(NMDS1, NMDS2)) # points that polygons will connect
-
-# Makes polygons for site by treatment
-# site_hull18_xstraw <- 
-#   site_scores18 %>% # dataframe of site scores
-#   unite("till_cc", till_id, cctrt_id, remove = FALSE) %>%
-#   group_by(till_cc) %>% # grouping variables: farm AND treatmnet
-#   slice(chull(NMDS1, NMDS2)) # points that polygons will connect
-
 site_hull18_onlycc <- 
   site_scores18 %>% # dataframe of site scores
   group_by(cctrt_nice) %>% # grouping variables: farm AND treatmnet
   slice(chull(NMDS1, NMDS2)) # points that polygons will connect
-
-# site_hull19 <- 
-#   site_scores19 %>% # dataframe of site scores
-#   unite("till_straw_cc", till_id, straw_id, cctrt_id, remove = FALSE) %>%
-#   group_by(till_straw_cc) %>% # grouping variables: farm AND treatmnet
-#   slice(chull(NMDS1, NMDS2)) # points that polygons will connect
 
 site_hull19_onlycc <- 
   site_scores19 %>% # dataframe of site scores
@@ -91,20 +69,6 @@ site_hull19_onlycc <-
 site_hull_onlycc <- 
   site_hull18_onlycc %>% 
   bind_rows(site_hull19_onlycc)
-
-# site_hull18_xtill <- 
-#   site_hull18 %>% 
-#   group_by(cctrt_id, year) %>% 
-#   slice(c(1, n()))
-
-# site_hull19_xtill <- 
-#   site_hull19 %>% 
-#   group_by(cctrt_id, year) %>% 
-#   slice(c(1, n()))
-# 
-# site_hull_xtill <- 
-#   site_hull18_xtill %>% 
-#   bind_rows(site_hull19_xtill)
 
 ####--fig--####
 
@@ -116,17 +80,8 @@ th1 <-   theme(axis.ticks.y = element_blank(),
                strip.text.x = element_text(size = rel(1.3)),
                panel.border = element_blank())
 
-ggplot() +
-  geom_text_repel(data = spp_scores, 
-                  aes(x = NMDS1, 
-                      y = NMDS2, 
-                      label = eppo_code), 
-                  alpha = 0.5) + # Species as text - better!
-  # geom_path(data = site_hull_onlycc,
-  #              aes(x = NMDS1,
-  #                  y = NMDS2,
-  #                  color = cctrt_id),
-  #              alpha = 0.3, fill = "transparent") +
+p1 <- 
+  ggplot() +
   geom_polygon(data = site_hull_onlycc,
             aes(x = NMDS1,
                 y = NMDS2,
@@ -138,6 +93,11 @@ ggplot() +
                  color = cctrt_nice, shape = till_nice),
              size = 3,
              alpha = 0.6) +
+  geom_text_repel(data = spp_scores, 
+                  aes(x = NMDS1, 
+                      y = NMDS2, 
+                      label = eppo_code), 
+                  alpha = 0.5) + # Species as text - better!
   scale_color_manual(values = c( 
                        "NoCC" = hue_nocc,
                      "MixE" = hue_mixe,
@@ -157,3 +117,28 @@ ggplot() +
   th1
 
 
+# 2. species value --------------------------------------------------------
+
+d2a <- read_csv("data/tidy_communityvalue.csv")
+
+#--mean for each system, each year
+d2b <- 
+  d2a %>% 
+  left_join(cents_eukey) %>% 
+  group_by(year, till_id, straw_id, cctrt_id) %>% 
+  summarise(potval = mean(potval, na.rm = T)) %>% 
+  ungroup() 
+
+d2 <- 
+  d2b %>% 
+  select(year, till_id, straw_id, cctrt_id, potval)
+
+d2 %>% 
+  ggplot(aes(cctrt_id, potval)) +
+  geom_col() +
+  facet_grid(till_id + straw_id ~ year)
+
+d2 %>% 
+  group_by(year, till_id, cctrt_id)
+  ggplot(aes(cctrt_id, potval)) +
+  geom_col(aes(fill = till_id))

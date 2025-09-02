@@ -185,33 +185,34 @@ d <-
   ),
   crop = factor(crop, levels = ord.crop))
 
-p4 <- 
-  d %>% 
-  ggplot(aes(cctrt_nice, yield_dry_Mgha)) +
-  geom_jitter(aes(color = crop, shape = crop), 
-              width = 0.1, alpha = 1, show.legend = F, size = 4) +
-  geom_text(aes(x = "RadM", y = 0, label = "*")) +
-  scale_y_continuous(limits = c(0, 6)) +
-  scale_shape_manual(values = c(15, 17, 19)) +
-  scale_color_manual(values = c(ylw1, dkbl1, c2)) +
-  theme_bw() +
-  facet_grid(.~crop) +
-  labs(x = NULL,
-       y = "Dry grain yield<br>(Mg ha<sup>-1</sup>)",
-       fill = NULL,
-       shape = NULL) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        strip.background = element_rect(fill = "transparent"),
-        axis.title.y = element_markdown())
+# p4 <- 
+#   d %>% 
+#   ggplot(aes(cctrt_nice, yield_dry_Mgha)) +
+#   geom_jitter(aes(color = crop, shape = crop), 
+#               width = 0.1, alpha = 1, show.legend = F,
+#               size = 1) +
+#   geom_text(aes(x = "RadM", y = 0, label = "*")) +
+#   scale_y_continuous(limits = c(0, 6)) +
+#   scale_shape_manual(values = c(15, 17, 19)) +
+#   scale_color_manual(values = c(ylw1, dkbl1, c2)) +
+#   theme_bw() +
+#   facet_grid(.~crop) +
+#   labs(x = NULL,
+#        y = "Dry grain yield<br>(Mg ha<sup>-1</sup>)",
+#        fill = NULL,
+#        shape = NULL) +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1),
+#         strip.background = element_rect(fill = "transparent"),
+#         axis.title.y = element_markdown())
 
 p4 <- 
   d %>% 
   ggplot(aes(cctrt_nice, yield_dry_Mgha)) +
   geom_beeswarm(aes(color = crop, shape = crop), 
-                show.legend = F, cex = 2, size = 4) +
+                show.legend = F, cex = 2, size = 2) +
   geom_hline(data = dk,
              aes(yintercept = yield), linetype = "dashed") +
-  geom_text(aes(x = "RadM", y = 0, label = "*")) +
+  geom_text(aes(x = "RadM", y = 0, label = "*"), size = 10) +
   scale_y_continuous(limits = c(0, 6)) +
   scale_shape_manual(values = c(15, 17, 19)) +
   scale_color_manual(values = c(ylw1, dkbl1, c2)) +
@@ -230,8 +231,9 @@ p4
 # put together ------------------------------------------------------------
 
 
-(p3 + p2 + p1) / p4 + plot_layout(guides = 'collect') & theme(legend.position = 'top')
+(p3 + p2 + p1) / p4 + plot_layout(guides = 'collect',  
+                                  heights = c(1, 1.5)) & theme(legend.position = 'top')
 
-ggsave("figs/fig1_wea-and-yields.png", width = 9, height = 6)
+ggsave("figs/fig1_wea-and-yields.png", width = 9, height = 7)
 
 
