@@ -149,7 +149,7 @@ p1 <-
   geom_text(data = gdds, aes(x = till_nice, 
                             y = 4.5, 
                             label = pl2samp_gdd),
-            size = 3, hjust = 0.5, fontface = "italic") +
+            size = 3, hjust = 0.5, fontface = "italic", color = "red2") +
   facet_nested(.  ~ year + cctrt_nice) +
   scale_fill_manual(values = c("Cover crop" = cc_clr,
                                "Weed and/or volunteer" = v_clr,
