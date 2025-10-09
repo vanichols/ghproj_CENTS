@@ -104,8 +104,9 @@ ord.crop <- c("2018 (Spring barley)", "2019 (Spring oat)", "2020 (Faba bean)")
 # labels ------------------------------------------------------------------
 
 myyieldlab <- (expression(atop("Dry grain yield", paste("(Mg "~ha^-1*")"))))
+myyieldlab_faba <- (expression(atop("Faba bean dry grain yield", paste("(Mg "~ha^-1*")"))))
 
 mybmlab <- (expression(atop("Fall biomass", paste("(Mg "~ha^-1*")"))))
 
-myweedcountlab <- (expression(atop("Spring weed count", paste("(plants "~m^-2*")"))))
+myweedcountlab <- (expression(atop("Spring count", paste("(plants "~m^-2*")"))))
 
