@@ -131,7 +131,7 @@ m1 <- glmmTMB(cat_pct ~ till_id + (1|block_id),
 sim_res <- simulateResiduals(m1)
 plot(sim_res)
 
-#--I think this one is the winner
+#--I think this one is the winner?
 m2 <- glmmTMB(cat_pct ~ till_id + (1|block_id), 
               data = d3, 
               ziformula = ~ 1, 
@@ -152,6 +152,20 @@ m3 <- glmmTMB(cat_pct ~ cctrt_id*till_id,
               ziformula = ~ 1, 
               family = beta_family())
 
+#--this does
+m4 <- glmmTMB(cat_pct ~ cctrt_id+till_id, 
+              data = d3, 
+              ziformula = ~ 1, 
+              family = beta_family())
+#--this does too
+m5 <- glmmTMB(cat_pct ~ cctrt_id+till_id, 
+              data = d3, 
+              ziformula = ~ 1, 
+              family = binomial)
+
+#--m5 is better
+AIC(m4, m5)
+
 #--fit it with cctrt? Wish I could do the interaction,
 #--why isn't it working with more than one term?
 m3 <- glmmTMB(cat_pct ~ cctrt_id + (1|block_id), 
@@ -167,18 +181,38 @@ plot(sim_res3)
 d3 %>%
   mutate(grp = ifelse(cat_tot == 0, "zero", "other")) %>% 
   ggplot(aes(till_id, cat_pct)) +
-  geom_jitter() +
+  geom_jitter(width = 0.1) +
   facet_grid(.~grp)
 
 #--yeah I guess there seems to be no cctrt pattern
 d3 %>%
   mutate(grp = ifelse(cat_tot == 0, "zero", "other")) %>% 
   ggplot(aes(cctrt_id, cat_pct)) +
-  geom_jitter() +
-  facet_grid(.~till_id)
+  geom_jitter(width = 0.1, aes(color = yearF)) +
+  facet_grid(yearF~till_id) 
 
-#--you will get two things, one for zeros and one for not zeros
-emm_conditional <- emmeans(m2, 
+d3 %>%
+  mutate(grp = ifelse(cat_tot == 0, "zero", "other")) %>% 
+  ggplot(aes(cctrt_id, cat_pct)) +
+  geom_jitter(width = 0.1) +
+  facet_grid(.~till_id) 
+
+
+#--how is there no diference btwn notill and inversion?
+pairs(emmeans(m5, 
+        ~ till_id, 
+        type = "response"))
+pairs(emmeans(m5, 
+              ~ till_id))
+
+
+#--how is there no diference btwn notill and inversion?
+(emmeans(m5, 
+              ~ till_id, 
+              type = "response"))
+
+
+emm_conditional <- emmeans(m5, 
                            ~ till_id, 
                            component = "cond",
                            type = "response")

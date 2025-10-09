@@ -47,6 +47,7 @@ draw %>%
   geom_histogram(aes(fill = weed_type2))
 
 #--do the number of weeds differ by trt?
+#--notill has less weeds, but more perennials?
 draw %>% 
   group_by(weed_type2, cctrt_id, till_id, year) %>% 
   summarise(count = mean(count)) %>% 
@@ -73,6 +74,14 @@ d <-
   summarise(count = sum(count)) %>% 
   ungroup()
 
+d %>% 
+  group_by(weed_type2, cctrt_id, till_id, year) %>% 
+  summarise(count = mean(count)) %>% 
+  ggplot(aes(cctrt_id, count)) +
+  geom_col(aes(fill = weed_type2)) +
+  facet_grid(year~till_id) +
+  labs(title = "Mean spring Weed Count") +
+  coord_flip()
 
 # 1. model on total weeds-------------------------------------------------------------------
 
@@ -137,7 +146,7 @@ m1 <- m_nb1
 emmeans(m1, pairwise ~cctrt_id|till_id)
 
 #--year is an amplifier
-emmeans(m1, till_id ~ cctrt_id|yearF, type = "response")
+emmeans(m1, pairwise ~ till_id|cctrt_id|yearF, type = "response")
 
 #--tillage is largest driver
 em2 <- emmeans(m1, ~till_id, type = "response")
@@ -145,12 +154,19 @@ pairs(em2)
 1/0.501
 #--inversion had 3 times more weeds than NT
 #--surface had 2 times more weeds than NT
+pairs(emmeans(m1, ~till_id|yearF, type = "response"))
 
-#--cctrt next largest
+#--what is straw doing
+emmeans(m1, ~straw_id, type = "response")
+#--retained has more weeds
+
+#--cctrt next largest? three-way btwn cc, till, and year, straw only with year
 em2 <- emmeans(m1, ~cctrt_id|till_id, type = "response")
 pairs(em2)
 #--no impact of cc in inv or surf
 #--within NT, mix E had more than twice as many weeds as other trts
+em3 <- emmeans(m1, ~cctrt_id|till_id|yearF, type = "response")
+pairs(em3)
 
 #--straw? next largest
 em3 <- emmeans(m1, ~cctrt_id|straw_id|till_id, type = "response")
@@ -158,22 +174,24 @@ pairs(em3)
 
 #--keep emmeans for figure, over straw and year
 res <- tidy(em2)
-
-res %>% 
-  write_csv("data/stats_emmeans/emmeans-spweedcounts.csv")
+# 
+# res %>% 
+#   write_csv("data/stats/emmeans/emmeans-spweedcounts.csv")
 
 
 # 2. model on number of perenn weeds?-------------------------------------------------------------------
 
-#summary: none of the models fit, proportion is prob better analys
+#summary: none of the models fit, proportion is prob better analys?
+#--but really, the crop yields care about the NUMBER of perennial weeds...
 
 d2 <- 
   d %>% 
   filter(weed_type2 == "P")
 
+#--year doesn't seem to have a big impact...
 d2 %>% 
   ggplot(aes(count)) +
-  geom_histogram()
+  geom_histogram(aes(fill = yearF), position = "dodge")
 
 #--problems
 m2_nb1 <- glmmTMB(count ~ yearF*till_id * straw_id * cctrt_id 
@@ -185,14 +203,51 @@ m2_nb1 <- glmmTMB(count ~ yearF*till_id * straw_id * cctrt_id
 sim_resnb1 <- simulateResiduals(m2_nb1)
 plot(sim_resnb1)
 
+#--problems, simplify?
+m2_nb1 <- glmmTMB(count ~ yearF*till_id*cctrt_id 
+                  + (1 | block_id/till_id),
+                  ziformula = ~1,
+                  family = nbinom1(), 
+                  data = d2)
+
+#--problems, simplify?
+m2_nb1 <- glmmTMB(count ~ yearF*till_id*cctrt_id 
+                  + (1 | block_id),
+                  ziformula = ~1,
+                  family = nbinom1(), 
+                  data = d2)
+
+#--problems, simplify?
+m2_nb1 <- glmmTMB(count ~ yearF*till_id*cctrt_id,
+                  ziformula = ~1,
+                  family = nbinom1(), 
+                  data = d2)
+
+m2_nb1 <- glmmTMB(count ~ till_id*cctrt_id 
+                  + (1 | block_id),
+                  ziformula = ~1,
+                  family = nbinom1(), 
+                  data = d2)
+
+m2_nb1 <- glmmTMB(count ~ till_id + cctrt_id 
+                  + (1 | block_id),
+                  ziformula = ~1,
+                  family = nbinom1(), 
+                  data = d2)
+
+sim_resnb1 <- simulateResiduals(m2_nb1)
+plot(sim_resnb1)
+Anova(m2_nb1)
+
+m2 <- m2_nb1
+
+#--did not converge
 m2_nb2 <- glmmTMB(count ~ yearF*till_id * straw_id * cctrt_id 
                  + (1 | block_id/till_id),
                  ziformula = ~1,
                  family = nbinom2, 
                  data = d2)
 
-sim_resnb2 <- simulateResiduals(m2_nb2)
-plot(sim_resnb2)
 
 #--did not converge
 m2_p1 <- glmmTMB(count ~ yearF*till_id * straw_id * cctrt_id 
@@ -208,8 +263,12 @@ plot(sim_resp1)
 Anova(m2_nb1)
 Anova(m2_nb2)
 
-#--year is an amplifier
-emmip(m_nb1, till_id ~ cctrt_id|yearF, type = "response")
+#--go with the one that converged I guess
+
+pairs(emmeans(m2, ~cctrt_id, type = "response"))
+
+pairs(emmeans(m2, ~till_id, type = "response"), reverse = T)
+pairs(emmeans(m2, ~till_id, type = "response"))
 
 #--tillage is largest driver
 em1 <- emmeans(m_nb1, ~till_id, type = "response")
