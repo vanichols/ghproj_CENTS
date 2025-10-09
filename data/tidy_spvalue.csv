@@ -1,17 +1,17 @@
 eppo_code,latin_name,pot_value
 avesa,avena sativa,0
-capbp,capsella bursa-pastoris,0.23923265968513696
-cirar,cirsium arvense,0.8039529088400742
-ephex,euphorbiaceae,0.49785555937086146
-gerss,geranium species,0.7993977432073414
+capbp,capsella bursa-pastoris,0.26474455298045135
+cirar,cirsium arvense,1.2870178417815308
+ephex,euphorbiaceae,0.5688312757243718
+gerss,geranium species,0.9325569882353614
 horvw,hordeum vulgare,0
-lamss,lamium species,1.2085226116336805
-lolpe,lolium perenne,0.02205304356790507
+lamss,lamium species,1.4946906200619607
+lolpe,lolium perenne,0.027093198911539416
 matin,tripleurospermum inodorum,0
-paprh,papaver rhoeas,0.5560813468170043
-rapsr,raphanus sativus,3
-senss,senecio species,0.3561915531781852
+paprh,papaver rhoeas,0.5809242153416131
+rapsr,raphanus sativus,3.9969430074639662
+senss,senecio species,0.5648400794159174
 soil,NA,0
-tarof,taraxacum officinale,2.580837310478546
-trfre,trifolium repens,1.376796221142288
-verss,veronica species,0.4867461662822362
+tarof,taraxacum officinale,3.238107882672071
+trfre,trifolium repens,1.4029535811519975
+verss,veronica species,0.7770363591545888

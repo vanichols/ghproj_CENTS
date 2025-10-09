@@ -172,12 +172,34 @@ dd18 <-
   mutate_if(is.character, as.factor) 
 
 
-#--everything is significnat, year most of all (3000x), then cc (500x), then straw (14), then till (7)
+#--everything is significnat, cover crop explains a lot more variance than the other two though
 adonis2(df_dat18 %>% select(-1) %>% as.matrix() ~ 
           cctrt_id + till_id + straw_id, data = (dd18),
         by = "margin"
 )
 
+df_dat19 <- 
+  y1 %>% 
+  filter(year == 2019) %>% 
+  select(eu, eppo_code, cover_pct) %>%
+  pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
+  replace(is.na(.), 0)
+
+dd19 <- 
+  df_dat19 %>%
+  left_join(y1 %>% 
+              select(eu, eu_id, year, date2, subrep) %>% 
+              filter(year == 2019) %>% 
+              distinct()) %>% 
+  left_join(eu) %>% 
+  mutate_if(is.character, as.factor) 
+
+
+
+adonis2(df_dat19 %>% select(-1) %>% as.matrix() ~ 
+          cctrt_id + till_id + straw_id, data = (dd19),
+        by = "margin"
+)
 
 
 # individual years? ---------------------------------

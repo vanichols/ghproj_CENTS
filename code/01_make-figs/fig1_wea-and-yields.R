@@ -13,7 +13,7 @@ cents_cropyields
 
 dk <- 
   read_csv("data/tidy_dk-avg-yields.csv") %>% 
-  mutate(crop = c("2018 (Spring barley)", "2019 (Oat)", "2020 (Faba bean)"))
+  mutate(crop = c("2018 (Spring barley)", "2019 (Spring oat)", "2020 (Faba bean)"))
 
 # plot1 precip ------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ w2 <-
   ungroup() %>% 
   mutate(yearH = case_when(
     year == 2018 ~ "2018 (Spring barley)", 
-    year == 2019 ~ "2019 (Oats)",
+    year == 2019 ~ "2019 (Spring oat)",
     year == 2020 ~ "2020 (Faba bean)", 
     TRUE ~ "1990-2020"
   )) %>% 
@@ -61,7 +61,7 @@ t3 <-
   ungroup() %>% 
   mutate(yearH = case_when(
     year == 2018 ~ "2018 (Spring barley)", 
-    year == 2019 ~ "2019 (Oats)",
+    year == 2019 ~ "2019 (Spring oat)",
     year == 2020 ~ "2020 (Faba bean)", 
     TRUE ~ "1990-2020"
   )) %>% 
@@ -118,7 +118,7 @@ d3 <-
   ) %>% 
   mutate(yearH = case_when(
     year == 2018 ~ "2018 (Spring barley)", 
-    year == 2019 ~ "2019 (Oats)",
+    year == 2019 ~ "2019 (Spring oat)",
     year == 2020 ~ "2020 (Faba bean)", 
     TRUE ~ "1990-2020"
   )) %>% 
@@ -132,7 +132,7 @@ p3 <-
   geom_point(data = d3 %>% filter(yearH == "2018 (Spring barley)"),
              aes(x = cprec_mm, y = avgT), 
              size = 4, color = ylw1, shape = 15) +
-  geom_point(data = d3 %>% filter(yearH == "2019 (Oats)"),
+  geom_point(data = d3 %>% filter(yearH == "2019 (Spring oat)"),
              aes(x = cprec_mm, y = avgT), 
              size = 4, color = dkbl1, shape = 17) +
   geom_point(data = d3 %>% filter(yearH == "2020 (Faba bean)"),
@@ -180,7 +180,7 @@ d <-
   cctrt_nice = factor(cctrt_nice, levels = ord.cctrt_niceS),
   crop = case_when(
     crop == "faba bean" ~ "2020 (Faba bean)",
-    crop == "oat" ~ "2019 (Oat)",
+    crop == "oat" ~ "2019 (Spring oat)",
     crop == "spring barley" ~ "2018 (Spring barley)"
   ),
   crop = factor(crop, levels = ord.crop))

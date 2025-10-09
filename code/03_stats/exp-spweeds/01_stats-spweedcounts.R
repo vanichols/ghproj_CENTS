@@ -137,7 +137,7 @@ m1 <- m_nb1
 emmeans(m1, pairwise ~cctrt_id|till_id)
 
 #--year is an amplifier
-emmip(m1, till_id ~ cctrt_id|yearF, type = "response")
+emmeans(m1, till_id ~ cctrt_id|yearF, type = "response")
 
 #--tillage is largest driver
 em2 <- emmeans(m1, ~till_id, type = "response")

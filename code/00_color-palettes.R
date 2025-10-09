@@ -98,7 +98,7 @@ ord.till_nice2 <- c("No-till", "Surface", "Inversion")
 ord.cover_cat2 <-  c("Soil", "Cover crop", "Weed", "Volunteer")
 ord.cover_cat3 <-  c("Soil", "Cover crop", "Other (weed)", "Volunteer")
 
-ord.crop <- c("2018 (Spring barley)", "2019 (Oat)", "2020 (Faba bean)")
+ord.crop <- c("2018 (Spring barley)", "2019 (Spring oat)", "2020 (Faba bean)")
 
 
 # labels ------------------------------------------------------------------

@@ -33,6 +33,11 @@ d0 <-
 d0 %>% 
   write_csv("data/tidy_nuspecies.csv")
 
+d0 %>% 
+  left_join(cents_eukey) %>% 
+  group_by(cctrt_id) %>% 
+  summarise(nu_sp = mean(nu_sp))
+
 # 1. prioritize -----------------------------------------------------------
 
 #--which weeds appear in a significant amount?
@@ -210,9 +215,18 @@ d5 <-
   select(-weed_species, -floral_organ) %>% 
   pivot_longer(pol1:harm3) %>% 
   mutate(value2 = ifelse(is.na(value), 0, value))
+  
+#--clean it up to write 'raw' dis-aggregated values
+d5a <- 
+  d5 %>% 
+  select(eppo_code, latin_name, eco_service = name, raw_value = value2) %>% 
+  filter(eppo_code != "soil") 
+
+d5a %>% 
+  write_csv("data/tidy_spvalue-raw.csv")
 
 library(tidytext)
-#--rapsr is the best? always?
+#--rapsr is the best? always? not ALWAYS
 d5 %>% 
   filter(name !="harm3") %>% 
   ungroup() %>% 
@@ -225,13 +239,10 @@ d5 %>%
   coord_flip() +
   theme_bw()
 
-ggsave("figs/sfig_species-values.png",
-       width = 6.8, 
-       height = 4.7)
-
 
 # 6. scale the values -----------------------------------------------------
 
+#--scale within a service category
 d6 <- 
   d5 %>% 
   group_by(name) %>% 
@@ -285,23 +296,6 @@ d7.order <-
   distinct()
   
 
-d7 %>%
-  mutate(sc_value2_sum = ifelse(cat == "foodweb", -sc_value2_sum, sc_value2_sum)) %>% 
-  left_join(d7.order) %>% 
-  ggplot(aes(reorder(eppo_code, n), sc_value2_sum)) +
-  geom_col(aes(fill = cat), size = 1, color = "black") +
-  scale_fill_manual(values = c("purple", "green4")) +
-  coord_flip() +
-  scale_y_continuous(limits = c(-3, 3), 
-                     breaks = c(-3, -2, -1, 0, 1, 2, 3),
-                     labels = c(3, 2, 1, 0, 1, 2, 3)) +
-  labs(x = NULL,
-       y = "Potential ecological value (scale 0-3)",
-       fill = "Service category")
-
-ggsave("figs/sfig_potentialvalue.png")
-
-
 
 # 8. correlation? ---------------------------------------------------------
 
@@ -315,11 +309,11 @@ cor(d8$foodweb, d8$pollinator)
 
 # 9. max value ------------------------------------------------------------
 
-#--max value of foodweb and pollitor is the ecological value
+#--summed value of foodweb and pollitor is the ecological value
 d8 <- 
   d7 %>% 
   group_by(eppo_code, latin_name) %>% 
-  summarise(pot_value = max(sc_value2_sum))
+  summarise(pot_value = sum(sc_value2_sum))
 
 #--write this data 
 d8 %>% 
