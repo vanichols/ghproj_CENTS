@@ -49,34 +49,49 @@ d1 <-
   
 
 #--this needs to be fixed, somehow indicate tot and P separately
-d2 <- 
+d2a <- 
   d1 %>% 
-  mutate(star = ifelse( (cctrt_nice == "MixE" & till_nice != "Inv"), 
-                        "*", " "))
+  mutate(star1 = ifelse( (cctrt_nice == "MixE" & till_nice != "Inv"), 
+                        "*", " ")) %>% 
+  group_by(till_nice) %>% 
+  mutate(starpos1 = max(count)+10)
+
+d2b <- 
+  d1 %>% 
+  filter(weed_type2 == "P") %>% 
+  mutate(star2 = ifelse( (cctrt_nice == "MixE" & till_nice != "Inv"), 
+                         "*", " ")) %>% 
+  group_by(till_nice, weed_type2) %>% 
+  mutate(starpos2 = max(count)+5)
   
 # 2. fig ------------------------------------------------------------------
 
-
-d1 %>% 
+plot1 <- 
+  d1 %>% 
   ggplot(aes(cctrt_nice, count)) +
-  geom_col(aes(fill = weed_type_nice)) +
-  geom_text(data = d2, aes(x = cctrt_nice, y = count + 10, label = star)) +
+  geom_col(aes(fill = weed_type_nice), color = "black") +
+  geom_text(data = d2a, 
+            aes(x = cctrt_nice, y = starpos1, label = star1),
+            size = 8) +
+  geom_text(data = d2b, 
+            aes(x = cctrt_nice, y = starpos2, label = star2),
+            color = bv2, size = 8) +
   facet_grid(~till_nice) +
   scale_fill_manual(values = c(bv1, bv2)) +
   labs(x = "Cover crop system", 
-       y = "Total weed count", 
+       y = myweedcountlab, 
        fill = NULL) +
   th1 +
-  labs(title = "still working on stars")
+  theme(legend.key = element_rect(fill = "white",
+                                  colour = "black"))
 
-ggsave("figs/fig4_spring-weeds.png", 
-       width = 6.8, height = 4)
 
+plot1
 
 # 3. faba yields vs p weeds----------------------------------------------
 
 d3a <- 
-  d3 %>% 
+  d %>% 
   group_by(eu_id, till_id, cctrt_id) %>% 
   summarise(count = sum(count))  %>% 
   mutate(weed_type2 = "Total") 
@@ -92,10 +107,11 @@ d3 <-
                                         "Total weeds")))
 
 
-
-d3 %>% 
+#plot2 <- 
+  d3 %>% 
   ggplot(aes(count, yield_dry_Mgha)) +
-  geom_point(aes(color = weed_type_nice, shape = weed_type_nice)) +
+  geom_point(aes(color = weed_type_nice, shape = weed_type_nice), 
+             show.legend = F) +
   geom_smooth(method = "lm", se = F, color = hue_radl) +
   scale_color_manual(values = c(bv1, bv2, "black")) +
   labs(x = myweedcountlab,
@@ -104,3 +120,31 @@ d3 %>%
        shape = NULL) +
   facet_grid(.~ weed_type_nice, scale = "free") +
   th1
+
+plot2 <- 
+  d3 %>% 
+  filter(weed_type_nice != "Total weeds",
+         #!(count == 0)
+         ) %>% 
+    ggplot(aes(count, yield_dry_Mgha)) +
+    geom_point(aes(color = weed_type_nice, shape = weed_type_nice), 
+               show.legend = F,
+               size = 2) +
+    geom_smooth(method = "lm", se = F, color = hue_radl) +
+    scale_color_manual(values = c(bv1, bv2, "black")) +
+  scale_y_continuous(limits = c(0, 6)) +
+    labs(x = myweedcountlab,
+         y = myyieldlab_faba,
+         color = NULL,
+         shape = NULL) +
+    facet_grid(.~ weed_type_nice, scale = "free") +
+    th1 +
+  theme(legend.key = element_rect(fill = "white",
+                                  colour = "black"))
+  
+# 4. combine --------------------------------------------------------------
+
+plot1 / plot2
+
+ggsave("figs/fig4_spring-weeds-and-yields.png",
+       width = 7, height = 8)

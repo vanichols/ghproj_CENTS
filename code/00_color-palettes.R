@@ -108,5 +108,5 @@ myyieldlab_faba <- (expression(atop("Faba bean dry grain yield", paste("(Mg "~ha
 
 mybmlab <- (expression(atop("Fall biomass", paste("(Mg "~ha^-1*")"))))
 
-myweedcountlab <- (expression(atop("Spring count", paste("(plants "~m^-2*")"))))
+myweedcountlab <- (expression(atop("Spring weed count", paste("(plants "~m^-2*")"))))
 
