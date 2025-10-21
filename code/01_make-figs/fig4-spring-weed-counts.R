@@ -121,6 +121,11 @@ d3 <-
   facet_grid(.~ weed_type_nice, scale = "free") +
   th1
 
+corrstar <- 
+  tibble(weed_type_nice = "Perennial weeds", 
+         xplace = 75,
+         yplace = 5)
+  
 plot2 <- 
   d3 %>% 
   filter(weed_type_nice != "Total weeds",
@@ -130,6 +135,11 @@ plot2 <-
     geom_point(aes(color = weed_type_nice, shape = weed_type_nice), 
                show.legend = F,
                size = 2) +
+  geom_text(data = corrstar, 
+            aes(x = xplace, 
+                y = yplace),
+            label = "* add ro value and p-value to both panels", 
+            size = 6) +
     geom_smooth(method = "lm", se = F, color = hue_radl) +
     scale_color_manual(values = c(bv1, bv2, "black")) +
   scale_y_continuous(limits = c(0, 6)) +
@@ -141,6 +151,8 @@ plot2 <-
     th1 +
   theme(legend.key = element_rect(fill = "white",
                                   colour = "black"))
+
+plot2
   
 # 4. combine --------------------------------------------------------------
 

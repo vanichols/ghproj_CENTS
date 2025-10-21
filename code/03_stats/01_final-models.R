@@ -559,3 +559,31 @@ d5corr <-
   pivot_wider(names_from = cover_cat, values_from = cover_pct)
 
 cor(d5corr$covercrop, d5corr$other)  
+
+
+# 6. correlation, ylds/spweeds -----------------------------------------------
+
+d6 <- 
+  cents_spweedcount %>% 
+  mutate(year = year(date2)) %>% 
+  filter(year == 2020) %>% 
+  select(-date2) %>% 
+  mutate(weed_type2 = ifelse(weed_type %in% c("cirar", "equar"), "P", "A")) %>% 
+  group_by(eu_id, subrep, year, weed_type2) %>% 
+  summarise(count = sum(count)) %>% 
+  group_by(year, eu_id, weed_type2) %>% 
+  summarise(count = mean(count, na.rm = T)) 
+
+d6a <- 
+  d6 %>% 
+  filter(weed_type2 == "A") %>% 
+  left_join(cents_cropyields %>% mutate(year = year(date2)) %>% select(-date2))
+
+d6p <- 
+  d6 %>% 
+  filter(weed_type2 == "P") %>% 
+  left_join(cents_cropyields %>% mutate(year = year(date2)) %>% select(-date2))
+
+cor.test(d6a$count, d6a$yield_dry_Mgha)
+
+cor.test(d6p$count, d6p$yield_dry_Mgha)
