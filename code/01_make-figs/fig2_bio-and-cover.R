@@ -231,7 +231,13 @@ a5 <-
            till_nice, 
            cover_cat2) %>% 
   summarise(cover_pct = mean(cover_pct, na.rm = T)) %>% 
-  mutate(cover_cat2 = fct_rev(cover_cat2)) 
+  mutate(cover_cat2 = fct_rev(cover_cat2)) %>% 
+  mutate(cover_cat2 = factor(cover_cat2, 
+                             levels = c("Soil", 
+                                        "Cover crop", 
+                                        "Volunteer",
+                                        "Weed")),
+         cover_cat2 = fct_rev(cover_cat2))
 
 
 p2 <-
@@ -262,7 +268,55 @@ p2 <-
 
 p2
 
+# 3. percent cover plot LABELS ON %s--------------------------------------------------------
+
+a6 <- 
+  a5 %>% 
+  mutate(cover_cat2rev = fct_rev(cover_cat2)) %>% 
+  arrange(year, cctrt_nice, till_nice, cover_cat2rev) %>% 
+  group_by(year, cctrt_nice, till_nice) %>% 
+  mutate(cumpct = cumsum(cover_pct),
+         labelpos = (cumpct + lag(cumpct))/2,
+         labelpos = ifelse(is.na(labelpos), cumpct/2, labelpos),
+         labelval1 = (round(cover_pct, 0)),
+         labelval1 = ifelse(cover_cat2 == "Cover crop", labelval1, NA),
+         labelval = ifelse(!is.na(labelval1), paste0(labelval1, "%"), NA))
+
+p2 <-
+  a6 %>%
+  ggplot() +
+  geom_col(aes(x = till_nice, 
+               y = cover_pct/100, 
+               fill = cover_cat2), color = "black") +
+  geom_label(aes(x = till_nice, 
+                 y = labelpos/100,
+                 label = labelval,
+                 #fill = cover_cat2
+                 ),
+             angle = 90, show.legend = F) +
+  facet_nested(.  ~ year + cctrt_nice) +
+  scale_fill_manual(values = c("Soil" = bv1,
+                               "Cover crop" = cc_clr,
+                               "Volunteer" = v_clr,
+                               "Weed" = w_clr),
+                    guide = guide_legend(reverse = TRUE)
+  ) +
+  theme_bw() +
+  th1 +  
+  theme(legend.position = "bottom") +
+  labs(y = "Fall ground cover\n(%)",
+       x = NULL,
+       fill = NULL) +
+  scale_y_continuous(labels = label_percent(),
+                     breaks = c(0, .25, 0.5, .75, 1)) 
+
+p2
+
+
+#  combined ---------------------------------------------------------------
+
+
 p1 / p2
 
 ggsave("figs/fig2_bio-and-cover.png", 
-       width = 10, height = 8)
+       width = 11, height = 7)
