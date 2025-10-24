@@ -111,8 +111,24 @@ p6 <-
 p6 %>%
   write_csv("data/tidy_pesticide-load-by-eu.csv")
 
-p6 %>% 
+p7 <- 
+  p6 %>% 
   left_join(cents_eukey) %>% 
   group_by(year, till_id, rot_id, straw_id, cctrt_id) %>% 
-  summarise(load_ha = mean(load_ha)) %>% 
+  summarise(load_ha = mean(load_ha)) 
+
+p7 %>% 
+  ggplot(aes(cctrt_id, load_ha)) +
+  geom_col(aes(fill = till_id),
+           position = position_dodge()) +
+  facet_grid(year ~ ., scales = "free")
+
+p7
+
+m1 <- lm(load_ha ~ till_id + cctrt_id + as.factor(year), data = p7)
+
+anova(m1)
+
+
+p7 %>% 
   write_csv("data/mette_pli-by-system.csv")
