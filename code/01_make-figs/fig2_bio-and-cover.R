@@ -319,4 +319,4 @@ p2
 p1 / p2
 
 ggsave("figs/fig2_bio-and-cover.png", 
-       width = 11, height = 7)
+       width = 10, height = 7)

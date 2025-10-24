@@ -123,7 +123,7 @@ d3 <-
 
 corrstar <- 
   tibble(weed_type_nice = "Perennial weeds", 
-         xplace = 75,
+         xplace = 125,
          yplace = 5)
   
 plot2 <- 
@@ -138,8 +138,8 @@ plot2 <-
   geom_text(data = corrstar, 
             aes(x = xplace, 
                 y = yplace),
-            label = "* add ro value and p-value to both panels", 
-            size = 6) +
+            label = "*p<0.001", 
+            size = 4) +
     geom_smooth(method = "lm", se = F, color = hue_radl) +
     scale_color_manual(values = c(bv1, bv2, "black")) +
   scale_y_continuous(limits = c(0, 6)) +
