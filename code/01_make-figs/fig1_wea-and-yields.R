@@ -208,7 +208,10 @@ d <-
 p4 <- 
   d %>% 
   ggplot(aes(cctrt_nice, yield_dry_Mgha)) +
-  geom_boxplot(aes(fill = crop), show.legend = F) +
+  geom_boxplot(aes(fill = crop), 
+               show.legend = F, 
+               outlier.colour = "gray", 
+               outlier.size = 0.8) +
   # geom_jitter(aes(color = crop, shape = crop), 
   #               width = 0.1, size = 2) +
   # geom_beeswarm(aes(color = crop, shape = crop), 
