@@ -1,6 +1,7 @@
 #--spring weed counts
 #--creatd 9 oct 2025
-#--need to fix sig stars and use patchwork
+#--something is goofy - the model estimates don't match the figure 
+#--model says inv has a mean of like 500 pl m2...
 
 library(tidyverse)
 library(CENTSdata)
@@ -33,47 +34,55 @@ th1 <-   theme(axis.ticks.y = element_blank(),
 # 1. data -----------------------------------------------------------------
 
 draw <- 
-  cents_spweedcount %>% 
-  left_join(cents_eukey) %>% 
-  mutate(weed_type2 = ifelse(weed_type %in% c("dicot", "monocot"), "A", "P"))
+  cents_spweedcount
 
-d <- 
-  draw %>% 
+#--first sum over weed types
+d1 <- 
+  draw |> 
+  mutate(weed_type2 = ifelse(weed_type %in% c("dicot", "monocot"), "A", "P")) |> 
+  group_by(eu_id, date2, subrep, weed_type2) |> 
+  summarise(tot = sum(count))
+
+#--use the other pipe to get the . to work
+d2 <- 
+  d1 %>% 
+  left_join(cents_eukey) %>% 
   MakeNiceLabels(.)
 
-d1 <- 
-  d %>% 
+#--now take the mean value, model estimates are weird because of the zeros so just use these 
+d3 <- 
+  d2 %>%  
   group_by(cctrt_nice, till_nice, weed_type2) %>% 
-  summarise(count = mean(count)) %>% 
+  summarise(tot = mean(tot)) %>% 
   mutate(weed_type_nice = ifelse(weed_type2 == "A", "Annual weeds", "Perennial weeds"))
   
 
 #--this needs to be fixed, somehow indicate tot and P separately
-d2a <- 
-  d1 %>% 
+d4a <- 
+  d3 %>% 
   mutate(star1 = ifelse( (cctrt_nice == "MixE" & till_nice != "Inv"), 
                         "*", " ")) %>% 
   group_by(till_nice) %>% 
-  mutate(starpos1 = max(count)+10)
+  mutate(starpos1 = max(tot)+10)
 
-d2b <- 
-  d1 %>% 
+d4b <- 
+  d3 %>% 
   filter(weed_type2 == "P") %>% 
   mutate(star2 = ifelse( (cctrt_nice == "MixE" & till_nice != "Inv"), 
                          "*", " ")) %>% 
   group_by(till_nice, weed_type2) %>% 
-  mutate(starpos2 = max(count)+5)
+  mutate(starpos2 = max(tot)+5)
   
 # 2. fig ------------------------------------------------------------------
 
 plot1 <- 
-  d1 %>% 
-  ggplot(aes(cctrt_nice, count)) +
+  d3 %>% 
+  ggplot(aes(cctrt_nice, tot)) +
   geom_col(aes(fill = weed_type_nice), color = "black") +
-  geom_text(data = d2a, 
+  geom_text(data = d4a, 
             aes(x = cctrt_nice, y = starpos1, label = star1),
             size = 8) +
-  geom_text(data = d2b, 
+  geom_text(data = d4b, 
             aes(x = cctrt_nice, y = starpos2, label = star2),
             color = bv2, size = 8) +
   facet_grid(~till_nice) +

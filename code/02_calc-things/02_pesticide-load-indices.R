@@ -1,15 +1,29 @@
 # created 17 feb 2025
 # calculate PLI for each system
 # modified: 2 aug 2025 - reran with updated cents package, till_id now surface instead of noninversion
+# 27 jan 2026 reran with updated faba bean roundup app to 2.5 L
+
+rm(list = ls())
 
 library(tidyverse)
 library(readxl)
 library(CENTSdata)
 
-
-h <- cents_herbops
+#--Agil is not Agil 100 EC, as it should be
+h <- 
+  cents_herbops |> 
+  mutate(product = ifelse(product == "Agil", "Agil 100 EC", product))
+  
 pli <- cents_pliherbs
 
+pli_tot <- 
+  pli |> 
+  filter(load_cat == "Total")
+
+h_look <- 
+  h |> 
+  select(date2, product, amount, amount_units) |> 
+  distinct()
 
 # 1. combine --------------------------------------------------------------
 
@@ -45,6 +59,14 @@ p3 <-
     amount = as.numeric(amount),
     load_ha = amount * load_unit) 
 
+p3_tot <- 
+  p3 %>% 
+  filter(load_cat == "Total") |> 
+  select(date2, product, amount, unit_applied, load_ha) |> 
+  distinct()
+
+
+
 #--vuslaize to check
 
 p3 %>% 
@@ -57,6 +79,9 @@ p3 %>%
   ggplot(aes(cctrt_id, load_ha)) + 
   geom_col(aes(fill = product)) +
   facet_grid(till_id ~ load_cat)
+
+p3 |> 
+  filter(is.na(load_cat))
 
 p4 <- 
   p3 %>% 

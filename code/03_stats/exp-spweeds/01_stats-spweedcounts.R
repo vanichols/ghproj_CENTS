@@ -96,6 +96,7 @@ dtot <-
 dtot %>% 
   summary()
 
+#--this is the final one to use**
 m_nb1 <- glmmTMB(count ~ yearF*till_id * straw_id * cctrt_id 
                     + (1 | block_id/till_id/cctrt_id),
                     ziformula = ~1,
@@ -149,8 +150,8 @@ emmeans(m1, pairwise ~cctrt_id|till_id)
 emmeans(m1, pairwise ~ till_id|cctrt_id|yearF, type = "response")
 
 #--tillage is largest driver
-em2 <- emmeans(m1, ~till_id, type = "response")
-pairs(em2)
+emtill <- emmeans(m1, ~till_id, type = "response")
+pairs(emtill)
 1/0.501
 #--inversion had 3 times more weeds than NT
 #--surface had 2 times more weeds than NT
@@ -161,25 +162,25 @@ emmeans(m1, ~straw_id, type = "response")
 #--retained has more weeds
 
 #--cctrt next largest? three-way btwn cc, till, and year, straw only with year
-em2 <- emmeans(m1, ~cctrt_id|till_id, type = "response")
-pairs(em2)
+em2way <- emmeans(m1, ~cctrt_id|till_id, type = "response")
+pairs(em2way)
 #--no impact of cc in inv or surf
 #--within NT, mix E had more than twice as many weeds as other trts
-em3 <- emmeans(m1, ~cctrt_id|till_id|yearF, type = "response")
-pairs(em3)
+em3way <- emmeans(m1, ~cctrt_id|till_id|yearF, type = "response")
+pairs(em3way)
 
 #--straw? next largest
-em3 <- emmeans(m1, ~cctrt_id|straw_id|till_id, type = "response")
-pairs(em3)
+em3way_noyear <- emmeans(m1, ~cctrt_id|straw_id|till_id, type = "response")
+pairs(em3way_noyear)
 
 #--keep emmeans for figure, over straw and year
-res <- tidy(em2)
+res <- tidy(em2way)
 # 
 # res %>% 
 #   write_csv("data/stats/emmeans/emmeans-spweedcounts.csv")
 
 
-# 2. model on number of perenn weeds?-------------------------------------------------------------------
+# 2. model on number of perenn weeds-------------------------------------------------------------------
 
 #summary: none of the models fit, proportion is prob better analys?
 #--but really, the crop yields care about the NUMBER of perennial weeds...
@@ -187,6 +188,18 @@ res <- tidy(em2)
 d2 <- 
   d %>% 
   filter(weed_type2 == "P")
+
+#--what percent was cirar versus equar
+d2 |> 
+  mutate(weed_type = as.factor(weed_type)) |> 
+  summary()
+
+d2 |> 
+  filter(count != 0) |> 
+  group_by(weed_type) |> 
+  summarise(count = sum(count)) |> 
+  pivot_wider(names_from = weed_type, values_from = count) |> 
+  mutate(pct = cirar / (equar + cirar))
 
 #--year doesn't seem to have a big impact...
 d2 %>% 

@@ -2,6 +2,7 @@
 #--created 31 oct 2025
 #--average over years etc., then scale as last step
 #--6 criteria currently
+#--27 jan 2026 - reran with new PLI values using updated faba bean value and Agil matching - didn't really check
 
 library(tidyverse)
 library(CENTSdata)
