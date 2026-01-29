@@ -59,8 +59,10 @@ draw %>%
   labs(title = "Mean spring Weed Count") 
 
 
-#--definitely over-dispersed
-#--use negative binomial1 (linear) or nbinom2 (faster ince)
+#--definitely over-dispersed (consider if using poisson, only bc has only one parameter)
+#--bionomial is for proportions (ex 2 of 5 quadrats)
+#--negative binomial is poisson plus a dispersion paramter
+#--so def don't use binomial, fit models to decide about over dispersion
 draw %>% 
   summarise(ave = mean(count),
             var = sd(count)^2)
@@ -101,362 +103,46 @@ dtot %>%
 
 hist(dtot$count)
 
-#--this is the final one I chose
-#--do the counts HAVE to be integers??
-m_nb1 <- glmmTMB(count_int ~ yearF*till_id * straw_id * cctrt_id 
-                    + (1 | block_id/till_id/cctrt_id),
-                    ziformula = ~1,
-                    family = nbinom1(), 
-                    data = dtot)
-
-sim_resnb1 <- simulateResiduals(m_nb1)
-plot(sim_resnb1)
-
-#--try nbinom2
-m_nb2 <- glmmTMB(count_int ~ yearF*till_id * straw_id * cctrt_id 
-                 + (1 | block_id/till_id/cctrt_id),
-                 ziformula = ~1,
-                 family = nbinom2, 
-                 data = dtot)
-
-sim_resnb2 <- simulateResiduals(m_nb2)
-plot(sim_resnb2)
-
-AIC(m_nb1, m_nb2)
-
-#--m1 is slightly better AIC anyways
-summary(m_nb1)
-#--might not need an overdispersion parameter according to this
-
-#--sometimes doesn't converge
-m_p1 <- glmmTMB(count_int ~ yearF*till_id * straw_id * cctrt_id 
-                 + (1 | block_id),
-                 #ziformula = ~1,
-                 family = poisson, 
-                 data = dtot)
-
-#--yeah this looks awful!
-sim_resp1 <- simulateResiduals(m_p1)
-plot(sim_resp1)
-
-#--both negative binomials give similar answers
-#--freaking everything is significant
-Anova(m_nb1)
-Anova(m_nb2)
-
-#--chose the lower AIC one with better diagnostic plots
-m1 <- m_nb1
-
-
-#--other things to try?
-
-
-# 2. summarise total weeds model ---------------------------------------------------------
-
-#--within inv, no diffs
-#--within notill, mix_E diff from everything else
-#--within surface, no diffs
-emmeans(m1, pairwise ~cctrt_id|till_id)
-
-#--year is an amplifier
-emmeans(m1, pairwise ~ till_id|cctrt_id|yearF, type = "response")
-
-#--tillage is largest driver
-emtill <- emmeans(m1, ~till_id, type = "response")
-pairs(emtill)
-1/0.501
-#--inversion had 3 times more weeds than NT
-#--surface had 2 times more weeds than NT
-pairs(emmeans(m1, ~till_id|yearF, type = "response"))
-
-#--what is straw doing
-emmeans(m1, ~straw_id, type = "response")
-#--retained has more weeds
-
-#--cctrt next largest? see cc with tillage
-em2way <- emmeans(m1, ~cctrt_id|till_id, type = "response")
-pairs(em2way)
-#--no impact of cc in inv or surf, only in NT
-#--within NT, mix E had more than twice as many weeds as other trts
-
-em3way <- emmeans(m1, ~cctrt_id|till_id|yearF, type = "response")
-pairs(em3way)
-
-#--straw? next largest
-em3way_noyear <- emmeans(m1, ~cctrt_id|straw_id|till_id, type = "response")
-pairs(em3way_noyear)
-
-#--keep emmeans for figure, over straw and year
-res <- tidy(em2way)
-# 
-# res %>% 
-#   write_csv("data/stats/emmeans/emmeans-spweedcounts.csv")
-
-
-# 2. model on number of perenn weeds-------------------------------------------------------------------
-
-#summary: none of the models fit, proportion is prob better analys?
-#--but really, the crop yields care about the NUMBER of perennial weeds...
-
-d2 <- 
-  d %>% 
-  filter(weed_type2 == "P")
-
-#--what percent was cirar versus equar
-d2 |> 
-  mutate(weed_type = as.factor(weed_type)) |> 
-  summary()
-
-d2 |> 
-  filter(count != 0) |> 
-  group_by(weed_type) |> 
-  summarise(count = sum(count)) |> 
-  pivot_wider(names_from = weed_type, values_from = count) |> 
-  mutate(pct = cirar / (equar + cirar))
-
-#--year doesn't seem to have a big impact...
-d2 %>% 
-  ggplot(aes(count)) +
-  geom_histogram(aes(fill = yearF), position = "dodge")
-
-#--problems
-m2_nb1 <- glmmTMB(count ~ yearF*till_id * straw_id * cctrt_id 
-                 + (1 | block_id/till_id),
-                 ziformula = ~1,
-                 family = nbinom1(), 
-                 data = d2)
-
-sim_resnb1 <- simulateResiduals(m2_nb1)
-plot(sim_resnb1)
-
-#--problems, simplify?
-m2_nb1 <- glmmTMB(count ~ yearF*till_id*cctrt_id 
-                  + (1 | block_id/till_id),
-                  ziformula = ~1,
-                  family = nbinom1(), 
-                  data = d2)
-
-#--problems, simplify?
-m2_nb1 <- glmmTMB(count ~ yearF*till_id*cctrt_id 
-                  + (1 | block_id),
-                  ziformula = ~1,
-                  family = nbinom1(), 
-                  data = d2)
-
-#--problems, simplify?
-m2_nb1 <- glmmTMB(count ~ yearF*till_id*cctrt_id,
-                  ziformula = ~1,
-                  family = nbinom1(), 
-                  data = d2)
-
-m2_nb1 <- glmmTMB(count ~ till_id*cctrt_id 
-                  + (1 | block_id),
-                  ziformula = ~1,
-                  family = nbinom1(), 
-                  data = d2)
-
-m2_nb1 <- glmmTMB(count ~ till_id + cctrt_id 
-                  + (1 | block_id),
-                  ziformula = ~1,
-                  family = nbinom1(), 
-                  data = d2)
-
-sim_resnb1 <- simulateResiduals(m2_nb1)
-plot(sim_resnb1)
-Anova(m2_nb1)
-
-m2 <- m2_nb1
-
-#--did not converge
-m2_nb2 <- glmmTMB(count ~ yearF*till_id * straw_id * cctrt_id 
-                 + (1 | block_id/till_id),
-                 ziformula = ~1,
-                 family = nbinom2, 
-                 data = d2)
-
-
-#--did not converge
-m2_p1 <- glmmTMB(count ~ yearF*till_id * straw_id * cctrt_id 
-                + (1 | block_id),
-                ziformula = ~1,
-                family = poisson, 
+#//full model
+m_t1 <- glmmTMB(count ~ yearF * till_id * straw_id * cctrt_id * weed_type
+                + (1 | block_id/straw_id/till_id/cctrt_id),
+                family = tweedie(),
                 data = dtot)
 
-#--yeah this looks awful!
-sim_resp1 <- simulateResiduals(m2_p1)
-plot(sim_resp1)
+#--this is the final one I chose
+#--there are repeated measures
+#--always start bvy fitting the full model
 
-Anova(m2_nb1)
-Anova(m2_nb2)
+m_t1 <- glmmTMB(count ~ yearF * till_id * straw_id * cctrt_id 
+                    + (1 | block_id/straw_id/till_id/cctrt_id),
+                    family = tweedie(),
+                    data = dtot)
 
-#--go with the one that converged I guess
+sim_rest1 <- simulateResiduals(m_t1)
+plot(sim_rest1)
+sim_rest2 <- resid(sim_rest1, quantileFunction = qnorm, outlierValues = c(-5, 5))
+boxplot(sim_rest2 ~ dtot$straw_id)
+boxplot(sim_rest2 ~ dtot$till_id)
+ggResidpanel::resid_auxpanel(sim_rest2, predict(m_t1))
 
-pairs(emmeans(m2, ~cctrt_id, type = "response"))
+#--to see what the random effects is contributing
+#--note it is a log scale, but looking at them relatively can be informative
+VarCorr(m_t1)
 
-pairs(emmeans(m2, ~till_id, type = "response"), reverse = T)
-pairs(emmeans(m2, ~till_id, type = "response"))
-
-#--tillage is largest driver
-em1 <- emmeans(m_nb1, ~till_id, type = "response")
-pairs(em1)
-#--inversion had 3 times more weeds than NT
-#--surface had 2 times more weeds than NT
-
-#--cctrt next largest
-em2 <- emmeans(m_nb1, ~cctrt_id|till_id, type = "response")
-pairs(em2)
-#--no impact of cc in inv or surf
-#--within NT, mix E had more than twice as many weeds as other trts
+#--like a dispersion parameter for the tweedie, it is not zero and it is not huge
+#--so there is nothing catastrophically wrong
+sigma(m_t1)
 
 
 
-# OLDDDDD -----------------------------------------------------------------
+#//just as an example if heterosc is suspected
+m_t2 <- glmmTMB(count ~ yearF * till_id * straw_id * cctrt_id 
+                + (1 | block_id/straw_id/till_id/cctrt_id),
+                dispformula = ~till_id,
+                family = tweedie(),
+                data = dtot)
 
+AIC(m_t1, m_t2)
+library(performance)
+compare_performance(m_t1, m_t2, metrics = c('AIC', 'BIC', 'AICc'))
 
-model <- glmmTMB(count ~ weed_type + till_id * straw_id * cctrt_id * weayear + 
-                   (1 | block_id/till_id/cctrt_id),# + 
-                   #(1 | weed_type), 
-                 ziformula = ~ weed_type,  # Allow different zero-inflation per species
-                 family = nbinom2, 
-                 data = d)
-
-
-# Check the model summary
-#--doesn't work
-summary(model)
-
-#--simplify to only circ
-d_cir <- 
-  d %>% 
-  filter(weed_type == "cirar") %>% 
-  group_by(year, weed_type, weed_type2, 
-           block_id, plot_id, subplot_id, 
-           straw_id, till_id, cctrt_id, 
-           weayear) %>% 
-  summarise(count = sum(count)) %>% 
-  select(count, everything())
-
-
-d_cir %>% 
-  ggplot(aes(plot_id, count)) +
-  geom_point()
-
-#--pretty equally dist betwn cc trts
-d_cir %>% 
-  ggplot(aes(count)) +
-  geom_histogram(aes(fill = cctrt_id))
-
-#--and till id
-d_cir %>% 
-  ggplot(aes(count)) +
-  geom_histogram(aes(fill = till_id))
-
-#--and straw id
-d_cir %>% 
-  ggplot(aes(count)) +
-  geom_histogram(aes(fill = straw_id))
-
-#--and year
-d_cir %>% 
-  ggplot(aes(count)) +
-  geom_histogram(aes(fill = as.factor(year)))
-
-#--but it is overdispered, use nbinom
-#--doesn't converge
-model_cir <- glmmTMB(count ~ till_id * cctrt_id * + 
-                   (1 | till_id),
-                 ziformula = ~ 1,  
-                 family = poisson, 
-                 data = d_cir)
-
-plot(residuals(model_cir, type = "deviance"), main = "Deviance Residuals", ylab = "Residuals", xlab = "Index")
-
-#--seems like I run out of df?
-summary(model_cir)
-Anova(model_cir, type = "III")
-#--this gives the 'likelihood' of finding a circ in a thing
-pairs(emmeans(model_cir, ~ cctrt_id | till_id, type = "response"))
-plot(emmeans(model_cir, ~ cctrt_id * till_id))
-
-d
-
-#--I am super confused which family (etc.) to use
-#--this is a 'fractional logit model'?
-m_bilogit <- glmmTMB(count ~ weed_type * till_id * cctrt_id * straw_id * weayear +
-                   (1|block_id) + 
-                   (1|cctrt_id:till_id:straw_id), #+ 
-                   #(1|till_id:straw_id) + 
-                   #(1|straw_id),
-                 family=nbinom1, 
-              data=d)
-
-# Anova(m_bilogit)
-# m_bilogit_simres <- simulateResiduals(m_bilogit)
-# plot(m_bilogit_simres)
-
-#--trying suggestion for a zero-inflated model
-#--zero inflation applied to all equally (?)
-m_bilogit_zinf <- update(m_bilogit, ziformula = ~1)
-m_bilogit_zinfc <- update(m_bilogit, ziformula = ~weed_type)
-
-anova(m_bilogit, m_bilogit_zinf, m_bilogit_zinfc)
-
-
-zi_nb_model <- glmmTMB(y ~ x + (1 | group), 
-                       ziformula = ~ 1, 
-                       family = nbinom1, 
-                       data = data)
-
-
-
-# Install and load required package
-if (!requireNamespace("glmmTMB", quietly = TRUE)) install.packages("glmmTMB")
-library(glmmTMB)
-
-# Simulated dataset
-set.seed(123)
-n <- 200  # Number of observations
-group <- factor(rep(1:20, each = 10))  # Random effect (e.g., site, plot)
-x <- rnorm(n)  # Continuous predictor
-z <- rbinom(n, 1, 0.3)  # Zero inflation process
-
-# Generate count data using a Poisson model with zero inflation
-lambda <- exp(1 + 0.5 * x)  # Poisson mean
-y <- rpois(n, lambda) * (1 - z)  # Apply zero inflation
-
-# Combine into a dataframe
-data <- data.frame(y, x, group)
-
-# Fit a zero-inflated GLMM using a Poisson distribution
-zi_model <- glmmTMB(y ~ x + (1 | group), 
-                    ziformula = ~ 1,  # Zero-inflation model (intercept only)
-                    family = poisson,
-                    data = data)
-
-# Model summary
-summary(zi_model)
-
-# Optional: Fit with negative binomial distribution if overdispersion is suspected
-zi_nb_model <- glmmTMB(y ~ x + (1 | group), 
-                       ziformula = ~ 1, 
-                       family = nbinom1, 
-                       data = data)
-
-summary(zi_nb_model)
-
-
-# 2. log odds -------------------------------------------------------------
-
-#chatgpt says if modelling presence/absence data, over dispersion is less of an issue
-
-d1 <- 
-  d %>% 
-  group_by(year, weed_type2, block_id, plot_id, subplot_id, till_id, rot_id,
-           cctrt_id) %>% 
-  summarise(count = sum(count))
-  select()
-
-m1 <- glmer(WeedType ~ Year + CroppingSystem + (1|Plot), 
-               data = your_data, 
-               family = binomial)
-summary(model)
