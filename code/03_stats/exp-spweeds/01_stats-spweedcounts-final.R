@@ -68,6 +68,8 @@ draw %>%
   summarise(ave = mean(count),
             var = sd(count)^2)
 
+summary(draw$count)
+
 draw |> 
   ggplot(aes(subplot_id, count)) +
   geom_col(aes(fill = weed_type)) +
@@ -140,6 +142,7 @@ d_tot <-
            straw_id, till_id, cctrt_id) %>%
   summarise(count_tot = sum(count))
 
+summary(d_tot$count_tot)
 
 
 # 0. considerations -------------------------------------------------------
@@ -229,6 +232,8 @@ plot(sim_rest1)
 #--this might be the best we can do
 #--we are violating heteroscadascity 
 
+Anova(m1_t5)
+
 #--let's do emmeans together!
 
 #--get estimates of total weeds and error bars with them
@@ -265,3 +270,25 @@ res |>
   
 
 #solved!!!
+
+
+# total model -------------------------------------------------------------
+
+#--run a model on the total weeds for stats
+#--this is probably the best we have
+m2_t1 <- glmmTMB(count_tot ~ yearF * till_id * straw_id * cctrt_id
+                 + (1 | block_id/straw_id/till_id/cctrt_id) ,
+                 family = tweedie(),
+                 data = d_tot)
+
+sim_rest2 <- simulateResiduals(m2_t1)
+plot(sim_rest2)
+
+Anova(m2_t1)
+
+emmeans(m2_t1, ~till_id, type = 'response')
+
+pairs(emmeans(m2_t1, ~till_id|yearF, type = 'response'))
+
+pairs(emmeans(m2_t1, ~yearF, type = 'response'))
+      
