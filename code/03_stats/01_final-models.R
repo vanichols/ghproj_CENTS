@@ -1,6 +1,9 @@
 # created 28 aug 2025
 # purpose: execute final stats models, get estimates needed for manu
 
+#--NOTE: I should turn this into an R markdown for supp mat
+#  but first need to finalize the other models
+
 Sys.setLanguage("en")
 
 library(CENTSdata)
@@ -14,6 +17,7 @@ library(glmmTMB)
 library(broom.mixed)
 #--this one does letters
 library(multcomp)
+library(tweedie)
 
 #--note: use dplyr::select bc of conflict issues
 
@@ -27,7 +31,7 @@ eu <- as_tibble(cents_eukey)
 
 
 
-# 2. yields ---------------------------------------------------------------
+# 2. yields NEEDS UPDATED---------------------------------------------------------------
 
 #--data
 d2a <- as_tibble(cents_cropyields)
@@ -561,7 +565,7 @@ d5corr <-
 cor(d5corr$covercrop, d5corr$other)  
 
 
-# 6. correlation, ylds/spweeds -----------------------------------------------
+# 6. correlation of annual and perennial weeds -----------------------------------------------
 
 d6 <- 
   cents_spweedcount %>% 
@@ -587,3 +591,91 @@ d6p <-
 cor.test(d6a$count, d6a$yield_dry_Mgha)
 
 cor.test(d6p$count, d6p$yield_dry_Mgha)
+
+
+# 7. spring weed counts DONE ---------------------------------------------------
+
+rm(list = ls())
+
+eu <- as_tibble(cents_eukey)
+y <- as_tibble(cents_spweedcount)
+
+draw <- 
+  y %>% 
+  mutate(year = year(date2),
+         yearF = paste0("Y", year)) %>% 
+  left_join(eu) %>% 
+  mutate(weed_type2 = ifelse(weed_type %in% c("dicot", "monocot"), "A", "P"))
+
+#--first, take the average across subreps, keeping all the descriptors
+d <- 
+  draw %>% 
+  group_by(yearF, 
+           weed_type, #--cirar, equar, dicot, monooct 
+           weed_type2, #-P, A
+           block_id, plot_id, 
+           straw_id, till_id, cctrt_id) %>% 
+  summarise(count = mean(count)) %>% 
+  ungroup()
+
+#--now sum to get the total A and P
+d_type2tot <- 
+  d |> 
+  group_by(yearF, 
+           #weed_type, #--cirar, equar, dicot, monooct 
+           weed_type2, #-P, A
+           block_id, plot_id, 
+           straw_id, till_id, cctrt_id) %>%
+  summarise(count2 = sum(count))
+
+
+#--we are going to try a transformation!
+#--this is probably the best we have
+m1_t5 <- glmmTMB(log(count2+1) ~ yearF * till_id * straw_id * cctrt_id * weed_type2
+                 + (1 | block_id/straw_id/till_id/cctrt_id/weed_type2) ,
+                 family = gaussian(),
+                 REML = T,
+                 #dispformula = ~weed_type2:till_id,
+                 data = d_type2tot)
+
+#sim_rest1 <- simulateResiduals(m1_t5)
+#plot(sim_rest1)
+
+#--is the dataset balanced??
+#--this might be the best we can do
+#--we are violating heteroscadascity 
+
+#--let's do emmeans together!
+
+#--get estimates of total weeds and error bars with them
+emm_tot <- emmeans(m1_t5, ~weed_type2|till_id:cctrt_id, type = 'response', bias.adjust= T)
+est_list = list('Total' = c(1, 1))
+res_tot <- 
+  as_tibble(contrast(regrid(emm_tot, type = 'response', bias.adjust = T), est_list, infer = c(T, T))) |> 
+  rename(weed_type2 = contrast)
+
+#--get estimates of perennial weeds and error bars with them
+#--why don't I get confidence intervals when I tidy?
+emm_sep <- emmeans(m1_t5, ~weed_type2|till_id:cctrt_id, type = 'response', bias.adjust= T, infer = c(T, T))
+res_sep <- 
+  as_tibble(emm_sep) |> 
+  rename(estimate = response)
+
+res <- 
+  res_tot |> 
+  bind_rows(res_sep) |> 
+  dplyr::select(-null)
+
+res |> 
+  write_csv("data/stats/emmeans/emmeans-spweedcounts.csv")
+
+
+#--get each data point for plotting correlations?
+emm_all <- emmeans(m1_t5, ~weed_type2|till_id:cctrt_id:straw_id:yearF, type = 'response', bias.adjust= T)
+res_all <- as_tibble(contrast(regrid(emm_all, type = 'response', bias.adjust = T), est_list, infer = c(T, T)))
+
+as_tibble(emm_all) |> 
+  rename(estimate = response) |> 
+  bind_rows(res_all) |> 
+  dplyr::select(-contrast, -t.ratio, -p.value) |> 
+  write_csv("data/stats/emmeans/emmeans-spweedcounts-estimates-for-all.csv")

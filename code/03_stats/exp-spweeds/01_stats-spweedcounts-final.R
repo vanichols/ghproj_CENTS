@@ -1,0 +1,267 @@
+# created 27 jan 2026
+# purpose: do stats on spring weed counts
+# notes: 3 subreps
+#        I averaged over subreps bc the model is complicated already
+#        weed_type has four categories (dicots (A), monocots (A), cirar (P) and equar (P))
+#        weed_type2 has two categories (A, P)
+#   Q1: impact on total number of weeds
+#   Q2: impact on perennial weeds
+
+#--Simon Qs: How to account for the repeated measures?
+#          (they returned to the same plots in year 1 and in year 2)
+#            Full model that includes weed_type2 doesn't converge
+#            Full model on only perennials doesn't converge (zeros!)
+
+#--moved final model to final-models code
+
+library(tidyverse)
+library(CENTSdata)
+library(ggbeeswarm)
+
+library(glmmTMB)
+# library(lme4)
+# library(lmerTest)
+library(broom)
+library(emmeans)
+library(performance)
+library(DHARMa)
+library(car)
+library(tweedie)
+
+rm(list = ls())
+
+# data --------------------------------------------------------------------
+
+eu <- as_tibble(cents_eukey)
+y <- as_tibble(cents_spweedcount)
+
+#--assign weed_type2 (A or P)
+draw <- 
+  y %>% 
+  mutate(year = year(date2),
+         yearF = paste0("Y", year)) %>% 
+  left_join(eu) %>% 
+  mutate(weed_type2 = ifelse(weed_type %in% c("dicot", "monocot"), "A", "P"))
+
+
+# viz ---------------------------------------------------------------------
+
+#--there are lots of zeros, but this doesn't mean it is zero inflated
+draw %>% 
+  ggplot(aes(count)) +
+  geom_histogram()
+
+#--lots of 0s in the perennial category
+draw %>% 
+  ggplot(aes(count)) +
+  geom_histogram(aes(fill = weed_type2))
+
+#--more weeds in 2019
+#--inversion has highest
+draw %>% 
+  ggplot(aes(cctrt_id, count)) +
+  geom_boxplot(aes(color = weed_type2)) +
+  facet_grid(year~till_id) 
+
+
+draw %>% 
+  summarise(ave = mean(count),
+            var = sd(count)^2)
+
+draw |> 
+  ggplot(aes(subplot_id, count)) +
+  geom_col(aes(fill = weed_type)) +
+  facet_grid(yearF~subrep)
+
+#--average total count within a subrep
+draw |> 
+  group_by(yearF, subplot_id, subrep) |> 
+  summarise(totcount = sum(count)) |> 
+  ggplot(aes(yearF, totcount)) +
+  geom_beeswarm()
+
+#--overall mean of 128
+draw |> 
+  group_by(yearF, subplot_id, subrep) |> 
+  summarise(totcount = sum(count)) |>
+  mutate(dummy = "A") |> 
+  ggplot(aes(dummy, totcount)) +
+  geom_beeswarm()
+
+draw |> 
+  group_by(yearF, subplot_id, subrep) |> 
+  summarise(totcount = sum(count)) |> 
+  ungroup() |> 
+  summarise(meancount = mean(totcount))
+
+
+# 0. make forms of data ---------------------------------------------------
+
+#--first, take the average across subreps, keeping all the descriptors
+d <- 
+  draw %>% 
+  group_by(yearF, 
+           weed_type, #--cirar, equar, dicot, monooct 
+           weed_type2, #-P, A
+           block_id, plot_id, 
+           straw_id, till_id, cctrt_id) %>% 
+  summarise(count = mean(count)) %>% 
+  ungroup()
+
+#--now sum to get the total A and P
+d_type2tot <- 
+  d |> 
+  group_by(yearF, 
+           #weed_type, #--cirar, equar, dicot, monooct 
+           weed_type2, #-P, A
+           block_id, plot_id, 
+           straw_id, till_id, cctrt_id) %>%
+  summarise(count2 = sum(count))
+
+
+hist(d_type2tot$count2)
+
+#--if you have any fixed effect trts w/count data and it is all 0s, you have a problem
+#--any trt combos w-all 0s?
+#--yes. this is a problem. 
+d_type2tot |> 
+  #filter(weed_type2 == "A") |> 
+  group_by(yearF, weed_type2, straw_id, till_id, cctrt_id) |> 
+  summarise(mn = mean(count2)) |> 
+  arrange(mn) 
+
+#--now sum to get the total weed count
+d_tot <- 
+  d |> 
+  group_by(yearF, 
+           #weed_type, #--cirar, equar, dicot, monooct 
+           #weed_type2, #-P, A
+           block_id, plot_id, 
+           straw_id, till_id, cctrt_id) %>%
+  summarise(count_tot = sum(count))
+
+
+
+# 0. considerations -------------------------------------------------------
+
+#--poisson requires counts (integers), we don't have that
+#--binomial is for proportions (ex 2 of the 5 quadrats), so not appropriate here
+#--gamma is...I think like a poisson but doesn't require integers
+
+#--over-dispersion is considered using a poisson, only bc has only one parameter
+#--negative binomial is poisson plus a dispersion parameter (requires counts)
+#--tweedie doesn't require counts
+#--summary from the internet
+#Gamma is for positive continuous data,
+#Negative Binomial handles over-dispersed count data, 
+#Tweedie (a mixture of Poisson and Gamma) models, 
+# continuous data with exact zeros
+
+#--so def don't use binomial, fit models to decide about over dispersion
+
+# In the tweedie distribution, power parameter should be between 1 and 2 (at
+# either of those extremes, (the tweedie reduces to either gamma or poisson
+# distributions). Play around with mean, dispersion (= phi) and power values to
+# get a feel for the distributions
+hist(rtweedie(n = 1e4, mu = 1, phi = 1, power = 1))
+hist(rtweedie(n = 1e4, mu = 1, phi = 1, power = 1.5))
+hist(rtweedie(n = 1e4, mu = 1, phi = 1, power = 2))
+
+
+# 1. model that includes weed type2-------------------------------------------------------------------
+
+d_type2tot |> 
+  ggplot(aes(weed_type2, count2)) +
+  geom_col()
+
+
+#--full model, doesn't converge
+m1_t1 <- glmmTMB(count2 ~ yearF * till_id * straw_id * cctrt_id * weed_type2
+                + (1 | block_id/straw_id/till_id/cctrt_id),
+                family = tweedie(),
+                data = d_type2tot)
+
+#--singluar convergence means one thing is estimated at zero
+#--if that is the only thing that pops up, it isn't such a problem 
+#--but if there is another issue, then don't ignore it
+#--so you can start by looking at what MIGHT be zero
+VarCorr(m1_t1)
+
+#--so straw 'effect' is very small
+#--to keep the information about tillage being nested within straw, use :
+
+m1_t2 <- glmmTMB(count2 ~ yearF * till_id * straw_id * cctrt_id * weed_type2
+                 + (1 | block_id/straw_id:till_id/cctrt_id),
+                 family = tweedie(),
+                 data = d_type2tot)
+
+#--didn't fix it
+#--try saying the correlation within a year is a stronger pattern
+#--the alternative is that the annual is correlated over time
+
+m1_t3 <- glmmTMB(count2 ~ yearF * till_id * straw_id * cctrt_id * weed_type2
+                 + (1 | block_id/straw_id:till_id/cctrt_id/yearF) ,
+                 family = tweedie(),
+                 data = d_type2tot)
+
+m1_t4 <- glmmTMB(count2 ~ yearF * till_id * straw_id * cctrt_id * weed_type2
+                 + (1 | block_id/straw_id:till_id/cctrt_id/weed_type2) ,
+                 family = tweedie(),
+                 data = d_type2tot)
+
+
+#--we are going to try a transformation!
+#--this is probably the best we have
+m1_t5 <- glmmTMB(log(count2+1) ~ yearF * till_id * straw_id * cctrt_id * weed_type2
+                 + (1 | block_id/straw_id/till_id/cctrt_id/weed_type2) ,
+                 family = gaussian(),
+                 REML = T,
+                 #dispformula = ~weed_type2:till_id,
+                 data = d_type2tot)
+
+d_type2tot |> 
+  filter(till_id == "surface", weed_type2 == "P")
+
+sim_rest1 <- simulateResiduals(m1_t5)
+plot(sim_rest1)
+
+#--is the dataset balanced??
+#--this might be the best we can do
+#--we are violating heteroscadascity 
+
+#--let's do emmeans together!
+
+#--get estimates of total weeds and error bars with them
+emm_tot <- emmeans(m1_t5, ~weed_type2|till_id:cctrt_id:yearF, type = 'response', bias.adjust= T)
+est_list = list('Total' = c(1, 1))
+res_tot <- 
+  tidy(contrast(regrid(emm_tot, type = 'response', bias.adjust = T), est_list, infer = c(T, T))) |> 
+  rename(weed_type2 = contrast)
+
+#--get estimates of perennial weeds and error bars with them
+#--why don't I get confidence intervals when I tidy?
+emm_sep <- emmeans(m1_t5, ~weed_type2|till_id:cctrt_id:yearF, type = 'response', bias.adjust= T, infer = c(T, T))
+res_sep <- 
+  as_tibble(emm_sep) |> 
+  rename(estimate = response, null.value = null)
+
+res <- 
+  res_tot |> 
+  bind_rows(res_sep)
+
+# res |> 
+#   write_csv("data/stats/emmeans/emmeans-spweedcounts.csv")
+
+res |> 
+  ggplot(aes(till_id, estimate)) + 
+  geom_point(aes(color = weed_type2)) +
+  facet_grid(yearF ~ cctrt_id)
+
+
+res |> 
+  ggplot(aes(till_id, estimate)) + 
+  geom_col(aes(color = weed_type2), position = "dodge2") +
+  facet_grid(yearF ~ cctrt_id)
+  
+
+#solved!!!
