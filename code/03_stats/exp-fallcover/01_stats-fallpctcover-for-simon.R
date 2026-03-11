@@ -91,7 +91,6 @@ d_cat |>
   summarise(mn = mean(cover_pct)) |> 
   arrange(mn)
 
-### NEED TO ASK MAARIT ABOUT THIS
 
 d_cc_order <- 
   d_sp %>% 
@@ -177,61 +176,40 @@ d_sp %>%
 # that is dependent on tillage, CC, straw or year e􀆯ects.
 
 #--I am super confused which family (etc.) to use
-#--this is a 'fractional logit model'?
-m_bilogit <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * weayear +
-                   (1|block_id) + 
-                   (1|cctrt_id:till_id:straw_id) + 
-                   (1|till_id:straw_id) + 
-                   (1|straw_id),
-                 family=binomial(link="logit"), 
-              data=d_cat)
+#--normally use a beta for continuous proportions, but 
+#-- here, bc there may be some values of 0, we use ordbeta
+#--the logit link maps the linear predictor to the data scale (which is 0-1)
+#--there may be subtle differences between choices, logit and probit are the most common
+m_1 <- glmmTMB(cover_frac ~ till_id * cctrt_id * straw_id * weayear +
+                   (1|block_id/straw_id/till_id/cctrt_id),
+                 family=ordbeta(link = "logit"), 
+              data=d_cat |> filter(cover_cat == "covercrop"))
 
-Anova(m_bilogit)
-m_bilogit_simres <- simulateResiduals(m_bilogit)
-plot(m_bilogit_simres)
-m1 <- m_bilogit
-#--trying suggestion for a zero-inflated model
-#--zero inflation applied to all equally (?)
-m_bilogit_zinf <- update(m_bilogit, ziformula = ~1)
-m_bilogit_zinfc <- update(m_bilogit, ziformula = ~cover_cat)
-
-anova(m_bilogit, m_bilogit_zinf, m_bilogit_zinfc)
+Anova(m_1)
+m_1_simres <- simulateResiduals(m_1)
+plot(m_1_simres)
+m1 <- m_1
 
 
-#--what if I only include two of the categories, 
-#--since if you know two, the third is just 100 - their sum
-m2 <- glmmTMB(cover_frac ~ cover_cat * till_id * cctrt_id * straw_id * weayear +
-                (1|block_id) + 
-                (1|cctrt_id:till_id:straw_id) + 
-                (1|till_id:straw_id) + 
-                (1|straw_id),
-              family=binomial(link="logit"), 
-              data=d_cat %>% filter(cover_cat != "other"))
+#--the model fits well, do I need to account for more 0s in the nocc treatment?
+#--the ordbeta is 'already' accounting for the zeros
+#--you COULD model it separately for each category
+#--it doesn't seem to be necessary bsaed on the plots
+#--you WOULD use this ziformula to do that
+m_1zinfc <- update(m_1, ziformula = ~cctrt_id)
+m_1z_simres <- simulateResiduals(m_1zinfc)
+plot(m_1z_simres)
 
-#--the variables are related, they are not independent
-#--should I just pick one?
 
-#--these don't look good, but I'm not sure what to tweak
-#--
-m1_simres <- simulateResiduals(m1)
-plot(m1_simres)
+#--ignore the pvalues here - it is only valid for nested models!!
+anova(m_1, m_1zinfc)
+#--the extra complication is not worth it!
 
-#--these look worse
-m2_simres <- simulateResiduals(m2)
-plot(m2_simres)
+car::Anova(m_1)
 
-#--I think I ran out of DF
-Anova(m2)
+#--as a demo, let's group by year (huge effect probably) and look at cover crop impacts
 
-#--if I plow ahead, 
-#--sig terms:
-cover_cat:cctrt_id:weayear
-cover_cat:weayear
-cover_cat:cctrt_id 
-cover_cat
-
-emmeans(m1, specs = ~ cover_cat, type = "response")
-emmeans(m2, specs = ~ cover_cat, type = "response")
+emmeans(m_1, specs = ~ cctrt_id|weayear, type = "response")
 
 
 #--nothing is interacting with tillage or straw removal, consistent w/perception
