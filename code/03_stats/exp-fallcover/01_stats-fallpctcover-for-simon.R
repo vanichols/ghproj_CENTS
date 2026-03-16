@@ -137,31 +137,19 @@ res <-
 corrplot(res)
 chart.Correlation(d_corr)
 
-#--kind of a nonsense fig, but to get the idea
-d_sp %>% 
-  arrange(date2, straw_id, till_id, cctrt_id) %>% 
-  mutate(subplot_id = fct_inorder(subplot_id)) %>% 
-  ggplot(aes(cctrt_id, cover_pct)) +
-  geom_col(aes(fill = cover_cat)) +
-  scale_x_discrete(labels = d_cc_order) +
-  facet_grid(weayear~straw_id+till_id, scales = "free") +
-  coord_flip() +
-  scale_fill_manual(values = c("soil" = "brown4",
-                               "covercrop" = "green3",
-                               "other" = "gold"))
 
-# it doesn't look like a dependence on tillage or straw removal
-d_sp %>% 
-  arrange(date2, straw_id, till_id, cctrt_id) %>% 
-  mutate(subplot_id = fct_inorder(subplot_id)) %>% 
-  ggplot(aes(till_id, cover_pct)) +
-  geom_col(aes(fill = cover_cat)) +
-  scale_x_discrete(labels = d_till_order) +
-  facet_grid(weayear~straw_id + cctrt_id, scales = "free") +
-  coord_flip() +
-  scale_fill_manual(values = c("soil" = "brown4",
-                               "covercrop" = "green3",
-                               "other" = "gold"))
+d_sp |> 
+  filter(cover_cat2 == "volunteer") |>
+  group_by(eu_id, date2) |> 
+  summarise(cover_pct = mean(cover_pct)) |> 
+  pull(cover_pct) |> 
+  summary()
+
+
+d_sp |> 
+  group_by(cover_cat2) |> 
+  summarise(cover_pct = mean(cover_pct))
+
 
 # model -------------------------------------------------------------------
 

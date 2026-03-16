@@ -141,19 +141,33 @@ m4 <- lme(yield ~ till_id * straw_id * cctrt_id * crop,
 #--they are the same
 compare_performance(m3, m4, metrics = c('AIC', 'BIC', 'AICc'))
 
-#--cctrt_id is having an impact
-anova(m4)
+#--crop interactions are not important, actually
+m5 <- lme(yield ~ till_id * straw_id * cctrt_id + crop,
+          random = ~1 | block_id/straw_id/till_id/cctrt_id,
+          data = d,
+          weights = varIdent(form = ~1 | crop))
+
+#--this tells us what we care about more...
+anova(m5)
 
 # interpret chosen model --------------------------------------------------
 
 m4
 
 #--rad_M is higher than all of the others
-em1 <- emmeans(m4, ~cctrt_id)
+em1 <- emmeans(m5, ~cctrt_id)
 pairs(em1)
 
-#--get values for figure (does this make sense to do?)
+#--rad_M is higher than all of the others - in every year?
+em2 <- emmeans(m5, ~cctrt_id|crop)
+pairs(em2)
+
+
 res <- 
-  as_tibble(emmeans(m4, ~ cctrt_id*till_id*crop*straw_id, type = 'response'))
+  emmeans(m4, ~cctrt_id|crop, type = "response") |> 
+  as_tibble()
 
 
+#--get values for figure (simon doesn't like box plots)
+res |> 
+write_csv("data/stats/emmeans/emmeans-yields-for-fig.csv")
