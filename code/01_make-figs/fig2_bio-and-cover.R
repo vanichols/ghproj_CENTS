@@ -48,7 +48,7 @@ gdds <-
   ungroup() %>% 
   add_row(cctrt_id = "nocc", year = 2018, pl2samp_gdd = "NA", till_id = "surface") %>% 
   add_row(cctrt_id = "nocc", year = 2019, pl2samp_gdd = "NA", till_id = "surface") %>% 
-  MakeNiceLabels(.) %>% 
+  MakeNiceLabels2(.) %>% 
   mutate(till_nice = 2)
 
 # 2. biomass plot (d)----------------------------------------------------------
@@ -89,7 +89,7 @@ d3 <-
 #--make nice cctrt and tilltrt
 d5 <- 
   d3 %>% 
-  MakeNiceLabels(.)
+  MakeNiceLabels2(.)
 
 #--make nice other stuff
 d6 <- 
@@ -171,6 +171,7 @@ p1 <-
         )
 
 
+p1
 
 # 3. percent cover plot (a)--------------------------------------------------------
 
@@ -210,11 +211,11 @@ a3 <-
          cover_cat2 = factor(cover_cat2, levels = ord.cover_cat2),
          till_nice = case_when(
            till_id == "notill" ~ "No-till",
-           till_id == "inversion" ~ "Inv",
-           till_id == "surface" ~ "Surf",
+           till_id == "inversion" ~ "Inversion",
+           till_id == "surface" ~ "Surface",
            TRUE ~ "XXX"
          ),
-         till_nice = factor(till_nice, levels = ord.till_nice)) 
+         till_nice = factor(till_nice, levels = ord.till_nice2)) 
 
 #--sum across species
 a4 <- 

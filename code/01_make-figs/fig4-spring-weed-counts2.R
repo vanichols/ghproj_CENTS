@@ -38,12 +38,14 @@ d0 <-
   read_csv("data/stats/emmeans/emmeans-spweedcounts.csv")
 
 #--I have to do some trickery to get the stacked bars
+#--get the perennial values
 d_p <- 
   d0 |> 
   filter(weed_type2 == "P") |> 
   mutate(p_weeds = estimate) |> 
   dplyr::select(till_id, cctrt_id, p_weeds)
 
+#--subtract them from the total to get the 'annual' number to stack on top of perennial
 d1 <- 
   d0 |> 
   left_join(d_p) |> 
@@ -54,41 +56,47 @@ d1 <-
 d2 <- 
   d1 %>%
   MakeNiceLabels(.) |> 
-  mutate(weed_type_nice = ifelse(weed_type2 == "Total", "Annual weeds", "Perennial weeds")) 
+  mutate(weed_type_nice = ifelse(weed_type2 == "Total", "Annual weeds", "Perennial weeds")) |> 
+  arrange(till_nice) |> 
+  mutate(till_nice2 = str_to_sentence(till_id),
+         till_nice2 = ifelse(till_id == "notill", "No-till", till_nice2),
+         till_nice2F = fct_inorder(till_nice2))
+  
   
 
-#--this needs to be fixed, somehow indicate tot and P separately?
+#--put the 'total' star 30 above the mean value
 d3a <- 
   d2 %>% 
-  mutate(star1 = ifelse( (cctrt_nice == "MixE" & till_nice == "No-till"), 
+  mutate(star1 = ifelse( (cctrt_nice == "MixE" & till_nice2F == "No-till"), 
                         "*", " ")) %>% 
-  group_by(till_nice, cctrt_id) %>% 
+  group_by(till_nice2F, cctrt_id) %>% 
   mutate(tot_weeds = sum(estimate2)) |> 
-  group_by(till_nice) |> 
-  mutate(starpos1 = max(tot_weeds+20))
+  group_by(till_nice2F) |> 
+  mutate(starpos1 = max(tot_weeds+30))
 
+#--put the perennial starts 10 above the mean value
 d3b <- 
   d2 %>% 
   filter(weed_type2 == "P") %>% 
-  mutate(star2 = ifelse( (cctrt_nice == "MixE" & till_nice != "Inv"), 
+  mutate(star2 = ifelse( (cctrt_nice == "MixE" & till_nice2F != "Inversion"), 
                          "*", " ")) %>% 
-  group_by(till_nice, weed_type2) %>% 
+  group_by(till_nice2F, weed_type2) %>% 
   mutate(starpos2 = max(estimate2)+10)
   
 # 2. fig ------------------------------------------------------------------
 
 plot1 <- 
-  d2 %>% 
+  d2 %>%
   ggplot(aes(cctrt_nice, estimate2)) +
   geom_col(aes(fill = weed_type_nice), color = "black") +
-  geom_linerange(aes(ymin = estimate2-SE, ymax = estimate2+SE)) +
+  geom_linerange(aes(ymin = estimate-SE, ymax = estimate+SE)) +
   geom_text(data = d3a, 
             aes(x = cctrt_nice, y = starpos1, label = star1),
             size = 8) +
   geom_text(data = d3b, 
             aes(x = cctrt_nice, y = starpos2, label = star2),
             color = bv2, size = 8) +
-  facet_grid(~till_nice) +
+  facet_grid(~till_nice2F) +
   scale_fill_manual(values = c(bv3, bv2)) +
   labs(x = "Cover crop system", 
        y = myweedcountlab, 
