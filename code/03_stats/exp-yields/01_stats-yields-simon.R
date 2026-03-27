@@ -15,6 +15,8 @@ library(lme4)
 library(lmerTest)
 library(nlme)
 
+library(writexl)
+
 rm(list = ls())
 
 
@@ -148,20 +150,30 @@ m5 <- lme(yield ~ till_id * straw_id * cctrt_id + crop,
           weights = varIdent(form = ~1 | crop))
 
 #--this tells us what we care about more...
-anova(m5)
+anova(m4)
+
+anova(m4) |> 
+  rownames_to_column() |> 
+  as_tibble() |> 
+  write_xlsx("data/stats/anova/anova_yield.xlsx")
+
+
 
 # interpret chosen model --------------------------------------------------
 
-m4
 
 #--rad_M is higher than all of the others
-em1 <- emmeans(m5, ~cctrt_id)
+em1 <- emmeans(m4, ~cctrt_id)
 pairs(em1)
 
 #--rad_M is higher than all of the others - in every year?
-em2 <- emmeans(m5, ~cctrt_id|crop)
+em2 <- emmeans(m4, ~cctrt_id|crop)
 pairs(em2)
 
+
+#--tillage...
+em2 <- emmeans(m4, ~till_id|crop)
+pairs(em2)
 
 res <- 
   emmeans(m4, ~cctrt_id|crop, type = "response") |> 

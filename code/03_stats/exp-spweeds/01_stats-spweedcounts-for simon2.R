@@ -223,6 +223,9 @@ d_type2tot |>
 sim_rest1 <- simulateResiduals(m1_t5)
 plot(sim_rest1)
 
+tidy(car::Anova(m1_t5)) |> 
+  write_xlsx("data/stats/anova/anova_spweeds.xlsx")
+
 #--is the dataset balanced??
 #--this might be the best we can do
 #--we are violating heteroscadascity 

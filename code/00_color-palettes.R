@@ -116,8 +116,8 @@ ord.cctrt_nicePRES <- c("No CC", "+early mix", "+mid mix", "+mid rad", "+late ra
 ord.till_id <- c("notill", "surface", "inversion")
 
 #--desired till_nice order
-ord.till_nice <- c("No-till", "Surf", "Inv")
-ord.till_nice2 <- c("No-till", "Surface", "Inversion")
+ord.till_nice <- rev(c("No-till", "Surf", "Inv"))
+ord.till_nice2 <- rev(c("No-till", "Surface", "Inversion"))
 
 ord.cover_cat2 <-  c("Soil", "Cover crop", "Weed", "Volunteer")
 ord.cover_cat3 <-  c("Soil", "Cover crop", "Other (weed)", "Volunteer")

@@ -26,7 +26,7 @@ y1 <-
 
 df_dat <- 
   y1 %>% 
-  select(eu, eppo_code, cover_pct) %>%
+  dplyr::select(eu, eppo_code, cover_pct) %>%
   #filter(eppo_code!= "soil") %>% 
   pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
   replace(is.na(.), 0)
@@ -65,7 +65,7 @@ cc_pdist <- dist(scores(nmds_res, display = 'sites'))
 mat_dat18 <- 
   y1 %>% 
   filter(year == 2018) %>% 
-  select(eu, eppo_code, cover_pct) %>%
+  dplyr::select(eu, eppo_code, cover_pct) %>%
   pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
   replace(is.na(.), 0) %>% 
   column_to_rownames(var = "eu")
@@ -92,7 +92,7 @@ points(nmds_res18, display = "sites",
 mat_dat19 <- 
   y1 %>% 
   filter(year == 2019) %>% 
-  select(eu, eppo_code, cover_pct) %>%
+  dplyr::select(eu, eppo_code, cover_pct) %>%
   pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
   replace(is.na(.), 0) %>% 
   column_to_rownames(var = "eu")
@@ -120,7 +120,7 @@ site_scores <-
   as.data.frame(scores(nmds_res, "sites")) %>%
   rownames_to_column(., var = "eu")  %>% 
   left_join(y1 %>% 
-              select(eu, eu_id, date2, subrep) %>% 
+              dplyr::select(eu, eu_id, date2, subrep) %>% 
               distinct()) %>% 
   left_join(eu) %>% 
     as_tibble() %>% 
@@ -158,14 +158,14 @@ site_hull_xtill <-
 df_dat18 <- 
   y1 %>% 
   filter(year == 2018) %>% 
-  select(eu, eppo_code, cover_pct) %>%
+  dplyr::select(eu, eppo_code, cover_pct) %>%
   pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
   replace(is.na(.), 0)
 
 dd18 <- 
   df_dat18 %>%
   left_join(y1 %>% 
-              select(eu, eu_id, year, date2, subrep) %>% 
+              dplyr::select(eu, eu_id, year, date2, subrep) %>% 
               filter(year == 2018) %>% 
               distinct()) %>% 
   left_join(eu) %>% 
@@ -173,22 +173,26 @@ dd18 <-
 
 
 #--everything is significnat, cover crop explains a lot more variance than the other two though
-adonis2(df_dat18 %>% select(-1) %>% as.matrix() ~ 
+ad18 <- 
+  adonis2(df_dat18 %>% dplyr::select(-1) %>% as.matrix() ~ 
           cctrt_id + till_id + straw_id, data = (dd18),
         by = "margin"
-)
+) 
+
+tidy(ad18)  |> 
+  write_xlsx("data/stats/anova/anova_fall18community.xlsx")
 
 df_dat19 <- 
   y1 %>% 
   filter(year == 2019) %>% 
-  select(eu, eppo_code, cover_pct) %>%
+  dplyr::select(eu, eppo_code, cover_pct) %>%
   pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
   replace(is.na(.), 0)
 
 dd19 <- 
   df_dat19 %>%
   left_join(y1 %>% 
-              select(eu, eu_id, year, date2, subrep) %>% 
+              dplyr::select(eu, eu_id, year, date2, subrep) %>% 
               filter(year == 2019) %>% 
               distinct()) %>% 
   left_join(eu) %>% 
@@ -196,10 +200,18 @@ dd19 <-
 
 
 
-adonis2(df_dat19 %>% select(-1) %>% as.matrix() ~ 
+ad19 <- adonis2(df_dat19 %>% dplyr::select(-1) %>% as.matrix() ~ 
           cctrt_id + till_id + straw_id, data = (dd19),
         by = "margin"
 )
+
+tidy(ad18) |> 
+  mutate(year = 2018) |> 
+  bind_rows(
+    tidy(ad19)  |> 
+      mutate(year = 2019)
+  ) |> 
+  write_xlsx("data/stats/anova/anova_fallcommunity.xlsx")
 
 
 # individual years? ---------------------------------
@@ -301,7 +313,7 @@ site_scores18 <-
   as.data.frame(scores(nmds_res18, "sites")) %>%
   rownames_to_column(., var = "eu")  %>% 
   left_join(y1 %>% 
-              select(eu, eu_id, year, date2, subrep) %>% 
+              dplyr::select(eu, eu_id, year, date2, subrep) %>% 
               filter(year == 2018) %>% 
               distinct()) %>% 
   left_join(eu) %>% 
@@ -311,7 +323,7 @@ site_scores19 <-
   as.data.frame(scores(nmds_res19, "sites")) %>%
   rownames_to_column(., var = "eu")  %>% 
   left_join(y1 %>% 
-              select(eu, eu_id, year, date2, subrep) %>% 
+              dplyr::select(eu, eu_id, year, date2, subrep) %>% 
               filter(year == 2019) %>% 
               distinct()) %>% 
   left_join(eu) %>% 
@@ -363,7 +375,7 @@ site_hull19_onlycc <-
 dd18 <-
   df_dat %>%
   left_join(y1 %>%
-              select(eu, eu_id, date2, subrep) %>%
+              dplyr::select(eu, eu_id, date2, subrep) %>%
               distinct()) %>%
   left_join(eu) %>%
   mutate_if(is.character, as.factor) %>%
@@ -371,7 +383,7 @@ dd18 <-
 # 
 # 
 # #--everything is significnat, year most of all (3000x), then cc (500x), then straw (14), then till (7)
-# adonis2(df_dat %>% select(-1) %>% as.matrix() ~ 
+# adonis2(df_dat %>% dplyr::select(-1) %>% as.matrix() ~ 
 #           cctrt_id + till_id + straw_id + yearF, data = (dd),
 #         by = "margin"
 # )

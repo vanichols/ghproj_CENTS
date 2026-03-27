@@ -122,26 +122,50 @@ plot(m1)
 qqnorm(resid(m1))
 qqline(resid(m1))
 
+m3 <- glmmTMB(dm_gm2 ~ till_id * cctrt_id * straw_id * weayear + 
+                (1 | block_id/straw_id/till_id/cctrt_id), 
+              #dispformula = ~crop,
+              data = dtot)
+
+#--variance differs by crop
+m4 <- lme(dm_gm2 ~ till_id * straw_id * cctrt_id * weayear,
+          random = ~1 | block_id/straw_id/till_id/cctrt_id,
+          data = dtot,
+          weights = varIdent(form = ~1 | weayear))
+
+anova(m4)
+plot(simulateResiduals(m4))
+plot(m4)
+#--this looks good, the pattern is fine
+qqnorm(resid(m4))
+qqline(resid(m4))
+
+
+anova(m4) |> 
+  rownames_to_column() |> 
+  as_tibble() |> 
+  write_xlsx("data/stats/anova/anova_fallbio.xlsx")
+
 
 # straw -------------------------------------------------------------------
 #--straw effect sig, no interactions, results are in g/m2
 #--1/1 000 * 1/1 000 * 10 000 == divide by 100 to get Mg/ha
 
-summary(emmeans(m1, specs = ~straw_id, type = "response"))
-emmeans(m1, specs = pairwise~straw_id)$contrasts
+summary(emmeans(m4, specs = ~straw_id, type = "response"))
+emmeans(m4, specs = pairwise~straw_id)$contrasts
 
 # tillage -------------------------------------------------------------------
 #--effect depended on year, and also on cover crop, but not an intxn
 
-summary(emmeans(m1, specs = ~till_id:weayear, type = "response"))
+summary(emmeans(m4, specs = ~till_id:weayear, type = "response"))
 189/286
 82/106
 
-summary(emmeans(m1, specs = ~till_id, type = "response"))
+summary(emmeans(m4, specs = ~till_id, type = "response"))
 135/196
 
 #--the difference between years was stronger in no-till than the other two tillages
-emmeans(m1, specs = pairwise~till_id:weayear)$contrasts %>% 
+emmeans(m4, specs = pairwise~till_id:weayear)$contrasts %>% 
   tidy(.) %>% 
   filter(adj.p.value < 0.05) %>% 
   separate(contrast, into = c("x1", "x2"), sep = "-") %>% 
@@ -155,17 +179,17 @@ emmeans(m1, specs = pairwise~till_id:weayear)$contrasts %>%
 
 # cctrt -------------------------------------------------------------------
 #--effect depended on year, and also on tillage, but not an intxn
-summary(emmeans(m1, specs = ~cctrt_id:weayear, type = "response"))
+summary(emmeans(m4, specs = ~cctrt_id:weayear, type = "response"))
 188/278
 63/134
 
-summary(emmeans(m1, specs = ~cctrt_id, type = "response"))
-emmeans(m1, specs = pairwise~cctrt_id)$contrasts %>% 
+summary(emmeans(m4, specs = ~cctrt_id, type = "response"))
+emmeans(m4, specs = pairwise~cctrt_id)$contrasts %>% 
   tidy(.) %>% 
   filter(adj.p.value < 0.05)
 
 #--the difference between years was stronger xx cctrt
-emmeans(m1, specs = pairwise~cctrt_id:weayear)$contrasts %>% 
+emmeans(m4, specs = pairwise~cctrt_id:weayear)$contrasts %>% 
   tidy(.) %>% 
   filter(adj.p.value < 0.05) %>% 
   separate(contrast, into = c("x1", "x2"), sep = "-") %>% 
@@ -182,7 +206,7 @@ emmeans(m1, specs = pairwise~cctrt_id:weayear)$contrasts %>%
 
 # till x cctrt ------------------------------------------------------------
 
-emmeans(m1, specs = pairwise~till_id:cctrt_id)$contrasts %>% 
+emmeans(m4, specs = pairwise~till_id:cctrt_id)$contrasts %>% 
   tidy(.) %>% 
   filter(adj.p.value < 0.05) %>% 
   separate(contrast, into = c("x1", "x2"), sep = "-") %>% 
@@ -197,19 +221,19 @@ emmeans(m1, specs = pairwise~till_id:cctrt_id)$contrasts %>%
 
 # make marginal mean tables for supp material -----------------------------
 
-summary(emmeans(m1, specs = ~till_id, type = "response")) %>% 
+summary(emmeans(m4, specs = ~till_id, type = "response")) %>% 
   tidy() %>% 
   write_csv("data/tables/em_fbio-tillage.csv")
 
-summary(emmeans(m1, specs = ~cctrt_id, type = "response")) %>% 
+summary(emmeans(m4, specs = ~cctrt_id, type = "response")) %>% 
   tidy() %>% 
   write_csv("data/tables/em_fbio-cctrt.csv")
 
-summary(emmeans(m1, specs = ~straw_id, type = "response")) %>% 
+summary(emmeans(m4, specs = ~straw_id, type = "response")) %>% 
   tidy() %>% 
   write_csv("data/tables/em_fbio-straw.csv")
 
-summary(emmeans(m1, specs = ~weayear, type = "response")) %>% 
+summary(emmeans(m4, specs = ~weayear, type = "response")) %>% 
   tidy() %>% 
   write_csv("data/tables/em_fbio-wea.csv")
 
@@ -363,195 +387,3 @@ others <- c(0.5, 0.5, 0)
 contrast(em_m18till, method = list("notill - all" = notill - others))
 29.6
 
-# 
-# 
-# # full model tillage ------------------------------------------------------
-# 
-# a <- 
-#   tidy(emmeans(m1, specs = pairwise ~till_id:weayear)$contrasts) %>% 
-#   separate(contrast, into = c("v1", "v2"), sep = "-")
-# 
-# a18 <- 
-#   a %>% 
-#   filter(grepl("2018", v1) & grepl("2018", v2))
-# 
-# a19 <- 
-#   a %>% 
-#   filter(grepl("2019", v1) & grepl("2019", v2))
-# 
-# 
-# # full model till x cctrt -------------------------------------------------
-# 
-# txc <- 
-#   tidy(emmeans(m1, specs = pairwise ~till_id:cctrt_id)$contrasts) %>% 
-#   separate(contrast, into = c("v1", "v2"), sep = "-")
-# 
-# #--radish late
-#   txc %>% 
-#   filter(grepl("rad_L", v1) & grepl("rad_L", v2))
-# 
-# #--radish mid
-# txc %>% 
-#   filter(grepl("rad_M", v1) & grepl("rad_M", v2))
-# 
-# 
-# #--nocc vs radish mid
-# zzz<- 
-#   txc %>% 
-#   filter(grepl("nocc", v1) & grepl("rad_M", v2))
-# 
-# #--mix e
-# txc %>% 
-#   filter(grepl("mix_E", v1) & grepl("mix_E", v2))
-# 
-# #--mix m
-# txc %>% 
-#   filter(grepl("mix_M", v1) & grepl("mix_M", v2))
-# 
-# #--mix e
-# txc %>% 
-#   filter(grepl("mix_E", v1) & grepl("mix_E", v2))
-# 
-# #--nocc
-# zzz<-txc %>% 
-#   filter(grepl("nocc", v1) & grepl("nocc", v2))
-# 
-# #--notill
-# zzz <- txc %>% 
-#   filter(grepl("notill", v1) & grepl("notill", v2))
-# 
-# #--noninv
-# zzz <- txc %>% 
-#   filter(grepl("non", v1) & grepl("non", v2))
-# 
-# 
-# # full model cc ------------------------------------------------------
-# 
-# b <- 
-#   tidy(emmeans(m1, specs = pairwise ~cctrt_id:weayear)$contrasts) %>% 
-#   separate(contrast, into = c("v1", "v2"), sep = "-")
-# 
-# b18 <- 
-#   b %>% 
-#   filter(grepl("2018", v1) & grepl("2018", v2)) %>% 
-#   arrange(estimate)
-# 
-# b19 <- 
-#   b %>% 
-#   filter(grepl("2019", v1) & grepl("2019", v2))%>% 
-#   arrange(estimate)
-# 
-# 
-# # run separately for each year --------------------------------------------
-# 
-# m2018 <- lmer(dm_gm2 ~ till_id * cctrt_id * straw_id + 
-#              (1|block_id),
-#            #(1|cctrt_id:till_id:straw_id) + 
-#            #(1|till_id:straw_id) +
-#            #(1|straw_id), 
-#            data = dtot %>% filter(year == 2018))
-# 
-# m2019 <- lmer(dm_gm2 ~ till_id * cctrt_id * straw_id + 
-#                 (1|block_id),
-#               #(1|cctrt_id:till_id:straw_id) + 
-#               #(1|till_id:straw_id) +
-#               #(1|straw_id), 
-#               data = dtot %>% filter(year == 2019))
-# 
-# #--no interactions
-# tidy(anova(m2018)) %>% 
-#   filter(p.value < 0.05)
-# 
-# #--no interactions
-# tidy(anova(m2019)) %>% 
-#   filter(p.value < 0.05)
-# 
-# emmeans(m2019, specs = pairwise ~ till_id) 
-# emmeans(m2019, specs = pairwise ~ till_id) 
-# 
-# # main effects -------------------------------------------------------------
-# 
-# ex <- emmeans(m2018, specs = ~ cctrt_id) 
-# cld(ex)
-# 
-# #--2018
-# ex2 <- emmeans(m2018, specs = ~ cctrt_id:till_id:straw_id, alpha = 0.01) 
-# res2 <- tidy(cld(ex2))
-# 
-# 
-# res2 %>% 
-#   arrange(estimate) %>% 
-#   mutate(group = as.factor(.group),
-#          trt = paste(cctrt_id, till_id, straw_id)) %>%
-#   ggplot(aes(trt, estimate)) +
-#   geom_point(aes(color = group), size = 5) +
-#   coord_flip() +
-#   facet_grid(till_id + straw_id ~ ., scales = "free_y")
-# 
-# 
-# #--2019
-# ex3 <- emmeans(m2019, specs = ~ cctrt_id:till_id:straw_id, alpha = 0.01) 
-# res3 <- tidy(cld(ex3))
-# 
-# 
-# res3 %>% 
-#   arrange(estimate) %>% 
-#   mutate(group = as.factor(.group),
-#          trt = paste(cctrt_id, till_id, straw_id)) %>%
-#   ggplot(aes(trt, estimate)) +
-#   geom_point(aes(color = group), size = 5) +
-#   coord_flip() +
-#   facet_grid(till_id + straw_id ~ ., scales = "free_y")
-# 
-# 
-# emmeans(m2018, specs = ~ cctrt_id) %>% 
-#   tidy() %>% arrange(estimate)
-# 
-# emmeans(m1, specs = ~ cctrt_id)
-# 
-# em_cc <- emmeans(m1, specs = pairwise ~ cctrt_id)
-# em_cc_means <- tidy(em_cc$emmeans) 
-# 
-# em_cc_means %>% 
-#   mutate(letter_sig = c("a", "a", "ab", "ab", "b")) %>% 
-#   ggplot(aes(cctrt_id, estimate)) +
-#   geom_errorbar(aes(x = cctrt_id, ymin = estimate - std.error, ymax = estimate + std.error),
-#                 width = 0.2) +
-#   geom_point() +
-#   geom_text(aes(x = cctrt_id, y = estimate + 0.3, label = letter_sig)) +
-#   scale_y_continuous(limits = c(0, 4.5))
-# 
-# em_cc
-# radM <- c(0, 0, 0, 0, 1)
-# mixes <- c(0.5, 0.5, 0, 0, 0)
-# contrast(em_cc, method = list("radM - mixes" = radM - mixes))
-# 
-# 
-# # tillage by straw --------------------------------------------------------
-# 
-# em_ts <- emmeans(m2, specs = pairwise ~ till_id:straw_id)
-# 
-# em_ts$contrasts
-# 
-# #--when removing straw, no-till yields less than the other tillages
-# #--when retaining straw, no difference in yields
-# 
-# #--compare no-till to other two tillages for each 
-# notillnostraw <- c(0, 0, 1, 0, 0, 0)
-# othersnostraw <- c(0.5, 0.5, 0, 0, 0, 0)
-# 
-# 
-# contrast(em_ts, method = list("notill - all" = notill - othersnostraw) )
-# 
-# # emmeans for all (except crop)---------------------------------------------------------
-# 
-# em_all <- tidy(emmeans(m2, specs = pairwise ~ till_id|straw_id|cctrt_id)$emmeans) 
-# 
-# em_all %>% 
-#   ggplot(aes(straw_id, estimate)) +
-#   geom_errorbar(aes(x = straw_id, ymin = estimate - std.error, ymax = estimate + std.error, 
-#                     color = cctrt_id),
-#                 width = 0.2) +
-#   geom_point(aes(color = cctrt_id)) +
-#   facet_grid(.~till_id) +
-#   scale_y_continuous(limits = c(0, 4.7))

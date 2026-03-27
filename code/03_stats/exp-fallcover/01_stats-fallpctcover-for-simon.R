@@ -145,6 +145,23 @@ d_sp |>
   pull(cover_pct) |> 
   summary()
 
+d_sp |> 
+  pull(cover_cat2) |> 
+  unique()
+
+d_sp |> 
+  filter(cover_cat2 == "covercrop") |>
+  group_by(eu_id, date2) |> 
+  summarise(cover_pct = mean(cover_pct)) |> 
+  pull(cover_pct) |> 
+  summary()
+
+d_sp |> 
+  filter(cover_cat2 == "weed") |>
+  group_by(eu_id, date2) |> 
+  summarise(cover_pct = mean(cover_pct)) |> 
+  pull(cover_pct) |> 
+  summary()
 
 d_sp |> 
   group_by(cover_cat2) |> 
@@ -153,21 +170,12 @@ d_sp |>
 
 # model -------------------------------------------------------------------
 
-# For the 4-way proportions for cover, you could actually analyse this a little differently to what we talked about
-# as well. You could pivot your data into long-format that has a column for the proportions, and another column
-# for the Cover category (Soil, Weeds, Volunteers and CC). If you then analyse the proportions with a model like
-# this:
-  # model <- glmmTMB(proportion ~ CoverCategory * Tillage * CC * Straw * Year +
-  #                    (1|Block) + (1|CC:Tillage:Straw) + (1|Tillage:Straw) + (1|Straw),
-  #                  family=binomial(link=”logit”), data=DATA)
-# You get an estimate of how different the proportions of each cover category are, and you are checking whether
-# that is dependent on tillage, CC, straw or year e􀆯ects.
-
 #--I am super confused which family (etc.) to use
 #--normally use a beta for continuous proportions, but 
 #-- here, bc there may be some values of 0, we use ordbeta
 #--the logit link maps the linear predictor to the data scale (which is 0-1)
 #--there may be subtle differences between choices, logit and probit are the most common
+
 m_1 <- glmmTMB(cover_frac ~ till_id * cctrt_id * straw_id * weayear +
                    (1|block_id/straw_id/till_id/cctrt_id),
                  family=ordbeta(link = "logit"), 
@@ -193,7 +201,9 @@ plot(m_1z_simres)
 anova(m_1, m_1zinfc)
 #--the extra complication is not worth it!
 
-car::Anova(m_1)
+tidy(car::Anova(m_1)) |> 
+  write_xlsx("data/stats/anova/anova_fallcover-cc.xlsx")
+  
 
 #--as a demo, let's group by year (huge effect probably) and look at cover crop impacts
 
