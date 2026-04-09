@@ -176,8 +176,7 @@ p1
 # 3. percent cover plot (a)--------------------------------------------------------
 
 
-
-#--data
+#--using raw data because I only fit a model to the cover percent
 a1 <- as_tibble(cents_fallpctcover)
 
 #--note this is still separated by species
