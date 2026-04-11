@@ -48,106 +48,14 @@ d_cat <-
   summarise(cover_pct = sum(cover_pct),
             cover_frac = sum(cover_frac)) 
 
-#--does it add to 100? Yes, I have the exp unit correctly defined
-d_cat.tst <-
-  d_cat %>% 
-  group_by(block_id, plot_id, subplot_id, till_id, straw_id, 
-           cctrt_id, subrep, weayear) %>% 
-  summarise(tot = sum(cover_pct))
-
-d_cat.tst %>% 
-  ggplot(aes(tot)) +
-  geom_histogram()
-
-
-# data exploration ---------------------------------------------------------------------
-
-d_cat 
-
-#--there are a fair number of zeros in the data
-d_cat %>% 
-  ggplot(aes(cover_pct)) +
-  geom_histogram()
-
-#--it is mostly from the covercrop category
-#--this makes sense since there is a nocover treatment
-d_cat %>% 
-  ggplot(aes(cover_pct)) +
-  geom_histogram() +
-  facet_grid(.~cover_cat)
-
-#--indeed, it is mostly in the nocc, but also the mid_M
-d_cat %>% 
-  ggplot(aes(cover_pct)) +
-  geom_histogram() +
-  facet_grid(cctrt_id~cover_cat)
-
-#--mostly in the dry-hot year
-d_cat %>% 
-  ggplot(aes(cover_pct)) +
-  geom_histogram() +
-  facet_grid(weayear~cover_cat)
-
-#--it is actally only one combination where there are 0s everywhere
-d_cat |> 
-  group_by(till_id, straw_id, cctrt_id, weayear, cover_cat) |> 
-  summarise(mn = mean(cover_pct)) |> 
-  arrange(mn)
-
-
-#--correlation of raw data, cover crop and other
-#--this it to be expected, it is a proportion so things must be related
-d_cat %>% 
-  filter(cover_cat != "soil") %>% 
-  dplyr::select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
-  pivot_wider(names_from = cover_cat, values_from = cover_frac) %>% 
-  ggplot(aes(covercrop, other)) +
-  geom_point(aes(color = weayear))
-
-#--correlation of raw data
-d_cat %>% 
-  filter(cover_cat != "other") %>% 
-  dplyr::select(cover_cat, cctrt_id, weayear, cover_frac) %>% 
-  pivot_wider(names_from = cover_cat, values_from = cover_frac) %>% 
-  ggplot(aes(covercrop, soil)) +
-  geom_point(aes(color = weayear))
-
-#--data summaries
-d_sp |> 
-  filter(cover_cat2 == "volunteer") |>
-  group_by(eu_id, date2) |> 
-  summarise(cover_pct = mean(cover_pct)) |> 
-  pull(cover_pct) |> 
-  summary()
-
-d_sp |> 
-  filter(cover_cat2 == "covercrop") |>
-  group_by(eu_id, date2) |> 
-  summarise(cover_pct = mean(cover_pct)) |> 
-  pull(cover_pct) |> 
-  summary()
-
-d_sp |> 
-  filter(cover_cat2 == "weed") |>
-  group_by(eu_id, date2) |> 
-  summarise(cover_pct = mean(cover_pct)) |> 
-  pull(cover_pct) |> 
-  summary()
-
-d_sp |> 
-  group_by(cover_cat2) |> 
-  summarise(cover_pct = mean(cover_pct))
-
-
 #--simon says we can model each category separately
-
-# model on covercrop cover category-------------------------------------------------------------------
-
 #--Thoughts on which family to use
 #--normally use a beta for continuous proportions, but 
 #--here, bc there may be some values of 0, we use ordbeta
 #--the logit link maps the linear predictor to the data scale (which is 0-1)
 #--there may be subtle differences between choices, logit and probit are the most common
+
+# model on covercrop cover category-------------------------------------------------------------------
 
 #--run model on cover crop fraction
 m1 <- glmmTMB(cover_frac ~ till_id * cctrt_id * straw_id * weayear +
@@ -155,12 +63,10 @@ m1 <- glmmTMB(cover_frac ~ till_id * cctrt_id * straw_id * weayear +
                  family=ordbeta(link = "logit"), 
               data=d_cat |> filter(cover_cat == "covercrop"))
 
-#--just to get a sense of things
 #--lots of interactions
 Anova(m1)
 m1_simres <- simulateResiduals(m1)
 plot(m1_simres)
-m1 <- m1
 
 #--the model fits well, do I need to account for more 0s in the nocc treatment? No.
 #--the ordbeta is 'already' accounting for the zeros
@@ -180,7 +86,7 @@ anova(m1, m1zinfc)
 
 #--write final model anova table
 tidy(car::Anova(m1)) |> 
-  write_xlsx("data/stats/anova/anova_fallcover-cc.xlsx")
+  write_xlsx("data/stats/supp_tables/fallbio-anova.xlsx")
   
 
 
@@ -190,7 +96,7 @@ tidy(car::Anova(m1)) |>
 #--so we have all these super complicated interactions
 #--is there a way to simplify it, and justify only looking at the most impactful ones?
 
-#--the nocc has a 0, so this huge error bar is to be expected
+#--the nocc has a 0, so this huge error bar is to be expected, right?
 #--patterns are the same across years except for MixE
 emmeans(m1, specs = ~ cctrt_id|weayear, type = "response") |> 
   as_tibble() |> 
@@ -220,7 +126,6 @@ emmeans(m1, specs = ~ till_id|weayear, type = "response") |>
   geom_point() +
   geom_linerange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
   facet_grid(.~weayear)
-
 
 #--cctrt comparisons within a weayear
 #--kind of overwhelming
