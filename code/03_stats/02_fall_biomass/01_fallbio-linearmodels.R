@@ -6,7 +6,8 @@
 # -- must combine volunteer and weeds data into 'non-cover crop'
 #--23 april 2024 update, don't run separate models for each year except to get letters
 
-#--simon check
+#--simon check - need to just walk through it. The emmean values seem strange, don't match arithmetic means...
+#--at one point simon helped me get estimates for each category, but why do I not have that code any more??
 
 library(tidyverse)
 library(CENTSdata)
@@ -76,84 +77,90 @@ dtot <-
   group_by(subplot_id,  
            eu_id, block_id, plot_id, till_id, 
            rot_id, straw_id, cctrt_id, weayear) %>% 
-  summarise(dm_gm2 = sum(dm_gm2, na.rm = T))
+  summarise(Mg_ha = sum(dm_gm2, na.rm = T)*0.01) #--units conversion
 
 dtot |> 
-  ggplot(aes(cctrt_id, dm_gm2)) +
+  ggplot(aes(cctrt_id, Mg_ha)) +
   geom_point() +
   facet_grid(.~weayear)
 
 # tot biomass models ------------------------------------------------------------------
 
-m1 <- glmmTMB(dm_gm2 ~ till_id * cctrt_id * straw_id * weayear + 
+#--just a gaussian distribution
+m1 <- glmmTMB(Mg_ha ~ till_id * cctrt_id * straw_id * weayear + 
                 (1 | block_id/straw_id/till_id/cctrt_id), 
               data = dtot)
 
-#--model convergence problem
+#--model convergence problem?? Not when I change to Mg/ha. Why?
+sim_rest1 <- simulateResiduals(m1)
+plot(sim_rest1)
 
-#--try tweedie?
-m1 <- glmmTMB(dm_gm2 ~ till_id * cctrt_id * straw_id * weayear + 
+
+#--try tweedie (Works with dm_gm2 when the gaussian did not...)
+m2 <- glmmTMB(Mg_ha ~ till_id * cctrt_id * straw_id * weayear + 
                 (1 | block_id/straw_id/till_id/cctrt_id), 
               family = tweedie(link = "log"),
               data = dtot)
 
 
-sim_rest1 <- simulateResiduals(m1)
-plot(sim_rest1)
+sim_rest2 <- simulateResiduals(m2)
+plot(sim_rest2)
+
+#--the second one looks much better
 
 #--this allows us to see if variance should differ by a group
-sim_rest2 <- resid(sim_rest1, quantileFunction = qnorm, outlierValues = c(-5, 5))
+sim_rest2 <- resid(sim_rest2, quantileFunction = qnorm, outlierValues = c(-5, 5))
 
 boxplot(sim_rest2 ~ dtot$straw_id)
 boxplot(sim_rest2 ~ dtot$till_id)
 boxplot(sim_rest2 ~ dtot$cctrt_id)
 boxplot(sim_rest2 ~ dtot$weayear)
 
-#--works with lme...why?
-m3 <- lme(dm_gm2 ~ till_id * straw_id * cctrt_id * weayear,
-          random = ~1 | block_id/straw_id/till_id/cctrt_id,
-          data = dtot)
-
-#--ugh lme is weird
-raw_resid <- residuals(m3, type = "response")   # raw residuals
-pearson_resid <- residuals(m3, type = "pearson") # standardized residuals
-
-plot(fitted(m3), pearson_resid,
-     xlab = "Fitted values", ylab = "Pearson residuals",
-     main = "Residuals vs Fitted")
-abline(h = 0, col = "red", lty = 2)
-
-qqnorm(resid(m3))
-qqline(resid(m3))
-
-
-VarCorr(m3)
-
-m2 <- lme(dm_gm2 ~ till_id * straw_id * cctrt_id * weayear,
-          random = ~1 | block_id/straw_id/till_id/cctrt_id,
-          data = dtot,
-          weights = varIdent(form = ~1 | weayear))
-
-raw_resid <- residuals(m2, type = "response")   # raw residuals
-pearson_resid <- residuals(m2, type = "pearson") # standardized residuals
-
-plot(fitted(m2), pearson_resid,
-     xlab = "Fitted values", ylab = "Pearson residuals",
-     main = "Residuals vs Fitted")
-abline(h = 0, col = "red", lty = 2)
-
-qqnorm(resid(m2))
-qqline(resid(m2))
-
-
-VarCorr(m2)
+# #--works with lme...why?
+# m3 <- lme(Mg_ha ~ till_id * straw_id * cctrt_id * weayear,
+#           random = ~1 | block_id/straw_id/till_id/cctrt_id,
+#           data = dtot)
+# 
+# #--ugh lme is weird
+# raw_resid <- residuals(m3, type = "response")   # raw residuals
+# pearson_resid <- residuals(m3, type = "pearson") # standardized residuals
+# 
+# plot(fitted(m3), pearson_resid,
+#      xlab = "Fitted values", ylab = "Pearson residuals",
+#      main = "Residuals vs Fitted")
+# abline(h = 0, col = "red", lty = 2)
+# 
+# qqnorm(resid(m3))
+# qqline(resid(m3))
+# 
+# 
+# VarCorr(m3)
+# 
+# m2 <- lme(Mg_ha ~ till_id * straw_id * cctrt_id * weayear,
+#           random = ~1 | block_id/straw_id/till_id/cctrt_id,
+#           data = dtot,
+#           weights = varIdent(form = ~1 | weayear))
+# 
+# raw_resid <- residuals(m2, type = "response")   # raw residuals
+# pearson_resid <- residuals(m2, type = "pearson") # standardized residuals
+# 
+# plot(fitted(m2), pearson_resid,
+#      xlab = "Fitted values", ylab = "Pearson residuals",
+#      main = "Residuals vs Fitted")
+# abline(h = 0, col = "red", lty = 2)
+# 
+# qqnorm(resid(m2))
+# qqline(resid(m2))
+# 
+# 
+# VarCorr(m2)
 
 
 #--the glmtmb I guess
-compare_performance(m1, m2, m3, metrics = c('AIC', 'BIC', 'AICc'))
+compare_performance(m1, m2, metrics = c('AIC', 'BIC', 'AICc'))
 
 #--check with Simon, then proceed
-m0 <- m1
+m0 <- m2
 
 #--use Anova for glmmTMB, anova for lme
 Anova(m0) |>
@@ -164,7 +171,10 @@ Anova(m0) |>
 
 # letters -----------------------------------------------------------------
 
-em1 <- emmeans(m0, specs = ~cctrt_id|till_id|weayear)
+#--something is wrong. These values don't look right
+
+em1a <- emmeans(m0, specs = ~cctrt_id|till_id|weayear, type = "response")
+em1b <- emmeans(m0, specs = ~cctrt_id|till_id|weayear)
 
 cld1 <- 
   multcomp::cld(em1, by = 'weayear', Letters = letters) |> 

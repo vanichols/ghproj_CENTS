@@ -2,6 +2,8 @@
 #--join coverage and biomass figure?
 #--adding GDDs for each cc in each year to figure
 
+#--13 april - something is goofy with the emmeans estimates...need to figure that out...
+
 library(tidyverse)
 library(CENTSdata)
 library(patchwork)
@@ -33,7 +35,12 @@ th1 <-   theme(axis.ticks.y = element_blank(),
 # 1. data --------------------------------------------------------------------
 
 eu <- as_tibble(cents_eukey)
-b_stats <- read_csv("data/stats/letters/letters_totbio-by-year.csv")
+
+b_stats <- 
+  read_csv("data/stats/figs_emmeans/emmeans-fig2-fallbio.csv") |> 
+  rename(letters = .group) |> 
+  mutate(year = parse_number(weayear))
+  
 d1 <- as_tibble(cents_fallbio)
 
 gdds <- 
@@ -66,7 +73,7 @@ d2a <-
   ),
   year = year(date2)) %>% 
   group_by(eu_id, year, dm_cat) %>% 
-  summarise(dm_gm2 = sum(dm_gm2))
+  summarise(Mg_ha = sum(dm_gm2)*0.01) #--unit conversion
   
 
 #--2019 had no volunteers, make new group
@@ -78,7 +85,8 @@ d2 <-
     (year == 2019 & dm_cat == "weed") ~ "weed and/or volunteer",
      TRUE ~ dm_cat)) %>% 
   group_by(eu_id, year, dm_cat2) %>% 
-  summarise(dm_gm2 = sum(dm_gm2))
+  summarise(Mg_ha = sum(Mg_ha))
+
 
 #--link to trts
 d3 <- 
@@ -98,38 +106,37 @@ d6 <-
          dm_cat2 = str_to_sentence(dm_cat2),
          dm_cat2 = fct_inorder(dm_cat2)) 
 
-#--group
+#--total Mg ha per treatment
 d7a <-
   d6 %>%  
   group_by(cctrt_id, till_id, year,
            cctrt_nice, till_nice) %>% 
-  summarise(dm_gm2 = mean(dm_gm2)) 
+  summarise(Mg_ha = mean(Mg_ha)) 
 
-#--keep dm cat
+#--Mg per category
 d7b <-
   d6 %>%  
   group_by(dm_cat2,
            cctrt_id, till_id, year,
            cctrt_nice, till_nice) %>% 
-  summarise(dm_gm2 = mean(dm_gm2)) 
+  summarise(Mg_ha = mean(Mg_ha)) 
 
-#--merge w stats
+#--merge w stats, total
+#--I think there is something wrong with these emmeans....
 d8a <- 
   d7a %>% 
-  left_join(b_stats, relationship = "many-to-many") %>% 
-  mutate(letters = as.character(.group),
-         letters = ifelse(year == 2019, str_to_lower(letters), letters))
+  left_join(b_stats, relationship = "many-to-many")
 
 d8b <- 
   d7b %>% 
   left_join(b_stats, relationship = "many-to-many")
   
 
-p1 <-
+#p1 <-
   ggplot() +
   geom_col_pattern(data = d8b, 
            aes(till_nice, 
-               dm_gm2*0.01,
+               Mg_ha,
                fill= dm_cat2,
                pattern = dm_cat2),
            pattern_fill = w_clr,
@@ -139,11 +146,11 @@ p1 <-
            color = "black") +
   geom_linerange(data = d8a, 
                 aes(x = till_nice, 
-                    ymin = conf.low*0.01,
-                    ymax = conf.high*0.01),
-                color = "white") +
+                    ymin = asymp.LCL,
+                    ymax = asymp.UCL),
+                color = "black") +
   geom_text(data = d8a, aes(x = till_nice, 
-                             y = estimate*0.01 + 0.5, 
+                             y = emmean + 0.5, 
                              label = letters),
             size = 2) +
   geom_text(data = gdds, aes(x = till_nice, 

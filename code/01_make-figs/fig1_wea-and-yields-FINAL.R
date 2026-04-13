@@ -100,24 +100,24 @@ p2
 
 LTprec <-
   w2 %>% 
-  select(cprecip) %>% 
+  dplyr::select(cprecip) %>% 
   distinct() %>% 
   pull()
 
 LTtemp <-
   t3 %>% 
-  select(meanT) %>% 
+  dplyr::select(meanT) %>% 
   distinct() %>% 
   pull()
 
 d3 <- 
   w2 %>% 
-  select(doy, year, cprecip, cprec_mm) %>% 
+  dplyr::select(doy, year, cprecip, cprec_mm) %>% 
   group_by(year) %>% 
   filter(cprec_mm == max(cprec_mm)) %>% 
   left_join(
     t3 %>% 
-      select(doy, year, meanT, avgte) %>% 
+      dplyr::select(doy, year, meanT, avgte) %>% 
       group_by(year, meanT) %>% 
       summarise(avgT = mean(avgte))
   ) %>% 
@@ -178,7 +178,7 @@ d <-
   left_join(
     yraw |> 
       left_join(cents_eukey) |> 
-      select(-date2)
+      dplyr::select(-date2)
   ) |> 
   distinct() |> 
   mutate(
@@ -205,8 +205,10 @@ d <-
   ggplot(aes(cctrt_nice, emmean)) +
   geom_hline(data = dk,
              aes(yintercept = yield), linetype = "dashed") +
-  geom_point(aes(cctrt_nice, yield_dry_Mgha,
-                 color = crop), 
+  geom_point(aes(cctrt_nice, 
+                 yield_dry_Mgha),
+                 #color = crop),
+             color = "gray",
              shape = 4, show.legend = F) +
   geom_point(aes(shape = crop, color = crop), show.legend = F, size = 5) +
   geom_linerange(aes(ymin = lower.CL,
@@ -238,8 +240,8 @@ p4 <-
   ggplot(aes(cctrt_nice, emmean)) +
   geom_hline(data = dk,
              aes(yintercept = yield), linetype = "dashed") +
-  geom_point(aes(cctrt_nice, yield_dry_Mgha,
-                 color = crop), 
+  geom_point(aes(cctrt_nice, yield_dry_Mgha), 
+             color = "gray",
              shape = 4, show.legend = F) +
   geom_linerange(aes(ymin = lower.CL,
                      ymax = upper.CL, 
@@ -267,6 +269,7 @@ p4 <-
         strip.background = element_rect(fill = "transparent"),
         axis.title.y = element_markdown())
 
+p4
 # put together ------------------------------------------------------------
 
 
