@@ -146,8 +146,8 @@ d8b <-
            color = "black") +
   geom_linerange(data = d8a, 
                 aes(x = till_nice, 
-                    ymin = asymp.LCL,
-                    ymax = asymp.UCL),
+                    ymin = emmean - SE,
+                    ymax = emmean + SE),
                 color = "black") +
   geom_text(data = d8a, aes(x = till_nice, 
                              y = emmean + 0.5, 
