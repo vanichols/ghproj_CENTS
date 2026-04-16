@@ -1,6 +1,7 @@
 #--do stats on number of species in communities
 #--created 9 oct 2025
 #--note that it is count data...
+#--started going through 16 april
 
 library(tidyverse)
 library(lme4)
@@ -22,26 +23,65 @@ d <-
   mutate(yearF = paste0("Y", year))
 
 
-m_p1 <- glmmTMB(nu_sp ~ yearF*till_id * straw_id * cctrt_id 
-                + (1 | block_id),
-                #ziformula = ~1,
-                family = poisson, 
-                data = d)
+# models ------------------------------------------------------------------
 
-m_p1
+m1 <- glmmTMB(nu_sp ~ till_id * cctrt_id * straw_id * yearF +
+          (1|block_id/straw_id/till_id/cctrt_id),
+        family=poisson(link = "log"), 
+        data = d)
 
-sim_resp1 <- simulateResiduals(m_p1)
-plot(sim_resp1)
+#--doesn't converge
+#--try using glmer from lme4
+m1a <- glmer(
+  nu_sp ~ till_id * cctrt_id * straw_id * yearF +
+    (1 | block_id / straw_id / till_id / cctrt_id),
+  data = d,
+  family = poisson(link = "log")
+)
 
-#--both negative binomials give similar answers
-#--freaking everything is significant
-Anova(m_p1)
+#--singular fit
+Anova(m1a)
 
-emmeans(m_p1, ~cctrt_id, type = "response")
-emmeans(m_p1, ~yearF, type = "response")
+#--simplify the random term
+m2 <- glmmTMB(nu_sp ~ till_id * cctrt_id * straw_id * yearF +
+                (1|block_id/straw_id/till_id),
+              family=poisson(link = "log"), 
+              data = d)
 
-emmeans(m_p1, pairwise~cctrt_id, type = "response")
 
-d %>% 
-  ggplot(aes(nu_sp)) +
-  geom_histogram(aes(fill = yearF), position = "dodge")
+Anova(m2)
+
+#--these don't look good
+sim_resp2 <- simulateResiduals(m2)
+plot(sim_resp2)
+
+#--oof this is just a very small piece, does it matter
+Anova(m2)
+
+
+m0 <- m2
+
+em1 <- emmeans(m2, ~cctrt_id)
+em1a <- emmeans(m2, ~cctrt_id, type = "response")
+em1a |> 
+  as_tibble() |> 
+  write_xlsx("data/stats/supp_tables/spnu-cc-estimates.xlsx")
+
+pairs(em1a) |> 
+  as_tibble() |> 
+  arrange(-ratio)
+
+est_list = list('radishes' = c(0, 0, 1, 1, 0),
+                'mixE' = c(1, 0, 0, 0, 0))
+
+# Now we call "contrasts", after back-transforming using regrid(), and feeding
+# in our list of estimates, while turning off the actual testing against zero
+# (we don't care about that p-value) and turn of the generation of confidence
+# intervals:
+pairs(contrast(regrid(em1), est_list, infer = c(T, F)))
+
+em1a
+
+emmeans(m2, ~yearF, type = "response") |> 
+  as_tibble() |> 
+  write_xlsx("data/stats/supp_tables/spnu-year-estimates.xlsx")
