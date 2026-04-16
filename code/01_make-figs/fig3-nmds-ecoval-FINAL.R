@@ -1,5 +1,6 @@
 #--nmds results
 #--creatd 1 sept 2025
+#--cleaned up 16 april 2026
 
 library(tidyverse)
 library(CENTSdata)
@@ -17,19 +18,20 @@ theme_set(theme_bw())
 # 1. nmds fig --------------------------------------------------------------------
 
 site_scores <- 
-  read_csv("data/stats/stats_nmds-site.csv") %>% 
+  read_csv("data/stats/figs_emmeans/nmds-fig3-sitescores.csv") %>% 
   MakeNiceLabels(.)
 
 site_scores18 <- site_scores %>% filter(year == 2018)
 site_scores19 <- site_scores %>% filter(year == 2019)
 
 spp_scores <- 
-  read_csv("data/stats/stats_nmds-spp.csv") %>% 
+  read_csv("data/stats/figs_emmeans/nmds-fig3-speciesscores.csv") |> 
   mutate(eppo_code = str_to_upper(eppo_code))
 
 site_hull <- 
-  read_csv("data/stats/stats_nmds-site-hulls.csv") %>% 
+  read_csv("data/stats/figs_emmeans/nmds-fig3-hulls.csv") %>% 
   MakeNiceLabels(.)
+
 site_hull18 <- site_hull %>% filter(year == 2018)
 site_hull19 <- site_hull %>% filter(year == 2019)
 

@@ -9,8 +9,8 @@
 #         soil cover
 # march 2026 simon fixed it
 # 9 april 2026, started cleaning up for publishing
-#-- simon - how to get 'raw' difference estimates? Do I have to use contrasts?
-#--simon - code for getting cld separated by, for example, year?
+#-- simon - huge error bar?
+
 
 library(CENTSdata)
 
@@ -58,6 +58,8 @@ d_cat <-
 # model on covercrop cover category-------------------------------------------------------------------
 
 #--run model on cover crop fraction
+#--there is one combination that has a zero and it makes the error bar weird
+#--is that something to be concerned about?
 m1 <- glmmTMB(cover_frac ~ till_id * cctrt_id * straw_id * weayear +
                    (1|block_id/straw_id/till_id/cctrt_id),
                  family=ordbeta(link = "logit"), 
@@ -86,24 +88,23 @@ anova(m1, m1zinfc)
 
 #--write final model anova table
 tidy(car::Anova(m1)) |> 
-  write_xlsx("data/stats/supp_tables/fallbio-anova.xlsx")
+  write_xlsx("data/stats/supp_tables/fallcover-cc-anova.xlsx")
   
 
 
 # emmeans cover crop-----------------------------------------------------------------
 
-#--SIMON
 #--so we have all these super complicated interactions
 #--is there a way to simplify it, and justify only looking at the most impactful ones?
 
-#--the nocc has a 0, so this huge error bar is to be expected, right?
+#--the nocc has a 0, so this huge error bar is to be expected
 #--patterns are the same across years except for MixE
-emmeans(m1, specs = ~ cctrt_id|weayear, type = "response") |> 
+emmeans(m1, specs = ~ till_id|cctrt_id|weayear, type = "response") |> 
   as_tibble() |> 
   ggplot(aes(reorder(cctrt_id, response), response, color = cctrt_id)) +
   geom_point() +
   geom_linerange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
-  facet_grid(.~weayear)
+  facet_grid(till_id~weayear)
 
 #--cc coverage from a trt depends on the weayear
 #--MixE and MixM were extremely variable

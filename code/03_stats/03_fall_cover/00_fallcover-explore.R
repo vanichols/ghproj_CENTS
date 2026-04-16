@@ -42,6 +42,14 @@ d_cat <-
   summarise(cover_pct = sum(cover_pct),
             cover_frac = sum(cover_frac)) 
 
+#--more nuanced categories (cc, soil, volunteer, weed)
+d_cat2 <-
+  d_sp %>% 
+  group_by(block_id, plot_id, subplot_id, till_id, straw_id, 
+           cctrt_id, subrep, weayear, cover_cat2) %>% 
+  summarise(cover_pct = sum(cover_pct),
+            cover_frac = sum(cover_frac)) 
+
 #--does it add to 100? Yes, I have the exp unit correctly defined
 d_cat.tst <-
   d_cat %>% 
@@ -106,13 +114,27 @@ d_cat %>%
   ggplot(aes(covercrop, soil)) +
   geom_point(aes(color = weayear))
 
-#--data summaries
-d_sp |> 
-  filter(cover_cat2 == "volunteer") |>
-  group_by(eu_id, date2) |> 
-  summarise(cover_pct = mean(cover_pct)) |> 
-  pull(cover_pct) |> 
-  summary()
+
+# data summaries ----------------------------------------------------------
+
+#--when just looking at vegetative cover, what is the makeup?
+
+d_rel <- 
+  d_cat2 |>
+  mutate(meta_cat = ifelse(cover_cat2 == "soil", "soil", "veg")) |> 
+  filter(meta_cat == "veg") |> 
+  distinct() |> 
+  group_by(weayear, subplot_id, subrep) |> 
+  mutate(veg_pct = sum(cover_pct)) |> 
+  ungroup() |> 
+  mutate(rel_pct = cover_pct/veg_pct*100)
+
+d_rel |> 
+  group_by(cover_cat2) |> 
+  summarise(min = min(rel_pct),
+            max = max(rel_pct),
+            mean = mean(rel_pct))
+
 
 d_sp |> 
   filter(cover_cat2 == "covercrop") |>

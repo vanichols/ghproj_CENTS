@@ -68,16 +68,125 @@ plot(m2_simres)
 
 #--write final model anova table
 tidy(car::Anova(m2)) |> 
-  write_xlsx("data/stats/supp_tables/fallcover-anova.xlsx")
+  write_xlsx("data/stats/supp_tables/fallcover-soilcover-anova.xlsx")
 
-
-# emmeans soilcover -----------------------------------------------------------------
+# sunburst chart ----------------------------------------------------------
 
 #--write the esimates averaged over years for the sunburst chart
 emmeans(m2, specs = ~ cctrt_id|till_id|straw_id, type = "response") |> 
   as_tibble() |> 
   mutate(perf_cat = "soil coverage") |> 
   write_csv("data/stats/figs_emmeans/starburst-emmeans-soilcover.csv")
+
+# emmeans soilcover -----------------------------------------------------------------
+
+#--the things to look at
+tidy(car::Anova(m2)) |> 
+  filter(p.value < 0.05)
+
+
+#--mostly cover crop and year, their interaction
+#--look at most sig diffs on absolute scale (3% change in soil cover not that interesting)
+
+
+#--weayear
+emmeans(m2, specs = ~ weayear, type = "response") |> 
+  as_tibble()
+
+emmeans(m2, specs = ~ weayear, type = "response") |> 
+  as_tibble() |>
+  write_xlsx("data/stats/supp_tables/fallcover-soilcover-wea-estimates.xlsx")
+
+
+# HELP --------------------------------------------------------------------
+
+#--I want to compare each cctrt x weayear combibnation to each other
+
+#--cctrt x weayear
+em1 <- 
+  emmeans(m2, specs = ~ weayear|cctrt_id, type = "response") 
+
+#--should be the same
+em1a <- 
+  emmeans(m2, specs = ~ cctrt_id|weayear, type = "response") 
+
+#--to get a feeling
+em2 <- 
+  emmeans(m2, specs = ~ cctrt_id, type = "response") 
+
+#--these letters make sense
+cld1 <- 
+  multcomp::cld(em1, by = 'weayear', Letters = letters) |> 
+  as_tibble() |> 
+  mutate(.group = ifelse(weayear == "dry-hot", str_to_upper(.group), .group),
+         .group = str_trim(.group)) 
+
+cld1 |> 
+  as_tibble() |> 
+  ggplot(aes(cctrt_id, response, color = cctrt_id)) +
+  geom_point() +
+  geom_linerange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  geom_text(aes(y = response - 0.2, label = .group)) +
+  scale_y_continuous(limits = c(0, 1)) +
+  facet_grid(.~weayear)
+
+#--I want letters for each cctrt x wea combination...
+#--this doesn't seem to work
+cld2 <- 
+  multcomp::cld(em1a, Letters = letters) |> 
+  as_tibble() |> 
+  mutate(.group = str_trim(.group)) 
+
+#--this doesn't make sense
+cld2 |> 
+  as_tibble() |> 
+  ggplot(aes(cctrt_id, response, color = cctrt_id)) +
+  geom_point() +
+  geom_linerange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  geom_text(aes(y = response - 0.2, label = .group)) +
+  scale_y_continuous(limits = c(0, 1)) +
+  facet_grid(.~weayear)
+
+
+#--moving on I guess
+pairs(em1)  
+pairs(em1a)  
+em1
+
+em2
+pairs(em2)
+
+pairs(em1) |> 
+  as_tibble() |> 
+  write_xlsx("data/stats/supp_tables/fallcover-soilcover-weacc-pairs.xlsx")
+
+pairs(em1a) |> 
+  as_tibble() |> 
+  write_xlsx("data/stats/supp_tables/fallcover-soilcover-ccwea-pairs.xlsx")
+
+
+#--dry hot year (2018), biggset diff was btwn mixE and mixM
+emmeans(m2, specs = ~ cctrt_id|weayear, type = "response") |> 
+  as_tibble() |> 
+  filter(weayear == "dry-hot")
+#--8% coverage diff
+0.82-0.74
+
+
+#--wet hot year (201), biggset diff was btwn mixE and nocc
+emmeans(m2, specs = ~ cctrt_id|weayear, type = "response") |> 
+  as_tibble() |> 
+  filter(weayear == "wet-hot")
+#--8% coverage diff
+0.84-0.61
+
+emmeans(m2, specs = ~ cctrt_id|weayear, type = "response") |> 
+  as_tibble() |> 
+  ggplot(aes(weayear, response, color = cctrt_id)) +
+  geom_point() +
+  geom_linerange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  scale_y_continuous(limits = c(0, 1)) +
+  facet_grid(.~cctrt_id)
 
 #--straw interactions with weayear, are they crossover or amplifying?
 #--RES: diff in one year, not the other
@@ -102,6 +211,8 @@ emmeans(m2, specs = ~ straw_id|weayear, type = "response") |>
   arrange(w1, p.value) |> 
   mutate(psimp = round(p.value, 3))
 
+
+
 #--this difference doesn't really match what I 'see', which is like 3%
 (emmeans(m2, specs = pairwise ~ straw_id:weayear))$contrasts |> 
   as_tibble() |> 
@@ -114,11 +225,12 @@ emmeans(m2, specs = ~ straw_id|weayear, type = "response") |>
   arrange(w1, p.value) |> 
   mutate(psimp = round(p.value, 3))
 
+#--look at raw values
 emmeans(m2, specs = ~ straw_id|weayear, type = "response") |> 
   as_tibble()
 
-#--so a difference of 3%, not meaningful, but the pairs says 13% change, meaning 13% of the value
-#--how can I get the raw difference?
+#--so a difference of 3%, not meaningful
+#--how can I get the raw difference? just math I guess
 
 
 #--nocc and radishes had much higher soil exposure in the wet/hot year

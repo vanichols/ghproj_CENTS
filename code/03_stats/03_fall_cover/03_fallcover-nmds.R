@@ -52,7 +52,9 @@ nmds_res18 <- metaMDS(mat_dat18,
                     expand = F, 
                     k = 3)
 
+#--stress of <0.2 is considered acceptable
 #--oh much better stress, but best solution isn't repeated in this year
+#--run a few times, does it change interpretation? No.
 nmds_res18$stress
 plot(nmds_res18)
 gof18 <- goodness(object = nmds_res18)
@@ -78,7 +80,7 @@ nmds_res19 <- metaMDS(mat_dat19,
                       autotransform = F, 
                       expand = F, 
                       k = 3)
-#--good convergence
+#--good convergence this year
 nmds_res19$stress
 plot(nmds_res19)
 gof19 <- goodness(object = nmds_res19)
@@ -113,11 +115,42 @@ dd18 <-
 #--everything is significnat, year most of all (3000x), then cc (500x), then straw (14), then till (7)
 
 #--separate by year
-adonis2(df_dat18 %>% select(-1) %>% as.matrix() ~ 
+aov18 <- 
+  adonis2(df_dat18 %>% select(-1) %>% as.matrix() ~ 
           cctrt_id + till_id + straw_id, data = (dd18),
         by = "margin"
 )
 
+df_dat19 <- 
+  y1 %>% 
+  filter(year == 2019) %>% 
+  select(eu, eppo_code, cover_pct) %>%
+  pivot_wider(names_from = eppo_code, values_from = cover_pct) %>% 
+  replace(is.na(.), 0)
+
+dd19 <- 
+  df_dat19 %>%
+  left_join(y1 %>% 
+              select(eu, eu_id, year, date2, subrep) %>% 
+              filter(year == 2019) %>% 
+              distinct()) %>% 
+  left_join(eu) %>% 
+  mutate_if(is.character, as.factor) 
+
+aov19 <- 
+  adonis2(df_dat19 %>% select(-1) %>% as.matrix() ~ 
+            cctrt_id + till_id + straw_id, data = (dd19),
+          by = "margin"
+  )
+
+tidy(aov18) |> 
+  mutate(year = "Y2018") |> 
+  bind_rows(
+    tidy(aov19) |> 
+      mutate(year = "Y2019")
+  ) |> 
+  select(year, everything()) |> 
+  write_xlsx("data/stats/supp_tables/fallcommunity-anova.xlsx")
 
 
 # get site scores, etc ----------------------------------------------------
@@ -145,7 +178,7 @@ site_scores19 <-
 
 site_scores18 %>%
   bind_rows(site_scores19) %>% 
-  write_csv("code/04_stats-fallcover/st_nmds-site.csv")
+  write_csv("data/stats/figs_emmeans/nmds-fig3-sitescores.csv")
 
 spp_scores18  <- 
   as.data.frame(scores(nmds_res18, "species")) %>%
@@ -159,7 +192,7 @@ spp_scores19  <-
 
 spp_scores18 %>%
   bind_rows(spp_scores19) %>% 
-  write_csv("code/04_stats-fallcover/st_nmds-spp.csv")
+  write_csv("data/stats/figs_emmeans/nmds-fig3-speciesscores.csv")
 
 # Makes polygons for site by treatment
 site_hull18 <- 
@@ -176,6 +209,5 @@ site_hull19 <-
 
 site_hull18 %>%
   bind_rows(site_hull19) %>% 
-  write_csv("code/04_stats-fallcover/st_nmds-site-hulls.csv")
-
+  write_csv("data/stats/figs_emmeans/nmds-fig3-hulls.csv")
 
