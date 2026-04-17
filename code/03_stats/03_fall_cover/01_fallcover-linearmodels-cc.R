@@ -9,7 +9,9 @@
 #         soil cover
 # march 2026 simon fixed it
 # 9 april 2026, started cleaning up for publishing
-#-- simon - huge error bar?
+#-- simon - huge error bar bc of zero values
+#--simon fixed it, shrunk everything slightly towards 0.5
+#--changes some comparisons, need to rewrite the manu
 
 
 library(CENTSdata)
@@ -86,8 +88,31 @@ plot(m1z_simres)
 anova(m1, m1zinfc)
 #--the extra complication is not worth it (AIC and BIC values are lower for simpler model)
 
+#--shrinkage
+#--do you want to do some averages over things, then that huge error bar will be a problem
+#--then you should use this shrinkage approach
+#--but otherwise, it is just how the data is, and it doesn't change interpretations, really (0 is 0)
+m2 <- glmmTMB(((cover_frac - 0.5)*.999 + 0.5) ~ till_id * cctrt_id * straw_id * weayear +
+                (1|block_id/straw_id/till_id/cctrt_id),
+              family=beta_family(link = "logit"), 
+              data=d_cat |> filter(cover_cat == "covercrop"))
+
+m2_simres <- simulateResiduals(m2)
+plot(m2_simres)
+
+
+emmeans(m2, specs = ~ till_id|cctrt_id|weayear, type = "response") |> 
+  as_tibble() |> 
+  ggplot(aes(reorder(cctrt_id, response), response, color = cctrt_id)) +
+  geom_point() +
+  geom_linerange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  facet_grid(till_id~weayear)
+
+
+m0 <- m2
+
 #--write final model anova table
-tidy(car::Anova(m1)) |> 
+tidy(car::Anova(m0)) |> 
   write_xlsx("data/stats/supp_tables/fallcover-cc-anova.xlsx")
   
 
@@ -99,7 +124,7 @@ tidy(car::Anova(m1)) |>
 
 #--the nocc has a 0, so this huge error bar is to be expected
 #--patterns are the same across years except for MixE
-emmeans(m1, specs = ~ till_id|cctrt_id|weayear, type = "response") |> 
+emmeans(m0, specs = ~ till_id|cctrt_id|weayear, type = "response") |> 
   as_tibble() |> 
   ggplot(aes(reorder(cctrt_id, response), response, color = cctrt_id)) +
   geom_point() +
@@ -113,7 +138,7 @@ emmeans(m1, specs = ~ till_id|cctrt_id|weayear, type = "response") |>
 #--radM was solid and high
 
 #--tillage? cctrt ranking stayed the same
-emmeans(m1, specs = ~ cctrt_id|till_id, type = "response") |> 
+emmeans(m0, specs = ~ cctrt_id|till_id, type = "response") |> 
   as_tibble() |> 
   ggplot(aes(reorder(cctrt_id, response), response, color = cctrt_id)) +
   geom_point() +
@@ -121,7 +146,7 @@ emmeans(m1, specs = ~ cctrt_id|till_id, type = "response") |>
   facet_grid(.~till_id)
 
 #--tillage? ranking stayed the same across weather years
-emmeans(m1, specs = ~ till_id|weayear, type = "response") |> 
+emmeans(m0, specs = ~ till_id|weayear, type = "response") |> 
   as_tibble() |> 
   ggplot(aes(reorder(till_id, response), response, color = till_id)) +
   geom_point() +
@@ -130,7 +155,7 @@ emmeans(m1, specs = ~ till_id|weayear, type = "response") |>
 
 #--cctrt comparisons within a weayear
 #--kind of overwhelming
-(emmeans(m1, specs = pairwise ~ cctrt_id:weayear))$contrasts |> 
+(emmeans(m0, specs = pairwise ~ cctrt_id:weayear))$contrasts |> 
   as_tibble() |> 
   separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
   separate(t1, into = c("cctrt1", "w1"), sep = " ") %>% 
@@ -140,8 +165,9 @@ emmeans(m1, specs = ~ till_id|weayear, type = "response") |>
   mutate(psimp = round(p.value, 3))
 
 #--within a cctrt
+#--SHIT IT CHANGES NEED TO UPDATE MANU
 #--yup no change in nocc, radL or radM, write it
-(emmeans(m1, specs = pairwise ~ cctrt_id:weayear))$contrasts |> 
+(emmeans(m0, specs = pairwise ~ cctrt_id:weayear))$contrasts |> 
   as_tibble() |> 
   separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
   separate(t1, into = c("cctrt1", "w1"), sep = " ") %>% 
@@ -151,7 +177,7 @@ emmeans(m1, specs = ~ till_id|weayear, type = "response") |>
   mutate(psimp = round(p.value, 3))
 
 #--write it, this is the story
-(emmeans(m1, specs = pairwise ~ cctrt_id:weayear))$contrasts |> 
+(emmeans(m0, specs = pairwise ~ cctrt_id:weayear))$contrasts |> 
   as_tibble() |> 
   separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
   separate(t1, into = c("cctrt1", "w1"), sep = " ") %>% 

@@ -223,24 +223,42 @@ d_type2tot |>
 sim_rest1 <- simulateResiduals(m1_t5)
 plot(sim_rest1)
 
-tidy(car::Anova(m1_t5)) |> 
-  write_xlsx("data/stats/anova/anova_spweeds.xlsx")
-
+#--we know it looks like crap, but as long as we undersatnd that, its ok
 #--is the dataset balanced??
 #--this might be the best we can do
 #--we are violating heteroscadascity 
 
+m0 <- m1_t5
+
+# starburst ---------------------------------------------------------------
+
+emm_perennials <- emmeans(m0, ~weed_type2:till_id:cctrt_id:straw_id, type = 'response', bias.adjust= T)
+
+starburst <- 
+  emm_perennials |> 
+  as_tibble() |> 
+  filter(weed_type2 == "P")
+
+#--is it the same? Yes.
+tidy(emm_perennials) |> 
+  filter(weed_type2 == "P")
+
+starburst |> 
+  write_xlsx("data/stats/figs_emmeans/starburst-emmeans-pweeds.csv")
+
+# emmeans -----------------------------------------------------------------
+
 #--let's do emmeans together!
 
 #--get estimates of total weeds and error bars with them
-emm_tot <- emmeans(m1_t5, ~weed_type2|till_id:cctrt_id:yearF, type = 'response', bias.adjust= T)
+emm_tot <- emmeans(m0, ~weed_type2|till_id:cctrt_id:yearF, type = 'response', bias.adjust= T)
 est_list = list('Total' = c(1, 1))
 res_tot <- 
   tidy(contrast(regrid(emm_tot, type = 'response', bias.adjust = T), est_list, infer = c(T, T))) |> 
   rename(weed_type2 = contrast)
 
 #--get estimates of perennial weeds and error bars with them
-emm_sep <- emmeans(m1_t5, ~weed_type2|till_id:cctrt_id:yearF, type = 'response', bias.adjust= T)
+emm_sep <- emmeans(m0, ~weed_type2|till_id:cctrt_id:yearF, type = 'response', bias.adjust= T)
 res_sep <- 
   tidy(emm_sep) |> 
   rename(estimate = response, null.value = null)
@@ -250,13 +268,13 @@ res <-
   bind_rows(res_sep)
 
 res |> 
-  write_csv("data/stats/emmeans/emmeans-spweedcounts.csv")
+  write_csv("data/stats/figs_emmeans/emmeans-fig4-spweedcounts.csv")
+
 
 res |> 
   ggplot(aes(till_id, estimate)) + 
   geom_point(aes(color = weed_type2)) +
   facet_grid(yearF ~ cctrt_id)
-
 
 res |> 
   ggplot(aes(till_id, estimate)) + 
@@ -264,10 +282,9 @@ res |>
   facet_grid(yearF ~ cctrt_id)
   
 
-#solved!!!
 # 2. model on total weeds-------------------------------------------------------------------
 
-#--data to use
+#--data we are using, no 0s?
 d_tot |> 
   group_by(yearF, straw_id, till_id, cctrt_id) |> 
   summarise(mn = mean(count_tot)) |> 
@@ -275,7 +292,7 @@ d_tot |>
 
 hist(d_tot$count_tot)
 
-#--full model, doesn't account for repeated measures
+#--full model, doesn't account for repeated measures?
 m2_t1 <- glmmTMB(count_tot ~ yearF * till_id * straw_id * cctrt_id
                 + (1 | block_id/straw_id/till_id/cctrt_id),
                 family = tweedie(),
@@ -309,6 +326,18 @@ m2_t2 <- glmmTMB(count_tot ~ yearF * till_id * straw_id * cctrt_id
 #--the fact that the model you chose depends on the criteria means its a wash
 AIC(m2_t1, m2_t2)
 compare_performance(m2_t1, m2_t2, metrics = c('AIC', 'BIC', 'AICc'))
+
+m0 <- m2_t2
+
+
+joint_tests(m0) |> 
+  as_tibble() |> 
+  write_xlsx("data/stats/supp_tables/spweedcounts-anova.xlsx")
+
+#--inference
+
+### STOPPED
+
 
 #--get values for figure
 res <- 

@@ -102,13 +102,28 @@ emmeans(m2, specs = ~ weayear, type = "response") |>
 
 #--I want to compare each cctrt x weayear combibnation to each other
 
+
 #--cctrt x weayear
-em1 <- 
+#--you use a *, that is how you get estimates across all of them
+em0 <- 
+  emmeans(m2, specs = ~ weayear*cctrt_id, type = "response") 
+
+
+#--cctrt x weayear
+em1a <- 
   emmeans(m2, specs = ~ weayear|cctrt_id, type = "response") 
 
 #--should be the same
-em1a <- 
+em1b <- 
   emmeans(m2, specs = ~ cctrt_id|weayear, type = "response") 
+
+cld1a <- multcomp::cld(em1a, Letters = LETTERS)  |> 
+  as.data.frame()
+(cld1b <- multcomp::cld(em1b, Letters = letters) |> 
+    as.data.frame() |> 
+    dplyr::select(weayear, cctrt_id, .group) |> 
+    rename(.group2 = .group))
+cld1 <- left_join(cld1a, cld1b)
 
 #--to get a feeling
 em2 <- 
