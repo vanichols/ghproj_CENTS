@@ -16,6 +16,8 @@ library(tidyverse)
 library(CENTSdata)
 library(writexl)
 
+library(ggbeeswarm)
+
 library(glmmTMB)
 # library(lme4)
 # library(lmerTest)
@@ -66,10 +68,6 @@ draw %>%
   summarise(ave = mean(count),
             var = sd(count)^2)
 
-draw |> 
-  ggplot(aes(subplot_id, count)) +
-  geom_col(aes(fill = weed_type)) +
-  facet_grid(yearF~subrep)
 
 #--average total count within a subrep
 draw |> 
@@ -359,7 +357,7 @@ tidy(emm_perennials) |>
   filter(weed_type2 == "P")
 
 starburst |> 
-  write_xlsx("data/stats/figs_emmeans/starburst-emmeans-pweeds.csv")
+  write_csv("data/stats/figs_emmeans/starburst-emmeans-pweeds.csv")
 
 
 # weeds for correlation ---------------------------------------------------

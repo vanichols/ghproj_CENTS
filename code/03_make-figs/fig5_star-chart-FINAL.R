@@ -29,12 +29,12 @@ d1 %>%
 d2 <- 
   d1 %>% 
   mutate(name_nice = case_when(
-    name == "fallvegvalue" ~ "Eco",
-    name == "fallbio" ~ "Bio",
-    name == "yield" ~ "Gra",
-    name == "minitox" ~ "Saf",
-    name == "perennweeds" ~ "Per",
-    name == "pctcov" ~ "Soi",
+    name == "fallvegvalue" ~ "Ecol",
+    name == "fallbio" ~ "Biom",
+    name == "yield" ~ "Grai",
+    name == "minitox" ~ "Safe",
+    name == "perennweeds" ~ "Weed",
+    name == "pctcov" ~ "Soil",
   ))
 
 
@@ -67,13 +67,23 @@ d5 <-
   left_join(d4)
 
 
+d_smy <- 
+  d5 |> 
+  select(cctrt_nice, till_nice, straw_nice, value_smy) |> 
+  distinct() |> 
+  mutate(value_smy = round(value_smy, 2))
+
 d5 %>% 
   ggplot(aes((str_wrap(name_nice, 5)), value)) +
   geom_col(aes(fill = value_smy),
            color = "black") +
+  geom_text(data = d_smy, 
+            aes(x = 0.5, y = -0.5, label = value_smy),
+           color = "black") +
   scale_fill_viridis_c() +
-  scale_y_continuous(limits = c(0, 1),
+  scale_y_continuous(limits = c(-.5, 1),
                      breaks = c(0, 0.25, 0.5, 0.75, 1)) +
+  scale_x_discrete(expand = c(0, 0)) +  # Remove x-axis padding
   facet_nested(cctrt_nice~till_nice + straw_nice,
                switch = "y", 
                strip = strip_nested(
@@ -83,7 +93,7 @@ d5 %>%
                  ),
                  text_y = element_text(size = rel(1.3))  # cctrt_nice (rows)
                )
-                 ) +
+  ) +
   coord_polar(clip = "off") +
   labs(x = NULL,
        y = NULL,
@@ -101,6 +111,4 @@ d5 %>%
                                           color = "white"),
         plot.margin=unit(c(1,1,1.5,1.2),"cm")) 
 
-
-ggsave("figs/fig5_total-value.png", height = 9, width = 9)
-
+ggsave("figs/fig5_total-value-donut.png", height = 10, width = 10)
