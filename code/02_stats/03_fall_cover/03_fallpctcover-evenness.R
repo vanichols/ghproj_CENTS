@@ -25,6 +25,7 @@ w <- cents_wea
 eu <- as_tibble(cents_eukey)
 y <- as_tibble(cents_fallpctcover)
 
+#--ohhh I'm treating each subrep separately. that's ok.
 y1 <- 
   y %>% 
   mutate(
@@ -68,6 +69,9 @@ d_res <-
   as_tibble() %>% 
   select(eu = rowname, shan, shan_hill, s, evenness)
 
+#--is evenness = 1 when s = 1?
+d_res |> 
+  filter(evenness == 1)
 
 # models -----------------------------------------------------------------
 

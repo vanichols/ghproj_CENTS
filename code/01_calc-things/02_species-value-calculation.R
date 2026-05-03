@@ -183,7 +183,7 @@ yvoz %>%
 yvoz %>% 
   filter(str_starts(eppo_code, "ave"))
 
-#--radish, rapsr, use it
+#--radish, rapra, use it
 d_rap <- 
   yvoz %>% 
   filter(str_starts(eppo_code, "rap")) %>% 
