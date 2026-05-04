@@ -159,6 +159,7 @@ em1 <-
   as_tibble()
   
 emmeans(m0, specs = ~ cctrt_id, type = "response") |> 
+  as_tibble() |> 
   write_xlsx("data/stats/supp_tables/fallcover-cc-cc-estimates.xlsx")
   
 #--weayear? cctrt ranking stayed the same more or less
