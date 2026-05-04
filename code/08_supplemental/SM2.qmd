@@ -8,17 +8,13 @@ output-file: 'suppmat-2-v1.docx'
 
 Notes and Outstanding Issues:
 
-1) The file "fallbio-year-estimates.xlsx" cannot be opened and appears to have been corrupted, but I also think that its probably redundant, and the contents is already present in "fallbio-letters.xlsx"
 
-2) I believe that many of the fall soil cover tables have been superseded, including all the Excel sheets starting with "fallcover-soilcover", but this should be confirmed.
+2) I believe that many of the fall soil cover tables have been superseded, including all the Excel sheets starting with "fallcover-soilcover", but this should be confirmed. THEY WERE RERAN, HOW DO THEY LOOK
 
-3) I believe that the "fallcommunity-anova.xlsx" file has been superseded by the "fallcommunity-anova-onemodel.xlsx" file.
 
-4) I don't find any reference to evenness in the manuscript - was this analysis included there at all, and if not, should it be included here?
+5) I believe the tables for the perennial weed counts have not been updated since changes were made to the analysis (the denominator degrees of freedom are not what they should be). MAY NEED TO CHECK THIS
 
-5) I believe the tables for the perennial weed counts have not been updated since changes were made to the analysis (the denominator degrees of freedom are not what they should be).
-
-6) The table numbering is incorrect, because some tables which I'm not sure what to do the chuck is "turned off", but apparently they still get a number even when the chunk is not evaluated during rendering. So those tables will eventually need to be "turned on" or deleted.
+6) The table numbering is incorrect, because some tables which I'm not sure what to do the chuck is "turned off", but apparently they still get a number even when the chunk is not evaluated during rendering. So those tables will eventually need to be "turned on" or deleted. TELL SIMON WHEN READY?
 
 ```{r}
 #| warning: false
@@ -97,15 +93,6 @@ read_xlsx(here(path, 'fallbio-anova.xlsx')) |>
   flextable() 
 ```
 
-```{r}
-#| eval: false
-#| label: tbl-fall_bio_emm
-#| tbl-cap: 'Estimated marginal mean fall biomass'
-
-read_xlsx(here(path, "fallbio-year-estimates.xlsx")) |> 
-  mutate() |> 
-  flextable() 
-```
 
 ```{r}
 #| label: tbl-fall_bio_cld
@@ -261,7 +248,7 @@ read_xlsx(here(path, 'spweedcounts-anova.xlsx')) |>
 #| label: tbl-spring_count_cctillyear_emms
 #| tbl-cap: 'Estimated marginal mean weed abundance for each combination of tillage treatment, cover crop, and year'
 
-read_xlsx(here(path, 'spnu-cctillyear-estimates.xlsx')) |>
+read_xlsx(here(path, 'spweedcounts-cctillyear-estimates.xlsx')) |>
   mutate(across(c(response, SE, asymp.LCL, asymp.UCL), ~round(., 1))) |>
   flextable() 
 ```
@@ -270,7 +257,7 @@ read_xlsx(here(path, 'spnu-cctillyear-estimates.xlsx')) |>
 #| label: tbl-spring_count_cctillyear_pairs
 #| tbl-cap: 'Pairwise comparisons of weed abundance between cover crop types for each combination of tillage treatment and year'
 
-read_xlsx(here(path, 'spnu-cctillyear-pairs.xlsx')) |>
+read_xlsx(here(path, 'spweedcounts-cctillyear-pairs.xlsx')) |>
   mutate(across(c(ratio, SE, z.ratio), ~round(., 2)), 
          p.value = pform(p.value)) |>
   dplyr::select(-null, -df) |> 
@@ -281,7 +268,7 @@ read_xlsx(here(path, 'spnu-cctillyear-pairs.xlsx')) |>
 #| label: tbl-spring_count_strawyear_pairs
 #| tbl-cap: 'Pairwise comparisons of weed abundance between straw treatments for each year'
 
-read_xlsx(here(path, 'spnu-strawyear-pairs.xlsx')) |>
+read_xlsx(here(path, 'spweedcounts-strawyear-pairs.xlsx')) |>
   mutate(across(c(ratio, SE, z.ratio), ~round(., 2)), 
          p.value = pform(p.value)) |>
   dplyr::select(-null, -df) |> 
@@ -311,7 +298,7 @@ read_xlsx(here(path, 'spnu-year-estimates.xlsx')) |>
 #| label: tbl-spring_perenn_richness_anova
 #| tbl-cap: 'Omnibus tests for factors affecting spring perennial weed species richness'
 
-read_xlsx(here(path, 'spnuPERENN-anova.xlsx')) |>
+read_xlsx(here(path, 'spweedcountsPERENN-anova.xlsx')) |>
   dplyr::select(`model term`, df1, df2, F.ratio, p.value) |> 
   mutate(F.ratio = round(F.ratio, 1), 
          p.value = pform(p.value)) |>
@@ -321,7 +308,7 @@ read_xlsx(here(path, 'spnuPERENN-anova.xlsx')) |>
 ```{r}
 #| label: tbl-spring_perenn_rich_till_emm
 #| tbl-cap: 'Estimated marginal mean perennial species richness for each tillage treatment'
-read_xlsx(here(path, 'spnuPERENN-till-estimates.xlsx')) |>
+read_xlsx(here(path, 'spweedcountsPERENN-till-estimates.xlsx')) |>
   mutate(across(c(response, SE, lower.CL, upper.CL), ~round(., 2))) |>
   dplyr::select(-weed_type2) |> 
   flextable() 
@@ -330,7 +317,7 @@ read_xlsx(here(path, 'spnuPERENN-till-estimates.xlsx')) |>
 ```{r}
 #| label: tbl-spring_perenn_rich_till_pairs
 #| tbl-cap: 'Pairwise comparisons of perennial species richness between tillage treatments for each combination of cover crop and straw treatment'
-read_xlsx(here(path, 'spnuPERENN-till-pairs.xlsx')) |>
+read_xlsx(here(path, 'spweedcountsPERENN-till-pairs.xlsx')) |>
   dplyr::select(-weed_type2) |> 
   mutate(across(c(estimate, SE, t.ratio), ~round(., 2)), 
          p.value = pform(p.value)) |>
@@ -341,7 +328,7 @@ read_xlsx(here(path, 'spnuPERENN-till-pairs.xlsx')) |>
 ```{r}
 #| label: tbl-spring_perenn_rich_cc_pairs
 #| tbl-cap: 'Pairwise comparisons of perennial species richness between cover crops for each combination of tillage and straw treatment'
-read_xlsx(here(path, 'spnuPERENN-cc-pairs.xlsx')) |>
+read_xlsx(here(path, 'spweedcountsPERENN-cc-pairs.xlsx')) |>
   dplyr::select(-weed_type2, -p.val_highlight) |> 
   mutate(across(c(estimate, SE, t.ratio), ~round(., 2)), 
          p.value = pform(p.value)) |>

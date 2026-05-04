@@ -79,15 +79,29 @@ d6 <-
   arrange(sys_nice)
 
 d6 %>% 
-  ggplot(aes(sys_nice, rank, color = cctrt_nice, group = cctrt_nice)) +
-  geom_line(size = 2) +
-  geom_point(size = 6) +
+  ggplot(aes(sys_nice, rank, group = cctrt_nice)) +
+  geom_line(size = 2, aes(color = cctrt_nice)) +
+  geom_point(size = 6, aes(shape = cctrt_nice, fill = cctrt_nice, color = cctrt_nice)) +
   scale_y_reverse() +
-  guides(col = guide_legend(reverse = TRUE)) +
+  guides(
+    color = guide_legend(reverse = TRUE, override.aes = list(size = 1)),
+    fill = guide_legend(reverse = TRUE),
+    shape = guide_legend(reverse = TRUE, override.aes = list(size = 4))) +
+  guides(
+    linetype = guide_legend(reverse = TRUE, override.aes = list(size = 1))) +
   labs(x = NULL,
        y = "Rank",
-       color = "Cover crop system") +
+       color = "Cover crop system",
+       shape = "Cover crop system",
+       fill = "Cover crop system") +
+  scale_shape_manual(values = c(21, 22, 23, 24, 25)) +
   scale_color_manual(values = c( 
+    "NoCC" = hue_nocc,
+    "MixE" = hue_mixe,
+    "MixM" = hue_mixm,
+    "RadM" = hue_radm,
+    "RadL" = hue_radl)) +
+  scale_fill_manual(values = c( 
     "NoCC" = hue_nocc,
     "MixE" = hue_mixe,
     "MixM" = hue_mixm,
@@ -101,4 +115,4 @@ d6 %>%
         legend.position = "right",
         legend.title.position = "top") 
 
-ggsave("figs/fig6_ranking-bump-chart.png", height = 4, width = 8)
+ggsave("figs/fig6_ranking-bump-chart.png", height = 4, width = 7.5)

@@ -231,7 +231,7 @@ emmeans(m0, specs = ~ straw_id|yearF, type = "response") |>
 
 pairs(emmeans(m0, specs = ~ straw_id|yearF, type = "response")) |> 
   as_tibble() |> 
-  write_xlsx("data/stats/supp_tables/spnu-strawyear-pairs.xlsx")
+  write_xlsx("data/stats/supp_tables/spweedcounts-strawyear-pairs.xlsx")
   
 
 
@@ -245,13 +245,13 @@ emmeans(m0, specs = ~ till_id|cctrt_id|yearF, type = "response") |>
 #--till x cctrt x year
 emmeans(m0, specs = ~ till_id|cctrt_id|yearF, type = "response") |> 
   as_tibble() |> 
-  write_xlsx("data/stats/supp_tables/spnu-cctillyear-estimates.xlsx")
+  write_xlsx("data/stats/supp_tables/spweedcounts-cctillyear-estimates.xlsx")
   
 
 pairs(emmeans(m0, specs = ~ cctrt_id|till_id|yearF, type = "response")) |> 
   as_tibble() |> 
   filter(till_id == "notill") |> 
-  write_xlsx("data/stats/supp_tables/spnu-cctillyear-pairs.xlsx")
+  write_xlsx("data/stats/supp_tables/spweedcounts-cctillyear-pairs.xlsx")
 
 pairs(emmeans(m0, specs = ~ cctrt_id|till_id|yearF, type = "response")) |> 
   as_tibble() |> 
@@ -372,7 +372,7 @@ emm_all |>
 
 joint_tests(m0p) |> 
   mutate(p.value_highlight = ifelse(p.value < 0.05, "SIG", " ")) |> 
-  write_xlsx("data/stats/supp_tables/spnuPERENN-anova.xlsx")
+  write_xlsx("data/stats/supp_tables/spweedcountsPERENN-anova.xlsx")
 
 #--year straw weedtype
 emmeans(m0p, ~straw_id|yearF:weed_type2, 
@@ -398,7 +398,7 @@ pairs(emmeans(m0p, ~till_id|weed_type2, type = 'response', bias.adjust= T)) |>
 emmeans(m0p, ~till_id|weed_type2, type = 'response', bias.adjust= T) |> 
   as_tibble() |> 
   filter(weed_type2 == "P") |> 
-  write_xlsx("data/stats/supp_tables/spnuPERENN-till-estimates.xlsx")
+  write_xlsx("data/stats/supp_tables/spweedcountsPERENN-till-estimates.xlsx")
 
 #--compare tillages in each cctrt/straw
 pairs(emmeans(m0p, ~till_id|weed_type2:cctrt_id:straw_id, type = 'response', bias.adjust= T)) |> 
@@ -411,13 +411,13 @@ pairs(emmeans(m0p, ~till_id|weed_type2:cctrt_id:straw_id, type = 'response', bia
 pairs(emmeans(m0p, ~till_id|weed_type2:cctrt_id:straw_id, type = 'response', bias.adjust= T)) |> 
   as_tibble() |> 
   filter(weed_type2 == "P") |> 
-  write_xlsx("data/stats/supp_tables/spnuPERENN-till-pairs.xlsx")
+  write_xlsx("data/stats/supp_tables/spweedcountsPERENN-till-pairs.xlsx")
 
 pairs(emmeans(m0p, ~cctrt_id|weed_type2:till_id:straw_id, type = 'response', bias.adjust= T)) |> 
   as_tibble() |> 
   filter(weed_type2 == "P")  |> 
   mutate(p.val_highlight = ifelse(p.value < 0.05, "SIG", " ")) |> 
-  write_xlsx("data/stats/supp_tables/spnuPERENN-cc-pairs.xlsx")
+  write_xlsx("data/stats/supp_tables/spweedcountsPERENN-cc-pairs.xlsx")
 
 
 #--averaged over NT and surface treatments
