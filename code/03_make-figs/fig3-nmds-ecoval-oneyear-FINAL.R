@@ -139,9 +139,9 @@ p2 <-
     "RadM" = hue_radm,
     "RadL" = hue_radl)) +
   guides(fill = "none") +
-  labs(alpha = "Tillage system",
+  labs(alpha = "Tillage treatment",
        y = "Potential ecosystem value\n(unitless)",
-       x = "Cover crop") +
+       x = "Cover crop treatment") +
   theme(legend.direction  = "horizontal",
         legend.position = "top",
         legend.background = element_rect(color = "black"),
