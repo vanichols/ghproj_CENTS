@@ -108,7 +108,7 @@ read_xlsx(here(path, "fallbio-letters.xlsx")) |>
 
 ```{r}
 #| label: tbl-fall_cover_cc_anova
-#| tbl-cap: 'Omnibus tests of factors affecting fall soil cover'
+#| tbl-cap: 'Omnibus tests of factors affecting fall cover crop coverage'
 
 read_xlsx(here(path, 'fallcover-cc-anova.xlsx')) |> 
   mutate(Chisq = round(Chisq, 1), 
@@ -121,7 +121,7 @@ read_xlsx(here(path, 'fallcover-cc-anova.xlsx')) |>
 
 ```{r}
 #| label: tbl-fall_cover_cc_emms
-#| tbl-cap: 'Estimated marginal mean fall soil cover for each cover crop'
+#| tbl-cap: 'Estimated marginal mean fall cover crop coverage for each cover crop'
 read_xlsx(here(path, 'fallcover-cc-cc-estimates.xlsx')) |> 
   mutate(across(c(response, SE, asymp.LCL, asymp.UCL), ~ round(., 3))) |> 
   flextable() 
@@ -129,7 +129,7 @@ read_xlsx(here(path, 'fallcover-cc-cc-estimates.xlsx')) |>
 
 ```{r}
 #| label: tbl-fall_cover_ccwea_pairs
-#| tbl-cap: 'Pairwise comparisons between years of fall soil cover for each cover crop'
+#| tbl-cap: 'Pairwise comparisons between years of fall cover crop coverage for each cover crop'
 
 # The way these comparisons were performed was statistically very inefficient
 # and I suggest we revise lines 191-198 in 01_fallcover-linearmodels-cc.R
@@ -143,11 +143,8 @@ read_xlsx(here(path, 'fallcover-cc-ccwea-pairs.xlsx')) |>
 ```
 
 ```{r}
-#| label: tbl-fall_cover_anova_old
+#| label: tbl-fall_cover_soil_anova
 #| tbl-cap: 'Omnibus tests of factors affecting fall soil cover'
-#| eval: false
-# I'm fairly certain that this table has beeen superceded and should
-# not be included in the supplemental materials.
 read_xlsx(here(path, 'fallcover-soilcover-anova.xlsx')) |> 
   mutate(statistic = round(statistic, 1), 
          p.value = pform(p.value)) |> 
@@ -156,22 +153,16 @@ read_xlsx(here(path, 'fallcover-soilcover-anova.xlsx')) |>
 ```
 
 ```{r}
-#| label: tbl-fall_cover_till_emms_old
+#| label: tbl-fall_cover_soil_cctill
 #| tbl-cap: 'Estimated marginal mean fall soil cover for combinations of cover crop and tillage treatment'
-#| eval: false
-# I'm fairly certain that this table has beeen superceded and should
-# not be included in the supplemental materials.
 read_xlsx(here(path, 'fallcover-soilcover-cctill-estimates.xlsx')) |> 
   mutate(across(c(response, SE, asymp.LCL, asymp.UCL), ~ round(., 3))) |> 
   flextable() 
 ```
 
 ```{r}
-#| label: tbl-fall_cover_till_pairs_old
+#| label: tbl-fall_cover_soil_cctill_pairs
 #| tbl-cap: 'Pairwise comparisons between tillage treatments of fall soil cover for each cover crop treatment'
-#| eval: false
-# I'm fairly certain that this table has beeen superceded and should
-# not be included in the supplemental materials.
 read_xlsx(here(path, 'fallcover-soilcover-cctill-pairs.xlsx')) |> 
   mutate(across(c(odds.ratio, SE, z.ratio), ~ round(., 2)), 
          p.value = pform(p.value)) |> 
@@ -180,39 +171,10 @@ read_xlsx(here(path, 'fallcover-soilcover-cctill-pairs.xlsx')) |>
 ```
 
 ```{r}
-#| label: tbl-fall_cover_year_emms_old
+#| label: tbl-fall_cover_soil_year
 #| tbl-cap: 'Estimated marginal mean fall soil cover for each year'
-#| eval: false
-# I'm fairly certain that this table has beeen superceded and should
-# not be included in the supplemental materials.
 read_xlsx(here(path, 'fallcover-soilcover-wea-estimates.xlsx')) |> 
   mutate(across(c(response, SE, asymp.LCL, asymp.UCL), ~ round(., 3))) |> 
-  flextable() 
-```
-
-```{r}
-#| label: tbl-fall_cover_yearcc_pairs
-#| tbl-cap: 'Pairwise comparisons between years of fall soil cover for each cover crop treatment'
-#| eval: false
-# I'm fairly certain that this table has beeen superceded and should
-# not be included in the supplemental materials.
-read_xlsx(here(path, 'fallcover-soilcover-weacc-pairs.xlsx')) |> 
-  mutate(across(c(odds.ratio, SE, z.ratio), ~ round(., 2)), 
-         p.value = pform(p.value)) |> 
-  dplyr::select(-null) |> 
-  flextable() 
-```
-
-```{r}
-#| label: tbl-fall_cover_ccyear_pairs_old
-#| tbl-cap: 'Pairwise comparisons between cover crops of fall soil cover for each year'
-#| eval: false
-# I'm fairly certain that this table has beeen superceded and should
-# not be included in the supplemental materials.
-read_xlsx(here(path, 'fallcover-soilcover-ccwea-pairs.xlsx')) |> 
-  mutate(across(c(odds.ratio, SE, z.ratio), ~ round(., 2)), 
-         p.value = pform(p.value)) |> 
-  dplyr::select(-null) |> 
   flextable() 
 ```
 
@@ -229,7 +191,24 @@ read_xlsx(here(path, 'fallcommunity-anova-onemodel.xlsx')) |>
   flextable() 
 ```
 
+# Fall number of species
 
+```{r}
+#| label: tbl-number-species_year
+#| tbl-cap: 'Estimated marginal mean number of species for each year'
+read_xlsx(here(path, 'spnu-year-estimates.xlsx')) |> 
+  mutate(across(c(rate, SE, asymp.LCL, asymp.UCL), ~ round(., 3))) |> 
+  flextable() 
+```
+
+
+```{r}
+#| label: tbl-number-species_cc
+#| tbl-cap: 'Estimated marginal mean number of species for each cover crop treatment'
+read_xlsx(here(path, 'spnu-cc-estimates.xlsx')) |> 
+  mutate(across(c(rate, SE, asymp.LCL, asymp.UCL), ~ round(., 3))) |> 
+  flextable() 
+```
 # Spring Weed Abundance
 
 ```{r}
@@ -275,24 +254,8 @@ read_xlsx(here(path, 'spweedcounts-strawyear-pairs.xlsx')) |>
   flextable() 
 ```
 
-# Spring Species Richness
+# Spring Perennial Weed Abundance
 
-```{r}
-#| label: tbl-spring_rich_cc_ests
-#| tbl-cap: 'Estimated marginal mean total species richness for each cover crop type'
-
-read_xlsx(here(path, 'spnu-cc-estimates.xlsx')) |>
-  mutate(across(c(rate, SE, asymp.LCL, asymp.UCL), ~round(., 2))) |>
-  flextable() 
-```
-
-```{r}
-#| label: tbl-spring_rich_year_emm
-#| tbl-cap: 'Estimated marginal mean total species richness for each year'
-read_xlsx(here(path, 'spnu-year-estimates.xlsx')) |>
-  mutate(across(c(rate, SE, asymp.LCL, asymp.UCL), ~round(., 2))) |>
-  flextable() 
-```
 
 ```{r}
 #| label: tbl-spring_perenn_richness_anova
@@ -306,7 +269,7 @@ read_xlsx(here(path, 'spweedcountsPERENN-anova.xlsx')) |>
 ```
 
 ```{r}
-#| label: tbl-spring_perenn_rich_till_emm
+#| label: tbl-spring_perenn_till_emm
 #| tbl-cap: 'Estimated marginal mean perennial species richness for each tillage treatment'
 read_xlsx(here(path, 'spweedcountsPERENN-till-estimates.xlsx')) |>
   mutate(across(c(response, SE, lower.CL, upper.CL), ~round(., 2))) |>
@@ -315,7 +278,7 @@ read_xlsx(here(path, 'spweedcountsPERENN-till-estimates.xlsx')) |>
 ```
 
 ```{r}
-#| label: tbl-spring_perenn_rich_till_pairs
+#| label: tbl-spring_perenn_till_pairs
 #| tbl-cap: 'Pairwise comparisons of perennial species richness between tillage treatments for each combination of cover crop and straw treatment'
 read_xlsx(here(path, 'spweedcountsPERENN-till-pairs.xlsx')) |>
   dplyr::select(-weed_type2) |> 
@@ -326,7 +289,7 @@ read_xlsx(here(path, 'spweedcountsPERENN-till-pairs.xlsx')) |>
 
 
 ```{r}
-#| label: tbl-spring_perenn_rich_cc_pairs
+#| label: tbl-spring_perenn_cc_pairs
 #| tbl-cap: 'Pairwise comparisons of perennial species richness between cover crops for each combination of tillage and straw treatment'
 read_xlsx(here(path, 'spweedcountsPERENN-cc-pairs.xlsx')) |>
   dplyr::select(-weed_type2, -p.val_highlight) |> 
