@@ -6,15 +6,6 @@ format:
 output-file: 'suppmat-2-v1.docx'
 ---
 
-Notes and Outstanding Issues:
-
-
-2) I believe that many of the fall soil cover tables have been superseded, including all the Excel sheets starting with "fallcover-soilcover", but this should be confirmed. THEY WERE RERAN, HOW DO THEY LOOK
-
-
-5) I believe the tables for the perennial weed counts have not been updated since changes were made to the analysis (the denominator degrees of freedom are not what they should be). MAY NEED TO CHECK THIS
-
-6) The table numbering is incorrect, because some tables which I'm not sure what to do the chuck is "turned off", but apparently they still get a number even when the chunk is not evaluated during rendering. So those tables will eventually need to be "turned on" or deleted. TELL SIMON WHEN READY?
 
 ```{r}
 #| warning: false

@@ -187,16 +187,26 @@ emmeans(m0, specs = ~ till_id|weayear, type = "response") |>
   facet_grid(.~weayear)
 
 #--cctrt comparisons within a weayear
-#--kind of overwhelming
-(emmeans(m0, specs = pairwise ~ cctrt_id:weayear))$contrasts |> 
+#--kind of overwhelming, and its wrong
+# (emmeans(m0, specs = pairwise ~ cctrt_id:weayear))$contrasts |> 
+#   as_tibble() |> 
+#   separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
+#   separate(t1, into = c("cctrt1", "w1"), sep = " ") %>% 
+#   separate(t2, into = c("cctrt2", "w2"), sep = " ") |> 
+#   filter(cctrt1 == cctrt2) |> 
+#   arrange(w1, p.value) |> 
+#   mutate(psimp = round(p.value, 3)) |> 
+#   write_xlsx("data/stats/supp_tables/fallcover-cc-ccwea-pairs.xlsx")
+
+#--using the : means you are making every comparison imaginable
+#--use the | to do comparisons within a grouping
+#--cctrt_id|weayear means comparing cctrts within each year
+#--this way you don't lose power by doing comparions you don't care about!
+(emmeans(m0, specs = pairwise ~ cctrt_id|weayear))$contrasts |> 
   as_tibble() |> 
-  separate(contrast, into = c("t1", "t2"), sep = " - ") %>% 
-  separate(t1, into = c("cctrt1", "w1"), sep = " ") %>% 
-  separate(t2, into = c("cctrt2", "w2"), sep = " ") |> 
-  filter(cctrt1 == cctrt2) |> 
-  arrange(w1, p.value) |> 
   mutate(psimp = round(p.value, 3)) |> 
   write_xlsx("data/stats/supp_tables/fallcover-cc-ccwea-pairs.xlsx")
+
 
 #--within a cctrt
 #--sig change in mixes

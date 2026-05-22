@@ -330,6 +330,13 @@ m1_t5 <- glmmTMB(log(count2+1) ~ yearF * till_id * straw_id * cctrt_id * weed_ty
                  #dispformula = ~weed_type2:till_id,
                  data = d_type2tot)
 
+#--using glmmms when you have a gaussian is maybe not so appropriate. 
+#--bc it is simplifying something that doesn't need to be simplified, and probably SHOULDN'T be
+#--it can lead to much higher df2s than are real, which can make main effects look sig when maybe they shouldn't be
+m1_t5 <- lme4::lmer(log(count2+1) ~ yearF * till_id * straw_id * cctrt_id * weed_type2
+                 + (1 | block_id/straw_id/till_id/cctrt_id/weed_type2) ,
+                 data = d_type2tot)
+
 d_type2tot |> 
   filter(till_id == "surface", weed_type2 == "P")
 
