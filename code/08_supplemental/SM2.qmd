@@ -3,9 +3,9 @@ title: "Supplemental Materials II"
 format: 
   docx: 
     reference-doc: doc_style_reference.docx
-output-file: 'suppmat-2-v1.docx'
+title-block-style: none
+output-file: 'suppmat-2.docx'
 ---
-
 
 ```{r}
 #| warning: false
@@ -21,7 +21,7 @@ library(flextable)
 opts_chunk$set(fig.align = 'center', echo = F)
 
 set_flextable_defaults(
-  post_process_docx = function(ft) flextable::fit_to_width(autofit(ft), 7.25)  # scales down if too wide
+  post_process_docx = function(ft) flextable::fit_to_width(autofit(ft), 7)  # scales down if too wide
 )
 
 path = 'data/stats/supp_tables'
@@ -122,14 +122,11 @@ read_xlsx(here(path, 'fallcover-cc-cc-estimates.xlsx')) |>
 #| label: tbl-fall_cover_ccwea_pairs
 #| tbl-cap: 'Pairwise comparisons between years of fall cover crop coverage for each cover crop'
 
-# The way these comparisons were performed was statistically very inefficient
-# and I suggest we revise lines 191-198 in 01_fallcover-linearmodels-cc.R
 read_xlsx(here(path, 'fallcover-cc-ccwea-pairs.xlsx')) |> 
-  rename(log.odds.ratio = estimate, cctrt = cctrt1) |> 
-  mutate(contrast = paste0(w1, ' - ', w2),
-         across(c(log.odds.ratio, SE, z.ratio), ~ round(., 2)), 
+  rename(log.odds.ratio = estimate) |> 
+  mutate(across(c(log.odds.ratio, SE, z.ratio), ~ round(., 2)), 
          p.value = pform(p.value)) |>
-  dplyr::select(contrast, cctrt, log.odds.ratio, SE, z.ratio, p.value) |> 
+  dplyr::select(contrast, log.odds.ratio, SE, z.ratio, p.value) |> 
   flextable() 
 ```
 
@@ -200,6 +197,7 @@ read_xlsx(here(path, 'spnu-cc-estimates.xlsx')) |>
   mutate(across(c(rate, SE, asymp.LCL, asymp.UCL), ~ round(., 3))) |> 
   flextable() 
 ```
+
 # Spring Weed Abundance
 
 ```{r}
