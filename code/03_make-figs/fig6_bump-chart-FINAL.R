@@ -116,3 +116,47 @@ d6 %>%
         legend.title.position = "top") 
 
 ggsave("figs/fig6_ranking-bump-chart.png", height = 4, width = 7.5)
+
+
+
+# value instead of rank ---------------------------------------------------
+
+d6 %>% 
+  ggplot(aes(sys_nice, value_smy, group = cctrt_nice)) +
+  geom_line(size = 2, aes(color = cctrt_nice)) +
+  geom_point(size = 6, aes(shape = cctrt_nice, fill = cctrt_nice, color = cctrt_nice)) +
+  #scale_y_reverse() +
+  #scale_y_continuous(limits = c(0, 1)) +
+  guides(
+    color = guide_legend(reverse = TRUE, override.aes = list(size = 1)),
+    fill = guide_legend(reverse = TRUE),
+    shape = guide_legend(reverse = TRUE, override.aes = list(size = 4))) +
+  guides(
+    linetype = guide_legend(reverse = TRUE, override.aes = list(size = 1))) +
+  labs(x = NULL,
+       y = "Relative value (0-1)",
+       color = "Cover crop system",
+       shape = "Cover crop system",
+       fill = "Cover crop system") +
+  scale_shape_manual(values = c(21, 22, 23, 24, 25)) +
+  scale_color_manual(values = c( 
+    "NoCC" = hue_nocc,
+    "MixE" = hue_mixe,
+    "MixM" = hue_mixm,
+    "RadM" = hue_radm,
+    "RadL" = hue_radl)) +
+  scale_fill_manual(values = c( 
+    "NoCC" = hue_nocc,
+    "MixE" = hue_mixe,
+    "MixM" = hue_mixm,
+    "RadM" = hue_radm,
+    "RadL" = hue_radl)) +
+  theme_bw() +
+  theme(axis.ticks = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        panel.border = element_blank(),
+        legend.position = "right",
+        legend.title.position = "top") 
+
+ggsave("figs/fig6_rawvalue-bump-chart.png", height = 4, width = 7.5)
