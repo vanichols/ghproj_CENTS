@@ -1,258 +1,261 @@
-#--calc one value for each system using mult farmer typologies
-#--created 2 aug 2025
-#--keep it separate by years? Then what to do with the faba bean yields?
-#--no, average over years, then scale? What about blocks? Average over those too?
-#--stopped without resolving the averaging question...
+#--create data to make star chart
+#--created 31 oct 2025
+#--average over years etc., then scale as last step
+#--6 criteria currently
+#--27 jan 2026 - reran with new PLI values using updated faba bean value and Agil matching - didn't really check
+#--22 april 2026 - update to use emmeans when applicable
 
 library(tidyverse)
 library(CENTSdata)
 library(readxl)
-library(ggh4x)
 
 rm(list = ls())
 
-# 0. typology weights -----------------------------------------------------
-
-d0 <- 
-  read_excel("data/byhand_typology-weights.xlsx", skip = 5) %>% 
-  pivot_longer(grain:pli) %>% 
-  rename(weight = value)
 
 # 1. species ecovalue GOOD--------------------------------------------------------------
 
 d1a <- 
-  read_csv("data/tidy_spvalue.csv")
+  read_csv("data/tidy_communityvalue.csv")
 
-d1a %>% 
-  ggplot(aes(x = reorder(eppo_code, pot_value), 
-             y = pot_value)) +
-  geom_point(aes(size = pot_value), color = "green3") +
-  geom_text(aes(label = round(pot_value, 1), size = pot_value), color = "black") +
-  coord_flip()
+#--scale from 0-1, with 1 being maximum value observed and 0 being 0
+d1b <- 
+  d1a %>% 
+  mutate(potval_sc = potval/max(potval))
 
-d1c <- 
-  d1a  %>% 
-  select(eppo_code, fall_ecovalue = pot_value)
-
-#--weight pct cover by ecovalue
-
-d1d <- 
-  cents_fallpctcover %>% 
-  mutate(year = year(date2)) %>% 
-  group_by(eu_id, year, eppo_code) %>% 
-  summarise(cover_pct = mean(cover_pct)) %>% 
-  left_join(d1c) %>% 
-  group_by(eu_id, year) %>% 
-  mutate(fall_ecovalue = cover_pct/100 * fall_ecovalue)
-
-#--sum all plant values within an eu and year
-d1c <- 
-  d1d %>% 
-  group_by(eu_id, year) %>%
-  summarise(fall_ecovalue = sum(fall_ecovalue))
-
-d1c %>% 
-  ggplot(aes(fall_ecovalue)) +
+#--we have a range from 0-1, good
+d1b %>% 
+  ggplot(aes(potval_sc)) +
   geom_histogram()
 
-#--average over years, don't scale yet
+#--full dataset
+d1c <- 
+  d1b %>% 
+  left_join(cents_eukey)
+
+#--mean value for each cc, till, straw
 d1d <- 
-  d1c %>%
-  group_by(eu_id) %>% 
-  summarise(fall_ecovalue = mean(fall_ecovalue)) 
+  d1c %>% 
+  group_by(cctrt_id, till_id, straw_id) %>% 
+  summarise(potval = mean(potval))
 
 d1d %>% 
-  ggplot(aes(fall_ecovalue)) +
+  ggplot(aes(potval))+
   geom_histogram()
 
-d1 <- 
+#--now scale
+d1e <- 
   d1d %>% 
-  select(eu_id, fall_ecovalue)
+  ungroup() %>% 
+  mutate(potval_sc = potval/max(potval))
+
+d1e %>% 
+  ggplot(aes(potval_sc))+
+  geom_histogram()
+
+
+d1 <- 
+  d1e %>% 
+  mutate(criteria = "fallvegvalue") %>% 
+  select(-potval, value = potval_sc)
 
 # 2. biomass GOOD-----------------------------------------
 
-#--sum within an eu (across subsamples), each year
-d2a <- 
-  cents_fallbio %>% 
-  left_join(cents_eukey) %>% 
-  mutate(year = year(date2)) %>% 
-  group_by(eu_id, year) %>% 
-  summarise(dm_gm2 = sum(dm_gm2, na.rm = T)) 
+#--get total biomass per eu in each year
+d2a <- read_csv("data/stats/figs_emmeans/starburst-emmeans-fallbio.csv")
 
-#--average over years
+#--simplify dataset
 d2b <- 
   d2a %>% 
-  group_by(eu_id) %>% 
-  summarise(fall_bio = mean(dm_gm2))
+  select(cctrt_id, 
+         till_id, 
+         straw_id, 
+         dm_gm2 = emmean)
+
+d2b %>% 
+  ggplot(aes(dm_gm2))+
+  geom_histogram()
+
+#--now scale
+d2c <- 
+  d2b %>% 
+  ungroup() %>% 
+  mutate(dm_gm2_sc = dm_gm2/max(dm_gm2))
+
+d2c %>% 
+  ggplot(aes(dm_gm2_sc))+
+  geom_histogram()
 
 d2 <- 
-  d2b %>% 
-  select(eu_id, fall_bio)
+  d2c %>% 
+  mutate(criteria = "fallbio") %>% 
+  select(-dm_gm2, value = dm_gm2_sc)
+
 
 # 3. grain yields GOOD--------------------------------------------------
 
+#--get total grain yields over all years for each eu
 d3a <- 
-  cents_cropyields %>% 
-  left_join(cents_eukey) %>% 
-  mutate(year = year(date2)) %>% 
-  group_by(eu_id, year) %>% 
-  summarise(grain = mean(yield_dry_Mgha, na.rm = T))
-
-#--sum across years
-d3 <- 
+  read_csv("data/stats/figs_emmeans/starburst-emmeans-yield.csv")
+  
+#--simplify dataset
+d3b <- 
   d3a %>% 
-  group_by(eu_id) %>% 
-  summarise(grain = sum(grain))
+  select(cctrt_id, till_id, straw_id, yield = emmean)
 
-d3 %>% 
-  ggplot(aes(grain)) +
+d3b %>% 
+  ggplot(aes(yield))+
   geom_histogram()
 
-d3
+#--now scale
+d3c <- 
+  d3b %>% 
+  ungroup() %>% 
+  mutate(yield_sc = yield/max(yield))
 
-# 4. PLI BAD------------------------------------------------------------------
+d3c %>% 
+  ggplot(aes(yield_sc))+
+  geom_histogram()
+
+d3 <- 
+  d3c %>% 
+  mutate(criteria = "yield") %>% 
+  select(-yield, value = yield_sc)
+
+# 4. PLI BAD, switch scale------------------------------------------------------------------
 
 d4a <- 
-  read_csv("data/tidy_pesticide-load-by-eu.csv") %>% 
-  left_join(cents_eukey) %>% 
-  group_by(eu_id, year) %>% 
-  summarise(value2 = mean(load_ha, na.rm = T)) %>% 
-  ungroup()
+  read_csv("data/tidy_pesticide-load-by-eu.csv")
 
-#--add across years
-d4 <- 
+#--get total load over years for each eu
+d4b <- 
   d4a %>% 
   group_by(eu_id) %>% 
-  summarise(pli = sum(value2)) 
+  summarise(load = sum(load_ha, na.rm = T)) %>% 
+  ungroup()
 
-d4 %>% 
-  ggplot(aes(pli)) +
+#--mean value for each cc, till, straw
+d4c <- 
+  d4b %>% 
+  left_join(cents_eukey) %>% 
+  group_by(cctrt_id, till_id, straw_id) %>% 
+  summarise(load = mean(load))
+
+d4c %>% 
+  ggplot(aes(load))+
   geom_histogram()
+
+#--now scale
+d4d <- 
+  d4c %>% 
+  ungroup() %>% 
+  mutate(load = load/max(load))
+
+d4d %>% 
+  ggplot(aes(load))+
+  geom_histogram()
+
+#--now switch scales, highest load is actually worst
+d4e <- 
+  d4d %>% 
+  mutate(load_rev = 1 - load)
+
+d4e %>% 
+  ggplot(aes(load_rev))+
+  geom_histogram()
+
+d4 <- 
+  d4e %>% 
+  mutate(criteria = "minitox") %>% 
+  select(-load, value = load_rev)
 
 # 5. spring perennial weeds BAD-----------------------------------------------------------
 
 #--total cirar and equar counted (perenn weeds)
-#--sum across years for each eu
-d5 <- 
-  cents_spweedcount %>% 
-  filter(weed_type %in% c("cirar", "equar")) %>%
-  mutate(year = year(date2)) %>% 
-  group_by(eu_id) %>% 
-  summarise(spweeds_count = sum(count))
 
-d5 %>% 
-  ggplot(aes(spweeds_count)) +
+d5a <- read_csv("data/stats/figs_emmeans/starburst-emmeans-pweeds.csv")
+
+#--simplify
+d5b <- 
+  d5a %>% 
+  select(cctrt_id, till_id, straw_id, pweed = response)
+
+d5b %>% 
+  ggplot(aes(pweed))+
   geom_histogram()
 
+#--now scale
+d5c <- 
+  d5b %>% 
+  ungroup() %>% 
+  mutate(pweed = pweed/max(pweed))
 
-# 6. combine -------------------------------------------------------
+d5c %>% 
+  ggplot(aes(pweed))+
+  geom_histogram()
+
+#--now switch scales, highest load is actually worst
+d5e <- 
+  d5c %>% 
+  mutate(pweed_rev = 1 - pweed)
+
+d5e %>% 
+  ggplot(aes(pweed_rev))+
+  geom_histogram()
+
+d5 <- 
+  d5e %>% 
+  mutate(criteria = "perennweeds") %>% 
+  select(-pweed, value = pweed_rev)
+
+
+# 6. soil protection ------------------------------------------------------
+
+#--get total coverage (all cats) per subrep 
+
+d6a <- read_csv("data/stats/figs_emmeans/starburst-emmeans-soilcover.csv")
+
+#--simplify
+d6b <- 
+  d6a %>% 
+  select(cctrt_id, till_id, straw_id, pctcov = response)
+
+d6b %>% 
+  ggplot(aes(pctcov))+
+  geom_histogram()
+
+#--now scale
+d6c <- 
+  d6b %>% 
+  ungroup() %>% 
+  mutate(pctcov_sc = pctcov/max(pctcov))
+
+d6c %>% 
+  ggplot(aes(pctcov_sc))+
+  geom_histogram()
 
 d6 <- 
-  d1 %>%
-  left_join(d2) %>% 
-  left_join(d3) %>%
-  left_join(d4) %>% 
-  left_join(d5)
-            
-
-d6
+  d6c %>% 
+  mutate(criteria = "pctcov") %>% 
+  select(-pctcov, value = pctcov_sc)
 
 
-# 7. get average for each cropsys --------------------------------------------------
+
+# 7. combine -------------------------------------------------------
 
 d7 <- 
-  d6 %>% 
-  pivot_longer(fall_ecovalue:ncol(.)) %>% 
-  left_join(cents_eukey) %>% 
-  group_by(till_id, cctrt_id, straw_id, name) %>% 
-  summarise(value = mean(value)) %>% 
-  mutate(cropsys = paste(till_id, cctrt_id, straw_id)) %>% 
-  ungroup() #%>% 
-#select(year, cropsys, name, value)
+  d1 %>%
+  bind_rows(d2) %>% 
+  bind_rows(d3) %>% 
+  bind_rows(d4) %>% 
+  bind_rows(d5) %>% 
+  bind_rows(d6) %>% 
+  rename(name = criteria)
 
+d7
 
-# 8. scale from 0-1 -------------------------------------------------------
-#--scale everything on absolute terms
-
-d8a <- 
-  d7 %>% 
-  group_by(name) %>% 
-  mutate(mx = max(value),
-            sc_value = value/mx)
-
-
-d8a %>% 
-  ggplot(aes(cropsys, sc_value)) +
-  geom_point(aes(color = name)) +
-  coord_flip() +
-  facet_grid(.~name)
-
-d8b <- 
-  d8a %>% 
-  select(cropsys, name, sc_value)
-
-#--adjust for bad versus good outcomes
-d8 <- 
-  d8b %>% 
-  mutate(sc_value2 = case_when(
-    name == "pli" ~ 1-sc_value,
-    name == "spweeds_count" ~ 1-sc_value,
-    TRUE ~ sc_value)
-  )
-  
-d8 %>% 
-  filter(cropsys == "notill mix_E removed")
-
-# 9. use typology weightings ----------------------------------------------
-
-d9a <- 
-  d8 %>% 
-  left_join(d0, relationship = "many-to-many")
-
-
-d9b <- 
-  d9a %>% 
-  mutate(wgtd_value = sc_value2 * weight/100) 
-
-d9c <- 
-  d9b %>% 
-  group_by(farmer_type, cropsys) %>% 
-  summarise(valuetot = sum(wgtd_value)) 
-
-
-d9c %>% 
-  filter(is.na(farmer_type))
-
-
-d9c %>% 
-  ggplot(aes(reorder(cropsys, valuetot), valuetot, fill = farmer_type)) +
-  geom_col(position = "dodge") +
-  coord_flip() +
-  facet_wrap(~farmer_type)
-
-d9d <- 
-  d9c %>% 
-  group_by(farmer_type) %>% 
-  slice_max(n = 3, order_by = valuetot)
-
-d9d %>% 
-  ggplot(aes(farmer_type, valuetot, fill = cropsys)) +
-  geom_col(position = "dodge")
-
-d9d <- 
-  d9c %>% 
-  group_by(farmer_type) %>% 
-  slice_min(n = 3, order_by = valuetot)
-
-d9d %>% 
-  ggplot(aes(farmer_type, valuetot, fill = cropsys)) +
-  geom_col(position = "dodge")
-
-d9 <- 
-  d9c 
 
 # write -------------------------------------------------------------------
 
-d9 %>% 
-  write_csv("data/tidy_typology-values.csv")
+d7 %>% 
+  write_csv("data/tidy_multicriteria-values.csv")
 

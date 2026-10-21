@@ -102,6 +102,7 @@ emmeans(m2, specs = ~ weayear, type = "response") |>
 em0 <- 
   emmeans(m2, specs = ~ weayear*cctrt_id, type = "response") 
 
+pairs(em0)
 #--cctrt x weayear
 em1a <- 
   emmeans(m2, specs = ~ weayear|cctrt_id, type = "response") 
@@ -109,7 +110,6 @@ em1a <-
 #--should be the same results, sliced differently
 em1b <- 
   emmeans(m2, specs = ~ cctrt_id|weayear, type = "response") 
-
 
 cld0 <- multcomp::cld(em0, Letters = letters)  |> 
   as.data.frame()
@@ -126,6 +126,8 @@ cld1 <- left_join(cld1a, cld1b)
 #--to get a feeling
 em2 <- 
   emmeans(m2, specs = ~ cctrt_id, type = "response") 
+
+pairs(em2)
 
 #--these letters make sense
 cld1 <- 
