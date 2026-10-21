@@ -52,7 +52,7 @@ d3 |>
   #   linetype = guide_legend(reverse = TRUE, override.aes = list(size = 1))) +
   #scale_y_reverse(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)) +
   labs(x = NULL,
-       y = "Relative value (0-1)",
+       y = "Relative utility (0-1)",
        color = "Cover crop system",
        linewidth = "Tillage system",
        linetype = "Residue system") +

@@ -3,6 +3,7 @@
 # notes: starting with basic response variable w/maarit's help
 #--1 april 2025 - cleaned up and picked a model
 #--9 april 2026 - rerunning and cleaning up
+#--21 oct 2026 - checking estimates based on reviewer comment
 
 library(tidyverse)
 library(CENTSdata)
@@ -137,6 +138,9 @@ emmeans(m5, specs = ~ cctrt_id|till_id|straw_id, type = "response") |>
   write_csv("data/stats/figs_emmeans/starburst-emmeans-yield.csv")
 
 # interpret chosen model --------------------------------------------------
+
+#--crop means for each year
+emmeans(m5, ~crop)
 
 #--rad_M is higher than all of the others?
 em1 <- emmeans(m5, ~cctrt_id)

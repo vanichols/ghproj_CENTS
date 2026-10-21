@@ -1,5 +1,6 @@
 #--use emmeans estimates for yield figure
 #--9 april updated to include yields separated by tillage effect (which was sig)
+#--21 oct 2026 eliminate dk average lines, they are distracting
 
 library(CENTSdata)
 library(patchwork)
@@ -238,8 +239,8 @@ p4
 p4 <- 
   d %>% 
   ggplot(aes(cctrt_nice, emmean)) +
-  geom_hline(data = dk,
-             aes(yintercept = yield), linetype = "dashed") +
+  # geom_hline(data = dk,
+  #            aes(yintercept = yield), linetype = "dashed") +
   geom_point(aes(cctrt_nice, yield_dry_Mgha), 
              color = "gray",
              shape = 4, show.legend = F) +
